@@ -1,11 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import App from "./App";
+import { WorkItemList } from "./components/work-item-list";
 import "./index.css";
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <WorkItemList />
   </React.StrictMode>,
   document.getElementById("root")
 );
