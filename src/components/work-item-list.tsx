@@ -11,6 +11,7 @@ export const WorkItemList = () => {
 };
 
 async function getAllItems() {
+  const start = performance.now();
   const allIds = await getAllWorkItemIds();
   const pagedIds = getPagedIds(allIds);
 
@@ -22,6 +23,9 @@ async function getAllItems() {
   );
 
   const allItems = pages.flat();
+
+  const duration = performance.now() - start;
+  console.log((duration / 1000).toFixed(2));
 
   return allItems;
 }
