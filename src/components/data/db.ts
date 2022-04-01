@@ -5,6 +5,7 @@ export interface DbWorkItem {
   rev: number;
   title: string;
   workItemType: string;
+  changedDate: Date;
 }
 
 export class Db extends Dexie {
@@ -13,7 +14,9 @@ export class Db extends Dexie {
   constructor() {
     super("adohpc_store");
     this.version(1).stores({
-      workItems: "id, title, workItemType",
+      workItems: "id, title, workItemType, changedDate",
     });
   }
 }
+
+export const db = new Db();

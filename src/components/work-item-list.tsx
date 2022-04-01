@@ -1,11 +1,15 @@
+import { useLiveQuery } from "dexie-react-hooks";
 import FlexSearch from "flexsearch";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { db, DbWorkItem } from "./data/db";
 import { BugIcon } from "./icons/bug-icon";
 import { CheckboxIcon } from "./icons/checkbox-icon";
 import { CrownIcon } from "./icons/crown-icon";
 import { TrophyIcon } from "./icons/trophy-icon";
-import { patHeader } from "./shared/auth";
-import { env } from "./shared/env";
+import { patHeader } from "./utils/auth";
+import { env } from "./utils/env";
+
+const pollingInterval = 10;
 
 const index = new FlexSearch.Document<IndexedItem>({
   preset: "match",
@@ -13,38 +17,49 @@ const index = new FlexSearch.Document<IndexedItem>({
   tokenize: "full",
   document: {
     id: "id",
-    index: ["System.Title"],
+    index: ["title"],
   },
 });
 
 interface IndexedItem {
   id: number;
-  "System.Title": string;
+  title: string;
 }
 
 export const WorkItemList = () => {
   const [query, setQuery] = useState("");
-  const [allItems, setAllItems] = useState<WorkItem<BasicFields>[]>([]);
-  const [searchResult, setSearchResult] = useState<WorkItem<BasicFields>[]>([]);
+  const [searchResult, setSearchResult] = useState<DbWorkItem[]>([]);
+
+  // useEffect(() => {
+  //   init();
+  // }, []);
+
+  const recentItems = useLiveQuery(() => db.workItems.orderBy("changedDate").reverse().limit(100).toArray());
+  const allItemsKeys = useLiveQuery(() => db.workItems.toCollection().primaryKeys());
 
   useEffect(() => {
-    indexAllItems().then(setAllItems);
-  }, []);
+    if (!allItemsKeys) return;
 
-  const recentItems = useMemo(() => allItems.slice(0, 100), [allItems]);
+    indexAllItems();
+  }, [allItemsKeys]);
+
+  useEffect(() => {
+    const interval = pollingSync();
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!query.trim().length) {
       setSearchResult([]);
     }
 
-    index.searchAsync(query).then((matches) => {
-      const titleMatchIds = matches.find((match) => match.field === "System.Title")?.result ?? [];
+    index.searchAsync(query).then(async (matches) => {
+      const titleMatchIds = matches.find((match) => match.field === "title")?.result ?? [];
       // TODO index the index of each item in the allItems array, for O(1) lookup
-      const matchedItems = titleMatchIds.map((id) => allItems.find((item) => item.id === id)!);
-      setSearchResult(matchedItems);
+      const matchedItems = await db.workItems.bulkGet(titleMatchIds);
+      setSearchResult(matchedItems as DbWorkItem[]);
     });
-  }, [allItems, query]);
+  }, [allItemsKeys, query]);
 
   const typeToIcon = useCallback((type: string) => {
     switch (type) {
@@ -59,8 +74,16 @@ export const WorkItemList = () => {
     }
   }, []);
 
+  const resetDb = useCallback(() => {
+    db.delete().then(() => location.reload());
+  }, []);
+
   return (
     <div>
+      <div>
+        <button onClick={resetDb}>Reset DB</button>
+        <button onClick={sync}>Sync</button>
+      </div>
       <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
       {query.length > 0 && (
         <section>
@@ -68,8 +91,8 @@ export const WorkItemList = () => {
           <ul>
             {searchResult.map((item) => (
               <li key={item.id}>
-                {typeToIcon(item.fields["System.WorkItemType"])}
-                {item.fields["System.Title"]}
+                {typeToIcon(item.workItemType)}
+                {item.title}
               </li>
             ))}
           </ul>
@@ -79,10 +102,10 @@ export const WorkItemList = () => {
       <section>
         <h2>Recent</h2>
         <ul>
-          {recentItems.map((item) => (
+          {recentItems?.map((item) => (
             <li key={item.id}>
-              {typeToIcon(item.fields["System.WorkItemType"])}
-              {item.fields["System.Title"]}
+              {typeToIcon(item.workItemType)}
+              {item.title}
             </li>
           ))}
         </ul>
@@ -91,30 +114,132 @@ export const WorkItemList = () => {
   );
 };
 
+async function sync() {
+  const allIds = await getAllWorkItemIds();
+  const allDeletedIdsAsync = getAllDeletedWorkItemIds();
+  const idPages = getIdPages(allIds);
+  console.log(`[sync] ${allIds.length} items, ${idPages.length} pages`);
+
+  // Scenarios where re-population is required:
+  // - Empty store <- handled here
+  // - Data corrupted
+  // - DB migrated
+  const count = await db.workItems.count();
+  if (!count) {
+    const pages = await Promise.all(idPages.map(getWorkItems.bind(null, ["System.Title", "System.WorkItemType", "System.ChangedDate"])));
+    const allItems = pages.flat();
+    await initializeDb(allItems);
+    console.log(`[sync] populated with all dataset`);
+  } else {
+    for (const [index, ids] of idPages.entries()) {
+      const remoteItems = await getWorkItems(["System.Title", "System.WorkItemType", "System.ChangedDate"], ids);
+
+      const localItems = await db.workItems.bulkGet(remoteItems.map((item) => item.id));
+
+      const syncPlan = getPageDiff(remoteItems, localItems);
+      console.log(`[sync] page ${index}: +${syncPlan.addedIds.length} !${syncPlan.dirtyIds.length} *${syncPlan.cleanIds.length}`);
+      if (syncPlan.corruptIds.length) throw new Error("Data corrupted");
+
+      const addedItems = remoteItems.filter((item) => syncPlan.addedIds.includes(item.id));
+      const dirtItems = remoteItems.filter((item) => syncPlan.dirtyIds.includes(item.id));
+
+      await putDbItems(addedItems);
+      await putDbItems(dirtItems);
+
+      // local items more recent than MRCI is either dirty or deleted
+      if (syncPlan.cleanIds.length) {
+        break;
+      }
+    }
+
+    const allDeletedIds = await allDeletedIdsAsync;
+    const deletedIds = await deleteDbItems(allDeletedIds);
+    console.log(`[sync] deleted ${deletedIds.length}`);
+  }
+}
+
+function pollingSync() {
+  return setInterval(sync, pollingInterval * 1000);
+}
+
+// delete is not handled yet. Require re-population
+interface PageDiffSummary {
+  addedIds: number[];
+  dirtyIds: number[];
+  cleanIds: number[];
+  corruptIds: number[];
+}
+
+function getPageDiff(remoteItems: WorkItem[], localItems: (DbWorkItem | undefined)[]): PageDiffSummary {
+  const summary: PageDiffSummary = {
+    addedIds: [],
+    dirtyIds: [],
+    cleanIds: [],
+    corruptIds: [],
+  };
+
+  remoteItems.map((remote, index) => {
+    const local = localItems[index];
+    if (!local) {
+      summary.addedIds.push(remote.id);
+    } else if (remote.rev > local.rev) {
+      summary.dirtyIds.push(remote.id);
+    } else if (remote.rev === local.rev) {
+      summary.cleanIds.push(remote.id);
+    } else {
+      summary.corruptIds.push(remote.id);
+    }
+  });
+
+  return summary;
+}
+
 async function indexAllItems() {
   const start = performance.now();
-  const allIds = await getAllWorkItemIds();
-  const pagedIds = getPagedIds(allIds);
 
-  const pages = await Promise.all(
-    pagedIds.map(async (ids) => {
-      const items = await getWorkItems(["System.Title", "System.WorkItemType"], ids);
-      items.map((item) =>
-        index.add({
-          id: item.id,
-          "System.Title": item.fields["System.Title"],
-        })
-      );
-      return items.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+  db.workItems.each((item) =>
+    index.add({
+      id: item.id,
+      title: item.title,
     })
   );
 
-  const allItems = pages.flat();
+  const duration = (performance.now() - start).toFixed(0);
+  console.log(`[index] done ${duration} ms`);
+}
 
-  const duration = performance.now() - start;
-  console.log((duration / 1000).toFixed(2));
+async function initializeDb(allItems: WorkItem[]) {
+  await db.workItems.clear();
+  await putDbItems(allItems);
+}
 
-  return allItems;
+async function putDbItems(items: WorkItem[]) {
+  await db.workItems.bulkPut(
+    items.map((item) => ({
+      id: item.id,
+      rev: item.rev,
+      title: item.fields["System.Title"],
+      changedDate: new Date(item.fields["System.ChangedDate"]),
+      workItemType: item.fields["System.WorkItemType"],
+    }))
+  );
+}
+
+async function deleteDbItems(ids: number[]): Promise<number[]> {
+  const foundItems = await db.workItems.bulkGet(ids);
+  const foundIds = foundItems.filter((item) => item).map((item) => item!.id);
+  await db.workItems.bulkDelete(foundIds);
+  return foundIds;
+}
+
+function getAllDeletedWorkItemIds(): Promise<number[]> {
+  return fetch(`https://dev.azure.com/Microsoft/OS/HITS/_apis/wit/wiql/${env.rootDeletedQueryId}?api-version=6.0`, {
+    headers: { ...patHeader },
+  })
+    .then((result) => result.json())
+    .then((result) => {
+      return (result.workItems as { id: number }[]).map((item) => item.id);
+    });
 }
 
 function getAllWorkItemIds(): Promise<number[]> {
@@ -127,7 +252,7 @@ function getAllWorkItemIds(): Promise<number[]> {
     });
 }
 
-function getWorkItems(fields: string[], ids: number[]): Promise<WorkItem<BasicFields>[]> {
+function getWorkItems(fields: string[], ids: number[]): Promise<WorkItem[]> {
   return fetch(`https://dev.azure.com/Microsoft/OS/_apis/wit/workitemsbatch?api-version=6.0`, {
     method: "post",
     headers: { ...patHeader, "Content-Type": "application/json" },
@@ -137,30 +262,31 @@ function getWorkItems(fields: string[], ids: number[]): Promise<WorkItem<BasicFi
     }),
   })
     .then((result) => result.json())
-    .then((result: BatchSummary<BasicFields>) => {
+    .then((result: BatchSummary) => {
       return result.value;
     });
 }
 
-function getPagedIds(allIds: number[]): number[][] {
+function getIdPages(allIds: number[]): number[][] {
   const pages: number[][] = [];
   for (var i = 0; i < allIds.length; i += 200) pages.push(allIds.slice(i, i + 200));
   return pages;
 }
 
-interface BatchSummary<FieldsType extends {}> {
+interface BatchSummary {
   count: number;
-  value: WorkItem<FieldsType>[];
+  value: WorkItem[];
 }
 
-interface WorkItem<FieldsType extends {}> {
+interface WorkItem {
   id: number;
   rev: number;
-  fields: FieldsType;
+  fields: BasicFields;
   url: string;
 }
 
 interface BasicFields {
   "System.Title": string;
   "System.WorkItemType": string;
+  "System.ChangedDate": string;
 }
