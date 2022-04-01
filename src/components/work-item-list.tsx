@@ -30,10 +30,6 @@ export const WorkItemList = () => {
   const [query, setQuery] = useState("");
   const [searchResult, setSearchResult] = useState<DbWorkItem[]>([]);
 
-  // useEffect(() => {
-  //   init();
-  // }, []);
-
   const recentItems = useLiveQuery(() => db.workItems.orderBy("changedDate").reverse().limit(100).toArray());
   const allItemsKeys = useLiveQuery(() => db.workItems.toCollection().primaryKeys());
 
@@ -48,6 +44,7 @@ export const WorkItemList = () => {
     return () => window.clearInterval(interval);
   }, []);
 
+  // TODO index update might occur after query execution. Need to make this dependency explicit
   useEffect(() => {
     if (!query.trim().length) {
       setSearchResult([]);
@@ -55,7 +52,6 @@ export const WorkItemList = () => {
 
     index.searchAsync(query).then(async (matches) => {
       const titleMatchIds = matches.find((match) => match.field === "title")?.result ?? [];
-      // TODO index the index of each item in the allItems array, for O(1) lookup
       const matchedItems = await db.workItems.bulkGet(titleMatchIds);
       setSearchResult(matchedItems as DbWorkItem[]);
     });
