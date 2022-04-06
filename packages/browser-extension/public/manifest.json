@@ -1,0 +1,10 @@
+{
+  "name": "Azure DevOps Turbo",
+  "description": "Quickly find work items",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "index.html",
+    "options_page": "options.html"
+  }
+}

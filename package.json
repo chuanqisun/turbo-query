@@ -1,26 +1,26 @@
 {
-  "name": "adohpc",
+  "name": "root",
+  "version": "1.0.0",
   "private": true,
-  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "npm run dev -w packages/browser-extension",
+    "build": "npm run build -w packages/browser-extension",
+    "preview": "npm run preview -w packages/browser-extension"
   },
-  "dependencies": {
-    "dexie": "^3.2.1",
-    "dexie-react-hooks": "^1.1.1",
-    "flexsearch": "^0.7.21",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chuanqisun/azure-devops-performance-edition.git"
   },
-  "devDependencies": {
-    "@types/flexsearch": "^0.7.3",
-    "@types/react": "^17.0.33",
-    "@types/react-dom": "^17.0.10",
-    "@vitejs/plugin-react": "^1.0.7",
-    "prettier": "^2.6.1",
-    "typescript": "^4.5.4",
-    "vite": "^2.9.0"
-  }
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chuanqisun/azure-devops-performance-edition/issues"
+  },
+  "homepage": "https://github.com/chuanqisun/azure-devops-performance-edition#readme",
+  "workspaces": [
+    "packages/*"
+  ]
 }
