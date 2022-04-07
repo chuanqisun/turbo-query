@@ -106,19 +106,29 @@ export const PopupWindow = () => {
     return () => window.clearInterval(interval);
   }, []);
 
+  // recent
   useEffect(() => {
     if (!recentFilteredItems) return;
+    if (query.trim().length) return;
 
-    if (!query.trim().length) {
-      setSearchResult(recentFilteredItems);
-    } else {
-      index.searchAsync(query).then(async (matches) => {
-        const titleMatchIds = matches.find((match) => match.field === "comboTitle")?.result ?? [];
-        const filteredMatchIds = titleMatchIds.filter((id) => allFilteredItemIds?.includes(id)); // Search can wait for init
-        db.workItems.bulkGet(filteredMatchIds).then((items) => setSearchResult(items as DbWorkItem[]));
-      });
-    }
-  }, [recentFilteredItems, allFilteredItemIds, indexRev, query]);
+    setSearchResult(recentFilteredItems);
+  }, [recentFilteredItems, query]);
+
+  // search
+  useEffect(() => {
+    if (!allFilteredItemIds) return;
+
+    if (!query.trim().length) return;
+
+    // TODO perf bottleneck. Need a way to limit number of search results but we need to search all to be exhaustive
+    index.searchAsync(query, allFilteredItemIds.length).then(async (matches) => {
+      const titleMatchIds = matches.find((match) => match.field === "comboTitle")?.result ?? [];
+      const filteredMatchIds = titleMatchIds.filter((id) => allFilteredItemIds?.includes(id)); // Search can wait for init
+      db.workItems.bulkGet(filteredMatchIds).then((items) => setSearchResult(items as DbWorkItem[]));
+    });
+
+    // Use Tags, then fire multiple parallel search for each facet.
+  }, [allFilteredItemIds, indexRev, query]);
 
   const typeToIcon = useCallback((type: string) => {
     switch (type) {
