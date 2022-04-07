@@ -8,7 +8,8 @@ import { CrownIcon } from "./icons/crown-icon";
 import { TrophyIcon } from "./icons/trophy-icon";
 import "./popup-window.css";
 import { getPatHeader } from "./utils/auth";
-import { getConfig } from "./utils/config";
+import { Config, getConfig } from "./utils/config";
+import { selectElementContent } from "./utils/dom";
 import { env } from "./utils/env";
 
 const pollingInterval = 10;
@@ -31,16 +32,24 @@ interface IndexedItem {
 export const PopupWindow = () => {
   const [query, setQuery] = useState("");
   const [searchResult, setSearchResult] = useState<DbWorkItem[]>([]);
+  const [activeTypes, setActiveTypes] = useState<string[]>(["Deliverable", "Bug", "Scenario"]);
+  const [config, setConfig] = useState<Config>();
 
-  const [activeTypes, setActiveTypes] = useState<string[]>(["deliverable", "bug", "scenario"]);
+  useEffect(() => {
+    getConfig().then(setConfig);
+  }, []);
 
-  const recentItems = useLiveQuery(() => db.workItems.orderBy("changedDate").reverse().limit(100).toArray());
+  const filteredItems = useLiveQuery(() => db.workItems.where("workItemType").anyOf(activeTypes).reverse().sortBy("changedDate"), [activeTypes]);
+
   const allItemsKeys = useLiveQuery(() => db.workItems.toCollection().primaryKeys());
+
+  const [indexRev, setIndexRev] = useState(0);
 
   useEffect(() => {
     if (!allItemsKeys) return;
-
     indexAllItems();
+
+    setIndexRev((prev) => prev + 1);
   }, [allItemsKeys]);
 
   useEffect(() => {
@@ -48,29 +57,30 @@ export const PopupWindow = () => {
     return () => window.clearInterval(interval);
   }, []);
 
-  // TODO index update might occur after query execution. Need to make this dependency explicit
   useEffect(() => {
-    if (!query.trim().length) {
-      setSearchResult([]);
-    }
+    if (!filteredItems) return;
 
-    index.searchAsync(query).then(async (matches) => {
-      const titleMatchIds = matches.find((match) => match.field === "title")?.result ?? [];
-      const matchedItems = await db.workItems.bulkGet(titleMatchIds);
-      setSearchResult(matchedItems as DbWorkItem[]);
-    });
-  }, [allItemsKeys, query]);
+    if (!query.trim().length) {
+      setSearchResult(filteredItems.slice(0, 100) ?? []);
+    } else {
+      index.searchAsync(query).then(async (matches) => {
+        const titleMatchIds = matches.find((match) => match.field === "title")?.result ?? [];
+        const matchedItems = filteredItems.filter((item) => titleMatchIds.includes(item.id));
+        setSearchResult(matchedItems as DbWorkItem[]);
+      });
+    }
+  }, [filteredItems, indexRev, query]);
 
   const typeToIcon = useCallback((type: string) => {
     switch (type) {
       case "Deliverable":
-        return <TrophyIcon width={16} fill="#005eff" />;
+        return <TrophyIcon className="work-item__icon" width={16} fill="#005eff" />;
       case "Task":
-        return <CheckboxIcon width={16} fill="#f2cb1d" />;
+        return <CheckboxIcon className="work-item__icon" width={16} fill="#f2cb1d" />;
       case "Scenario":
-        return <CrownIcon width={16} fill="#773b93" />;
+        return <CrownIcon className="work-item__icon" width={16} fill="#773b93" />;
       case "Bug":
-        return <BugIcon width={16} fill="#cc293d" />;
+        return <BugIcon className="work-item__icon" width={16} fill="#cc293d" />;
     }
   }, []);
 
@@ -94,58 +104,56 @@ export const PopupWindow = () => {
     });
   }, []);
 
+  const handleClickId = useCallback<React.MouseEventHandler>((e: React.MouseEvent<HTMLSpanElement>) => selectElementContent(e.target as HTMLSpanElement), []);
+
   return (
     <div>
-      <div>
-        <button onClick={resetDb}>Reset DB</button>
-        <button onClick={sync}>Sync</button>
-        <button onClick={openConfig}>Config</button>
+      <div className="query-bar">
+        <div className="query-bar__input-group">
+          <div>
+            <button onClick={openConfig}>Config</button>
+            <button onClick={resetDb}>Reset DB</button>
+            <button onClick={sync}>Sync</button>
+          </div>
+          <input className="query-bar__input" type="search" autoFocus value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
+        <fieldset>
+          <legend>Filters</legend>
+          <div className="type-filter-list">
+            <label>
+              <input type="checkbox" name="type" value="Scenario" onChange={onToggleActiveCheckbox} checked={activeTypes.includes("Scenario")} />
+              <CrownIcon width={16} fill="#773b93" />
+            </label>
+            <label>
+              <input type="checkbox" name="type" value="Deliverable" onChange={onToggleActiveCheckbox} checked={activeTypes.includes("Deliverable")} />
+              <TrophyIcon width={16} fill="#005eff" />
+            </label>
+            <label>
+              <input type="checkbox" name="type" value="Bug" onChange={onToggleActiveCheckbox} checked={activeTypes.includes("Bug")} />
+              <BugIcon width={16} fill="#cc293d" />
+            </label>
+            <label>
+              <input type="checkbox" name="type" value="Task" onChange={onToggleActiveCheckbox} checked={activeTypes.includes("Task")} />
+              <CheckboxIcon width={16} fill="#f2cb1d" />
+            </label>
+          </div>
+        </fieldset>
       </div>
-      <input type="search" autoFocus value={query} onChange={(e) => setQuery(e.target.value)} />
-      <fieldset>
-        <legend>Types</legend>
-        <label>
-          <input type="checkbox" name="type" value="scenario" onChange={onToggleActiveCheckbox} checked={activeTypes.includes("scenario")} />
-          <CrownIcon width={16} fill="#773b93" />
-        </label>
-        <label>
-          <input type="checkbox" name="type" value="deliverable" onChange={onToggleActiveCheckbox} checked={activeTypes.includes("deliverable")} />
-          <TrophyIcon width={16} fill="#005eff" />
-        </label>
-        <label>
-          <input type="checkbox" name="type" value="bug" onChange={onToggleActiveCheckbox} checked={activeTypes.includes("bug")} />
-          <BugIcon width={16} fill="#cc293d" />
-        </label>
-        <label>
-          <input type="checkbox" name="type" value="task" onChange={onToggleActiveCheckbox} checked={activeTypes.includes("task")} />
-          <CheckboxIcon width={16} fill="#f2cb1d" />
-        </label>
-      </fieldset>
-      {query.length > 0 && (
-        <section>
-          <h2>Search</h2>
-          <ul>
-            {searchResult.map((item) => (
-              <li key={item.id}>
-                {typeToIcon(item.workItemType)}
+      <ul className="work-item-list">
+        {searchResult.map((item) => (
+          <li className="work-item" key={item.id}>
+            {typeToIcon(item.workItemType)}
+            <div>
+              <span className="work-item__id" onClick={handleClickId}>
+                {item.id}
+              </span>{" "}
+              <a className="work-item__link" target="_blank" href={`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}>
                 {item.title}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section>
-        <h2>Recent</h2>
-        <ul>
-          {recentItems?.map((item) => (
-            <li key={item.id}>
-              {typeToIcon(item.workItemType)}
-              {item.title}
-            </li>
-          ))}
-        </ul>
-      </section>
+              </a>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

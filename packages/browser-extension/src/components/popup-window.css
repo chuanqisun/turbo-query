@@ -1,4 +1,71 @@
 #root {
   height: 400px;
-  overflow-y: auto;
+  overflow-y: scroll;
+}
+
+.query-bar {
+  position: sticky;
+  z-index: 200;
+  top: 0;
+  background: white;
+}
+
+.query-bar__input-group {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row-reverse;
+}
+
+.query-bar__input {
+  font-size: 14px;
+  padding: 2px 4px;
+}
+
+.type-filter-list {
+  display: flex;
+  gap: 8px;
+}
+
+.work-item-list {
+  list-style: none;
+}
+
+.work-item {
+  position: relative;
+
+  padding: 4px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.work-item__icon {
+  transform: translateY(1px);
+}
+
+.work-item__id {
+  color: #555;
+  position: relative;
+  z-index: 100;
+}
+.work-item__id:hover {
+  background-color: #ccc;
+}
+
+.work-item__link {
+  text-decoration: none;
+  color: black;
+}
+.work-item__link:where(:hover, :focus) {
+  text-decoration: underline;
+}
+.work-item__link::after {
+  content: "";
+  position: absolute;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
