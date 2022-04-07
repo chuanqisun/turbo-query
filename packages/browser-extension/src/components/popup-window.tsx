@@ -1,6 +1,6 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import FlexSearch from "flexsearch";
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { db, DbWorkItem } from "./data/db";
 import { BugIcon } from "./icons/bug-icon";
 import { CheckboxIcon } from "./icons/checkbox-icon";
@@ -31,6 +31,8 @@ interface IndexedItem {
 export const PopupWindow = () => {
   const [query, setQuery] = useState("");
   const [searchResult, setSearchResult] = useState<DbWorkItem[]>([]);
+
+  const [activeTypes, setActiveTypes] = useState<string[]>(["deliverable", "bug", "scenario"]);
 
   const recentItems = useLiveQuery(() => db.workItems.orderBy("changedDate").reverse().limit(100).toArray());
   const allItemsKeys = useLiveQuery(() => db.workItems.toCollection().primaryKeys());
@@ -76,13 +78,49 @@ export const PopupWindow = () => {
     db.delete().then(() => location.reload());
   }, []);
 
+  const openConfig = useCallback(() => {
+    chrome.runtime.openOptionsPage();
+  }, []);
+
+  const onToggleActiveCheckbox = useCallback<React.ChangeEventHandler<HTMLInputElement>>((e) => {
+    const value = e.target.getAttribute("value")!;
+
+    setActiveTypes((previous) => {
+      if (e.target.checked) {
+        return [...previous, value];
+      } else {
+        return previous.filter((item) => item !== value);
+      }
+    });
+  }, []);
+
   return (
     <div>
       <div>
         <button onClick={resetDb}>Reset DB</button>
         <button onClick={sync}>Sync</button>
+        <button onClick={openConfig}>Config</button>
       </div>
-      <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <input type="search" autoFocus value={query} onChange={(e) => setQuery(e.target.value)} />
+      <fieldset>
+        <legend>Types</legend>
+        <label>
+          <input type="checkbox" name="type" value="scenario" onChange={onToggleActiveCheckbox} checked={activeTypes.includes("scenario")} />
+          <CrownIcon width={16} fill="#773b93" />
+        </label>
+        <label>
+          <input type="checkbox" name="type" value="deliverable" onChange={onToggleActiveCheckbox} checked={activeTypes.includes("deliverable")} />
+          <TrophyIcon width={16} fill="#005eff" />
+        </label>
+        <label>
+          <input type="checkbox" name="type" value="bug" onChange={onToggleActiveCheckbox} checked={activeTypes.includes("bug")} />
+          <BugIcon width={16} fill="#cc293d" />
+        </label>
+        <label>
+          <input type="checkbox" name="type" value="task" onChange={onToggleActiveCheckbox} checked={activeTypes.includes("task")} />
+          <CheckboxIcon width={16} fill="#f2cb1d" />
+        </label>
+      </fieldset>
       {query.length > 0 && (
         <section>
           <h2>Search</h2>
