@@ -5,20 +5,22 @@
 
 .query-bar {
   position: sticky;
-  z-index: 200;
   top: 0;
   background: white;
+  z-index: 10;
 }
 
 .query-bar__input-group {
   display: flex;
   justify-content: space-between;
   flex-direction: row-reverse;
+  gap: 16px;
 }
 
 .query-bar__input {
   font-size: 14px;
   padding: 2px 4px;
+  width: 100%;
 }
 
 .type-filter-list {
@@ -31,8 +33,6 @@
 }
 
 .work-item {
-  position: relative;
-
   padding: 4px;
   display: grid;
   grid-template-columns: auto 1fr;
@@ -44,10 +44,9 @@
   transform: translateY(1px);
 }
 
+.work-item__type,
 .work-item__id {
-  color: #555;
-  position: relative;
-  z-index: 100;
+  color: #666;
 }
 .work-item__id:hover {
   background-color: #ccc;
@@ -55,17 +54,9 @@
 
 .work-item__link {
   text-decoration: none;
+  font-weight: 500;
   color: black;
 }
 .work-item__link:where(:hover, :focus) {
   text-decoration: underline;
-}
-.work-item__link::after {
-  content: "";
-  position: absolute;
-  z-index: 50;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
 }

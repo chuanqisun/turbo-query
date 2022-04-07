@@ -6,6 +6,11 @@ export interface DbWorkItem {
   title: string;
   workItemType: string;
   changedDate: Date;
+  assignedTo: DbUser;
+}
+
+export interface DbUser {
+  displayName: string;
 }
 
 export class Db extends Dexie {
