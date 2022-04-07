@@ -69,9 +69,11 @@ export const PopupWindow = () => {
     if (!allItemsKeys) return;
     const startTime = performance.now();
     indexAllItems().then(() => {
-      setIndexRev((prev) => prev + 1);
       const duration = performance.now() - startTime;
       console.log(`index updated ${duration.toFixed(2)}ms`);
+      setTimeout(() => {
+        setIndexRev((prev) => prev + 1);
+      }, 100); // potentially flexsearch bug: additional delay needed before indexing is done
     });
   }, [allItemsKeys]);
 
