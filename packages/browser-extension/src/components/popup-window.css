@@ -35,7 +35,7 @@
 .work-item {
   padding: 4px;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto auto 1fr;
   gap: 4px;
   font-size: 14px;
 }
@@ -59,4 +59,18 @@
 }
 .work-item__link:where(:hover, :focus) {
   text-decoration: underline;
+}
+
+.work-item__state {
+  display: inline-block;
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background-color: #b2b2b2;
+}
+.work-item__state[title="Completed"] {
+  background-color: #339933;
+}
+.work-item__state:where([title="Started"], [title="Committed"], [title="Resolved"]) {
+  background-color: #007acc;
 }

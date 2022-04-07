@@ -7,6 +7,8 @@ export interface DbWorkItem {
   workItemType: string;
   changedDate: Date;
   assignedTo: DbUser;
+  state: string;
+  iterationPath: string;
 }
 
 export interface DbUser {
@@ -19,7 +21,7 @@ export class Db extends Dexie {
   constructor() {
     super("adohpc_store");
     this.version(1).stores({
-      workItems: "id, title, workItemType, changedDate",
+      workItems: "id, title, changedDate",
     });
   }
 }

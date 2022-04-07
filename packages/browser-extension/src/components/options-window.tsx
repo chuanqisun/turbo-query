@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef } from "react";
+import { db } from "./data/db";
 
 export const OptionsWindow = () => {
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -18,6 +19,10 @@ export const OptionsWindow = () => {
       console.log({ ...configDict });
       Object.entries(configDict).forEach(([key, value]) => (formRef.current!.querySelector<HTMLInputElement>(`[name="${key}"]`)!.value = value));
     });
+  }, []);
+
+  const resetDb = useCallback(() => {
+    db.delete().then(() => location.reload());
   }, []);
 
   return (
@@ -65,7 +70,10 @@ export const OptionsWindow = () => {
         </div>
       </fieldset>
 
-      <button>Save</button>
+      <button type="submit">Save</button>
+      <button type="button" onClick={resetDb}>
+        Reset DB
+      </button>
     </form>
   );
 };
