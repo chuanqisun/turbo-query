@@ -18,14 +18,12 @@ const index = new FlexSearch.Document<IndexedItem>({
   document: {
     id: "id",
     index: ["fuzzyTokens"],
-    tag: "tags",
   },
 });
 
 interface IndexedItem {
   id: number;
   fuzzyTokens: string;
-  tags: string[];
 }
 
 export const PopupWindow = () => {
@@ -97,11 +95,7 @@ export const PopupWindow = () => {
   useEffect(() => {
     if (!query.trim().length) return;
 
-    const { text, tags } = parsedQuery;
-    console.log(`[query]`, { text, tags });
-
-    index.searchAsync(text, { index: "fuzzyTokens", tag: tags, bool: "and" }).then((matches) => {
-      console.log(matches);
+    index.searchAsync(query.trim(), { index: "fuzzyTokens" }).then((matches) => {
       const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
       db.workItems.bulkGet(titleMatchIds).then((items) => setSearchResult(items as DbWorkItem[]));
     });
@@ -130,12 +124,6 @@ export const PopupWindow = () => {
             placeholder='Search ("/")'
           />
         </div>
-      </div>
-      <div>
-        <span>"{parsedQuery.text}"</span>
-        {parsedQuery.tags.map((tag) => (
-          <span key={tag}>[{tag}]</span>
-        ))}
       </div>
       <ul className="work-item-list">
         {searchResult.map((item) => (
@@ -275,21 +263,10 @@ async function indexAllItems() {
   db.workItems.each((item) => {
     const fuzzyTokens = `${item.state} ${item.workItemType} ${item.id} ${item.assignedTo.displayName} ${getShortIteration(item.iterationPath)} ${item.title}`;
 
-    const tags = [
-      item.state.toLocaleLowerCase(),
-      item.workItemType.toLocaleLowerCase(),
-      item.id.toString(),
-      item.assignedTo.displayName.toLocaleLowerCase(),
-      getShortIteration(item.iterationPath).toLocaleLowerCase(),
-    ];
-
-    console.log(tags);
-
     indexTasks.push(
       index.addAsync(item.id, {
         id: item.id,
         fuzzyTokens,
-        tags,
       })
     );
   });
