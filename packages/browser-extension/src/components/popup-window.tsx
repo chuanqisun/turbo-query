@@ -146,8 +146,8 @@ export const PopupWindow = () => {
               >
                 {item.title}
               </a>{" "}
-              <span className="work-item__assigned-to">{item.assignedTo.displayName}</span>{" "}
-              <span className="work-item__assigned-to">{getShortIteration(item.iterationPath)}</span>
+              <span className="work-item__assigned-to">{item.assignedTo.displayName}</span>
+              <span className="work-item__path">{getShortIteration(item.iterationPath)}</span>
             </div>
           </li>
         ))}

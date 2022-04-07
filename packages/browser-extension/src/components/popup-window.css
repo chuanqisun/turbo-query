@@ -46,7 +46,7 @@
 
 .work-item__type,
 .work-item__id {
-  color: #666;
+  color: #333;
 }
 .work-item__id:hover {
   background-color: #ccc;
@@ -73,4 +73,12 @@
 }
 .work-item__state:where([title="Started"], [title="Committed"], [title="Resolved"]) {
   background-color: #007acc;
+}
+
+.work-item__path,
+.work-item__assigned-to {
+  color: #666;
+}
+.work-item__assigned-to::after {
+  content: " · ";
 }
