@@ -6,6 +6,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [react()],
   build: {
+    sourcemap: true,
     rollupOptions: {
       input: {
         popup: resolve(__dirname, "index.html"),

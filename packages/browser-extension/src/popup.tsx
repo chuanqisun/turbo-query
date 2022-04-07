@@ -1,11 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { WorkItemList } from "./components/work-item-list";
+import { PopupWindow } from "./components/popup-window";
 import "./index.css";
 
 ReactDOM.render(
   <React.StrictMode>
-    <WorkItemList />
+    <PopupWindow />
   </React.StrictMode>,
   document.getElementById("root")
 );

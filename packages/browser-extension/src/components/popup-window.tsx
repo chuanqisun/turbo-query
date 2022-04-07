@@ -6,7 +6,9 @@ import { BugIcon } from "./icons/bug-icon";
 import { CheckboxIcon } from "./icons/checkbox-icon";
 import { CrownIcon } from "./icons/crown-icon";
 import { TrophyIcon } from "./icons/trophy-icon";
-import { patHeader } from "./utils/auth";
+import "./popup-window.css";
+import { getPatHeader } from "./utils/auth";
+import { getConfig } from "./utils/config";
 import { env } from "./utils/env";
 
 const pollingInterval = 10;
@@ -26,7 +28,7 @@ interface IndexedItem {
   title: string;
 }
 
-export const WorkItemList = () => {
+export const PopupWindow = () => {
   const [query, setQuery] = useState("");
   const [searchResult, setSearchResult] = useState<DbWorkItem[]>([]);
 
@@ -228,8 +230,11 @@ async function deleteDbItems(ids: number[]): Promise<number[]> {
   return foundIds;
 }
 
-function getAllDeletedWorkItemIds(): Promise<number[]> {
-  return fetch(`https://dev.azure.com/Microsoft/OS/HITS/_apis/wit/wiql/${env.rootDeletedQueryId}?api-version=6.0`, {
+async function getAllDeletedWorkItemIds(): Promise<number[]> {
+  const config = await getConfig();
+  const patHeader = getPatHeader(config);
+
+  return fetch(`https://dev.azure.com/${config.org}/${config.project}/${config.team}/_apis/wit/wiql/${env.rootDeletedQueryId}?api-version=6.0`, {
     headers: { ...patHeader },
   })
     .then((result) => result.json())
@@ -238,8 +243,11 @@ function getAllDeletedWorkItemIds(): Promise<number[]> {
     });
 }
 
-function getAllWorkItemIds(): Promise<number[]> {
-  return fetch(`https://dev.azure.com/Microsoft/OS/HITS/_apis/wit/wiql/${env.rootQueryId}?api-version=6.0`, {
+async function getAllWorkItemIds(): Promise<number[]> {
+  const config = await getConfig();
+  const patHeader = getPatHeader(config);
+
+  return fetch(`https://dev.azure.com/${config.org}/${config.project}/${config.team}/_apis/wit/wiql/${env.rootQueryId}?api-version=6.0`, {
     headers: { ...patHeader },
   })
     .then((result) => result.json())
@@ -248,8 +256,11 @@ function getAllWorkItemIds(): Promise<number[]> {
     });
 }
 
-function getWorkItems(fields: string[], ids: number[]): Promise<WorkItem[]> {
-  return fetch(`https://dev.azure.com/Microsoft/OS/_apis/wit/workitemsbatch?api-version=6.0`, {
+async function getWorkItems(fields: string[], ids: number[]): Promise<WorkItem[]> {
+  const config = await getConfig();
+  const patHeader = getPatHeader(config);
+
+  return fetch(`https://dev.azure.com/${config.org}/${config.project}/_apis/wit/workitemsbatch?api-version=6.0`, {
     method: "post",
     headers: { ...patHeader, "Content-Type": "application/json" },
     body: JSON.stringify({

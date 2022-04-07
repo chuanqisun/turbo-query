@@ -4,7 +4,9 @@
   "version": "1.0",
   "manifest_version": 3,
   "action": {
-    "default_popup": "index.html",
-    "options_page": "options.html"
-  }
+    "default_popup": "index.html"
+  },
+  "options_page": "options.html",
+  "permissions": ["storage"],
+  "host_permissions": ["https://dev.azure.com/"]
 }
