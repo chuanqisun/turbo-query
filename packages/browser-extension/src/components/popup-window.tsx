@@ -85,6 +85,7 @@ export const PopupWindow = () => {
     indexAllItems().then(() => {
       const duration = performance.now() - startTime;
       setTimestampMessage(`Search index ready (${duration.toFixed(2)}ms)`);
+      console.log(`index duration: ${duration.toFixed(2)}ms)`);
       setIndexRev((prev) => prev + 1);
     });
   }, [allItemsKeys]);
