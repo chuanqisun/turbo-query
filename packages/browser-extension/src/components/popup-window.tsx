@@ -14,7 +14,7 @@ const index = new FlexSearch.Document<IndexedItem>({
   preset: "match",
   worker: true,
   charset: "latin:advanced",
-  tokenize: "full",
+  tokenize: "forward",
   document: {
     id: "id",
     index: ["fuzzyTokens"],
@@ -33,6 +33,7 @@ export const PopupWindow = () => {
   const [config, setConfig] = useState<Config>();
 
   const [progressMessage, setProgressMessage] = useState<null | string>(null);
+  const setTimestampMessage = useCallback((message: string) => setProgressMessage(`${new Date().toLocaleTimeString()} ${message}`), []);
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -55,8 +56,8 @@ export const PopupWindow = () => {
   }, []);
 
   useEffect(() => {
-    const onOffline = () => setProgressMessage("Network offline");
-    const onOnline = () => setProgressMessage("Network online");
+    const onOffline = () => setTimestampMessage("Network offline");
+    const onOnline = () => setTimestampMessage("Network online");
     window.addEventListener("offline", onOffline);
     window.addEventListener("online", onOnline);
 
@@ -80,26 +81,23 @@ export const PopupWindow = () => {
   const [indexRev, setIndexRev] = useState(0);
 
   useEffect(() => {
-    if (!allItemsKeys) return;
     const startTime = performance.now();
     indexAllItems().then(() => {
       const duration = performance.now() - startTime;
-      console.log(`index updated ${duration.toFixed(2)}ms`);
-      setTimeout(() => {
-        setIndexRev((prev) => prev + 1);
-      }, 100); // potentially flexsearch bug: additional delay needed before indexing is done
+      setTimestampMessage(`Search index ready (${duration.toFixed(2)}ms)`);
+      setIndexRev((prev) => prev + 1);
     });
   }, [allItemsKeys]);
 
   useEffect(() => {
     sync({
-      onIdProgress: setProgressMessage,
-      onItemInitProgress: setProgressMessage,
-      onSyncSuccess: setProgressMessage,
+      onIdProgress: setTimestampMessage,
+      onItemInitProgress: setTimestampMessage,
+      onSyncSuccess: setTimestampMessage,
     }); // initial sync should not be delayed
     const interval = setInterval(
       sync.bind(null, {
-        onSyncSuccess: setProgressMessage,
+        onSyncSuccess: setTimestampMessage,
       }),
       pollingInterval * 1000
     );
@@ -251,7 +249,7 @@ async function sync(config?: SyncConfig) {
     console.log(`[sync] deleted ${deletedIds.length}`);
   }
 
-  config?.onSyncSuccess?.(`Successful synced ${new Date().toLocaleTimeString()}`);
+  config?.onSyncSuccess?.(`Sync success`);
 }
 
 function parseQuery(raw: string) {
@@ -304,19 +302,27 @@ function getPageDiff(remoteItems: WorkItem[], localItems: (DbWorkItem | undefine
 }
 
 async function indexAllItems() {
-  const indexTasks: Promise<any>[] = [];
-  db.workItems.each((item) => {
-    const fuzzyTokens = `${item.state} ${item.workItemType} ${item.id} ${item.assignedTo.displayName} ${getShortIteration(item.iterationPath)} ${item.title}`;
+  return new Promise<void>(async (resolve) => {
+    let counter = 0;
+    const total = await db.workItems.count();
+    const onAdd = () => {
+      counter++;
+      if (counter == total) resolve();
+    };
 
-    indexTasks.push(
-      index.addAsync(item.id, {
-        id: item.id,
-        fuzzyTokens,
-      })
-    );
+    db.workItems.each((item) => {
+      const fuzzyTokens = `${item.state} ${item.workItemType} ${item.id} ${item.assignedTo.displayName} ${getShortIteration(item.iterationPath)} ${item.title}`;
+
+      index.addAsync(
+        item.id,
+        {
+          id: item.id,
+          fuzzyTokens,
+        },
+        onAdd
+      );
+    });
   });
-
-  await Promise.all(indexTasks);
 }
 
 async function initializeDb(allItems: WorkItem[]) {

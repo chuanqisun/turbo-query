@@ -19,6 +19,7 @@
 
 .query-bar__input {
   font-size: 14px;
+  font-family: inherit;
   padding: 2px 4px;
   width: 100%;
 }
