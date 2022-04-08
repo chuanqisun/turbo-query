@@ -1,30 +1,15 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import FlexSearch from "flexsearch";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { db, DbWorkItem } from "./data/db";
 import "./popup-window.css";
 import { TypeIcon } from "./type-icon/type-icon";
 import { Config, getConfig } from "./utils/config";
 import { selectElementContent } from "./utils/dom";
-import { getAllDeletedWorkItemIds, getAllWorkItemIds, getWorkItems, WorkItem } from "./utils/proxy";
+import { index, indexAllItems } from "./utils/fts";
+import { getShortIteration } from "./utils/iteration";
+import { sync } from "./utils/sync";
 
 const pollingInterval = 10;
-
-const index = new FlexSearch.Document<IndexedItem>({
-  preset: "match",
-  worker: true,
-  charset: "latin:advanced",
-  tokenize: "forward",
-  document: {
-    id: "id",
-    index: ["fuzzyTokens"],
-  },
-});
-
-interface IndexedItem {
-  id: number;
-  fuzzyTokens: string;
-}
 
 export const PopupWindow = () => {
   const [query, setQuery] = useState("");
@@ -56,6 +41,10 @@ export const PopupWindow = () => {
   }, []);
 
   useEffect(() => {
+    localStorage.setItem("last-query", query);
+  }, [query]);
+
+  useEffect(() => {
     const onOffline = () => setTimestampMessage("Network offline");
     const onOnline = () => setTimestampMessage("Network online");
     window.addEventListener("offline", onOffline);
@@ -66,10 +55,6 @@ export const PopupWindow = () => {
       window.removeEventListener("online", onOnline);
     };
   });
-
-  useEffect(() => {
-    localStorage.setItem("last-query", query);
-  }, [query]);
 
   useEffect(() => {
     getConfig().then(setConfig);
@@ -116,8 +101,6 @@ export const PopupWindow = () => {
   }, [recentItems, query]);
 
   // search
-  const parsedQuery = useMemo(() => parseQuery(query), [query]);
-
   useEffect(() => {
     if (!query.trim().length) return;
 
@@ -125,7 +108,7 @@ export const PopupWindow = () => {
       const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
       db.workItems.bulkGet(titleMatchIds).then((items) => setSearchResult(items as DbWorkItem[]));
     });
-  }, [indexRev, query, parsedQuery]);
+  }, [indexRev, query]);
 
   const openConfig = useCallback(() => {
     chrome.runtime.openOptionsPage();
@@ -181,211 +164,3 @@ export const PopupWindow = () => {
     </div>
   );
 };
-
-export interface SyncConfig {
-  onIdProgress?: (message: string) => any;
-  onItemInitProgress?: (message: string) => any;
-  onSyncSuccess?: (message: string) => any;
-  onError?: (message: string) => any;
-}
-async function sync(config?: SyncConfig) {
-  config?.onIdProgress?.("Fetching item ids");
-  const allIds = await getAllWorkItemIds();
-  config?.onIdProgress?.(`Fetching item ids... ${allIds.length} found`);
-  const allDeletedIdsAsync = getAllDeletedWorkItemIds();
-  const idPages = getIdPages(allIds);
-  console.log(`[sync] ${allIds.length} items, ${idPages.length} pages`);
-
-  const syncSummary = {
-    add: 0,
-    delete: 0,
-    update: 0,
-  };
-
-  try {
-    const count = await db.workItems.count();
-
-    if (!count) {
-      let progress = 0;
-      const pages = await Promise.all(
-        idPages
-          .map(
-            getWorkItems.bind(null, ["System.Title", "System.WorkItemType", "System.ChangedDate", "System.AssignedTo", "System.State", "System.IterationPath"])
-          )
-          .map(async (page, i) => {
-            await page;
-
-            progress += idPages[i].length;
-
-            config?.onIdProgress?.(`Fetching item content: ${((progress / allIds.length) * 100).toFixed(2)}%`);
-
-            return page;
-          })
-      );
-      const allItems = pages.flat();
-      await initializeDb(allItems);
-      console.log(`[sync] populated with all dataset`);
-
-      syncSummary.add = allItems.length;
-    } else {
-      for (const [index, ids] of idPages.entries()) {
-        const remoteItems = await getWorkItems(
-          ["System.Title", "System.WorkItemType", "System.ChangedDate", "System.AssignedTo", "System.State", "System.IterationPath"],
-          ids
-        );
-
-        const localItems = await db.workItems.bulkGet(remoteItems.map((item) => item.id));
-
-        const syncPlan = getPageDiff(remoteItems, localItems);
-        console.log(`[sync] page ${index}: +${syncPlan.addedIds.length} !${syncPlan.dirtyIds.length} *${syncPlan.cleanIds.length}`);
-        if (syncPlan.corruptIds.length) throw new Error("Data corrupted");
-
-        const addedItems = remoteItems.filter((item) => syncPlan.addedIds.includes(item.id));
-        const dirtItems = remoteItems.filter((item) => syncPlan.dirtyIds.includes(item.id));
-
-        await putDbItems(addedItems);
-        await putDbItems(dirtItems);
-
-        syncSummary.add += addedItems.length;
-        syncSummary.update += dirtItems.length;
-
-        // local items more recent than MRCI is either dirty or deleted
-        if (syncPlan.cleanIds.length) {
-          break;
-        }
-      }
-
-      const allDeletedIds = await allDeletedIdsAsync;
-      const deletedIds = await deleteDbItems(allDeletedIds);
-
-      syncSummary.delete += deletedIds.length;
-
-      console.log(`[sync] deleted ${deletedIds.length}`);
-    }
-
-    let summaryMessage = "";
-    if (syncSummary.add) summaryMessage += ` ${syncSummary.add} added`;
-    if (syncSummary.update) summaryMessage += ` ${syncSummary.update} updated`;
-    if (syncSummary.delete) summaryMessage += ` ${syncSummary.delete} deleted`;
-
-    if (!summaryMessage.length) summaryMessage = "No change";
-
-    config?.onSyncSuccess?.(`Sync success... ${summaryMessage}`);
-  } catch (error) {
-    config?.onError?.(`Sync failed ${(error as any)?.message}`);
-  }
-}
-
-function parseQuery(raw: string) {
-  const tagsPattern = /\|((.|[^|])*)\|/g;
-
-  const tagsString = raw.matchAll(tagsPattern);
-  const allTags = [...tagsString]
-    .flatMap((match) => match[1].split("|"))
-    .map((tag) => tag.trim().toLocaleLowerCase())
-    .filter((tag) => tag.length);
-  const tags = [...new Set(allTags)];
-  const text = raw.replaceAll(tagsPattern, "").trim();
-
-  return {
-    text,
-    tags,
-  };
-}
-
-// delete is not handled yet. Require re-population
-interface PageDiffSummary {
-  addedIds: number[];
-  dirtyIds: number[];
-  cleanIds: number[];
-  corruptIds: number[];
-}
-
-function getPageDiff(remoteItems: WorkItem[], localItems: (DbWorkItem | undefined)[]): PageDiffSummary {
-  const summary: PageDiffSummary = {
-    addedIds: [],
-    dirtyIds: [],
-    cleanIds: [],
-    corruptIds: [],
-  };
-
-  remoteItems.map((remote, index) => {
-    const local = localItems[index];
-    if (!local) {
-      summary.addedIds.push(remote.id);
-    } else if (remote.rev > local.rev) {
-      summary.dirtyIds.push(remote.id);
-    } else if (remote.rev === local.rev) {
-      summary.cleanIds.push(remote.id);
-    } else {
-      summary.corruptIds.push(remote.id);
-    }
-  });
-
-  return summary;
-}
-
-async function indexAllItems() {
-  return new Promise<void>(async (resolve) => {
-    let counter = 0;
-    const total = await db.workItems.count();
-    const onAdd = () => {
-      counter++;
-      if (counter == total) resolve();
-    };
-
-    db.workItems.each((item) => {
-      const fuzzyTokens = `${item.state} ${item.id} ${item.workItemType} ${item.assignedTo.displayName} ${getShortIteration(item.iterationPath)} ${item.title}`;
-
-      index.addAsync(
-        item.id,
-        {
-          id: item.id,
-          fuzzyTokens,
-        },
-        onAdd
-      );
-    });
-  });
-}
-
-async function initializeDb(allItems: WorkItem[]) {
-  await db.workItems.clear();
-  await putDbItems(allItems);
-}
-
-async function putDbItems(items: WorkItem[]) {
-  await db.workItems.bulkPut(
-    items.map((item) => ({
-      id: item.id,
-      rev: item.rev,
-      title: item.fields["System.Title"],
-      changedDate: new Date(item.fields["System.ChangedDate"]),
-      workItemType: item.fields["System.WorkItemType"],
-      assignedTo: {
-        displayName: item.fields["System.AssignedTo"].displayName,
-      },
-      state: item.fields["System.State"],
-      iterationPath: item.fields["System.IterationPath"],
-    }))
-  );
-}
-
-async function deleteDbItems(ids: number[]): Promise<number[]> {
-  const foundItems = await db.workItems.bulkGet(ids);
-  const foundIds = foundItems.filter((item) => item).map((item) => item!.id);
-  await db.workItems.bulkDelete(foundIds);
-  return foundIds;
-}
-
-function getShortIteration(iterationPath: string): string {
-  const i = iterationPath.lastIndexOf("\\");
-  const shortPath = iterationPath.slice(i + 1);
-  return shortPath;
-}
-
-function getIdPages(allIds: number[]): number[][] {
-  const pages: number[][] = [];
-  for (var i = 0; i < allIds.length; i += 200) pages.push(allIds.slice(i, i + 200));
-  return pages;
-}
