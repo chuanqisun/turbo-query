@@ -28,6 +28,20 @@ export const OptionsWindow = () => {
   return (
     <form onSubmit={handleSubmit} ref={formRef}>
       <fieldset>
+        <legend>Account</legend>
+
+        <div className="form-field">
+          <label>Work email</label>
+          <input name="email" type="email" required />
+        </div>
+
+        <div className="form-field">
+          <label>Personal access token</label>
+          <input name="pat" type="password" required />
+        </div>
+      </fieldset>
+
+      <fieldset>
         <legend>Data source</legend>
 
         <div className="form-field">
@@ -46,27 +60,8 @@ export const OptionsWindow = () => {
         </div>
 
         <div className="form-field">
-          <label>Root query id</label>
-          <input name="rootQueryId" type="text" required />
-        </div>
-
-        <div className="form-field">
-          <label>Trash bin query id</label>
-          <input name="trashQueryId" type="text" required />
-        </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>Account</legend>
-
-        <div className="form-field">
-          <label>Work email</label>
-          <input name="email" type="email" required />
-        </div>
-
-        <div className="form-field">
-          <label>Personal access token</label>
-          <input name="pat" type="password" required />
+          <label>Area path</label>
+          <input name="areaPath" type="text" required />
         </div>
       </fieldset>
 

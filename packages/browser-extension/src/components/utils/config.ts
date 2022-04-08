@@ -2,14 +2,13 @@ export interface Config {
   org: string;
   project: string;
   team: string;
-  rootQueryId: string;
-  trashQueryId: string;
+  areaPath: string;
   email: string;
   pat: string;
 }
 
 export async function getConfig(): Promise<Config> {
-  const config = await chrome.storage.sync.get(["org", "project", "team", "rootQueryId", "trashQueryId", "email", "pat"]);
+  const config = await chrome.storage.sync.get(["org", "project", "team", "areaPath", "email", "pat"]);
   return config as Config;
 }
 
