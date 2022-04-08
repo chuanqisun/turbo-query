@@ -23,6 +23,12 @@
   width: 100%;
 }
 
+.stack-layout {
+  display: grid;
+  min-height: 100vh;
+  grid-template-rows: auto 1fr auto;
+}
+
 .type-filter-list {
   display: flex;
   gap: 8px;
@@ -80,5 +86,12 @@
   color: #666;
 }
 .work-item__assigned-to::after {
-  content: " · ";
+  content: " ·";
+}
+
+.status-bar {
+  position: sticky;
+  bottom: 0;
+  padding: 4px;
+  background: #eaeaea;
 }

@@ -32,6 +32,8 @@ export const PopupWindow = () => {
   const [searchResult, setSearchResult] = useState<DbWorkItem[]>([]);
   const [config, setConfig] = useState<Config>();
 
+  const [progressMessage, setProgressMessage] = useState<null | string>(null);
+
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
       if (e.key === "/" && e.target !== inputRef.current) {
@@ -51,6 +53,18 @@ export const PopupWindow = () => {
       setQuery(lastQuery);
     }
   }, []);
+
+  useEffect(() => {
+    const onOffline = () => setProgressMessage("Network offline");
+    const onOnline = () => setProgressMessage("Network online");
+    window.addEventListener("offline", onOffline);
+    window.addEventListener("online", onOnline);
+
+    return () => {
+      window.removeEventListener("offline", onOffline);
+      window.removeEventListener("online", onOnline);
+    };
+  });
 
   useEffect(() => {
     localStorage.setItem("last-query", query);
@@ -78,8 +92,17 @@ export const PopupWindow = () => {
   }, [allItemsKeys]);
 
   useEffect(() => {
-    sync(); // initial sync should not be delayed
-    const interval = pollingSync();
+    sync({
+      onIdProgress: setProgressMessage,
+      onItemInitProgress: setProgressMessage,
+      onSyncSuccess: setProgressMessage,
+    }); // initial sync should not be delayed
+    const interval = setInterval(
+      sync.bind(null, {
+        onSyncSuccess: setProgressMessage,
+      }),
+      pollingInterval * 1000
+    );
     return () => window.clearInterval(interval);
   }, []);
 
@@ -112,7 +135,7 @@ export const PopupWindow = () => {
   const handleBlurId = useCallback<React.FocusEventHandler>((_e: React.FocusEvent<HTMLSpanElement>) => window.getSelection()?.removeAllRanges(), []);
 
   return (
-    <div>
+    <div className="stack-layout">
       <div className="query-bar">
         <div className="query-bar__input-group">
           <button onClick={openConfig}>⚙️</button>
@@ -127,6 +150,7 @@ export const PopupWindow = () => {
           />
         </div>
       </div>
+
       <ul className="work-item-list">
         {searchResult.map((item) => (
           <li className="work-item" key={item.id}>
@@ -146,18 +170,27 @@ export const PopupWindow = () => {
               >
                 {item.title}
               </a>{" "}
-              <span className="work-item__assigned-to">{item.assignedTo.displayName}</span>
+              <span className="work-item__assigned-to">{item.assignedTo.displayName}</span>{" "}
               <span className="work-item__path">{getShortIteration(item.iterationPath)}</span>
             </div>
           </li>
         ))}
       </ul>
+
+      {<output className="status-bar">{progressMessage}</output>}
     </div>
   );
 };
 
-async function sync() {
+export interface SyncConfig {
+  onIdProgress?: (message: string) => any;
+  onItemInitProgress?: (message: string) => any;
+  onSyncSuccess?: (message: string) => any;
+}
+async function sync(config?: SyncConfig) {
+  config?.onIdProgress?.("Fetching item ids");
   const allIds = await getAllWorkItemIds();
+  config?.onIdProgress?.(`Fetching item ids... ${allIds.length} found`);
   const allDeletedIdsAsync = getAllDeletedWorkItemIds();
   const idPages = getIdPages(allIds);
   console.log(`[sync] ${allIds.length} items, ${idPages.length} pages`);
@@ -167,11 +200,23 @@ async function sync() {
   // - Data corrupted
   // - DB migrated
   const count = await db.workItems.count();
+
   if (!count) {
+    let progress = 0;
     const pages = await Promise.all(
-      idPages.map(
-        getWorkItems.bind(null, ["System.Title", "System.WorkItemType", "System.ChangedDate", "System.AssignedTo", "System.State", "System.IterationPath"])
-      )
+      idPages
+        .map(
+          getWorkItems.bind(null, ["System.Title", "System.WorkItemType", "System.ChangedDate", "System.AssignedTo", "System.State", "System.IterationPath"])
+        )
+        .map(async (page, i) => {
+          await page;
+
+          progress += idPages[i].length;
+
+          config?.onIdProgress?.(`Fetching item content: ${((progress / allIds.length) * 100).toFixed(2)}%`);
+
+          return page;
+        })
     );
     const allItems = pages.flat();
     await initializeDb(allItems);
@@ -205,10 +250,8 @@ async function sync() {
     const deletedIds = await deleteDbItems(allDeletedIds);
     console.log(`[sync] deleted ${deletedIds.length}`);
   }
-}
 
-function pollingSync() {
-  return setInterval(sync, pollingInterval * 1000);
+  config?.onSyncSuccess?.(`Successful synced ${new Date().toLocaleTimeString()}`);
 }
 
 function parseQuery(raw: string) {
