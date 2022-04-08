@@ -37,6 +37,20 @@ export const PopupWindow = () => {
     return () => window.removeEventListener("keydown", handleKeydown);
   }, []);
 
+  const resumeIndex = async () => {
+    const total = await db.indexItems.count();
+    let count = 0;
+
+    return new Promise<void>(async (resolve) => {
+      db.indexItems.each(async (indexItem) => {
+        await index.import(indexItem.key, indexItem.value as any);
+        count++;
+
+        if (count === total) resolve();
+      });
+    });
+  };
+
   useEffect(() => {
     const lastQuery = localStorage.getItem("last-query");
     if (lastQuery) {
@@ -46,6 +60,15 @@ export const PopupWindow = () => {
         inputRef.current?.select();
       }, 0);
     }
+  }, []);
+
+  useEffect(() => {
+    const startTime = performance.now();
+    resumeIndex().then(() => {
+      const duration = performance.now() - startTime;
+      setTimestampMessage(`Search index resumed (${duration.toFixed(2)}ms)`);
+      setIndexRev((prev) => prev + 1);
+    });
   }, []);
 
   useEffect(() => {
@@ -72,13 +95,21 @@ export const PopupWindow = () => {
 
   const [indexRev, setIndexRev] = useState(0);
 
+  // reindex
   useEffect(() => {
     const startTime = performance.now();
-    indexAllItems().then(() => {
+    indexAllItems().then(async () => {
       const duration = performance.now() - startTime;
       setTimestampMessage(`Search index ready (${duration.toFixed(2)}ms)`);
       console.log(`index duration: ${duration.toFixed(2)}ms)`);
-      setIndexRev((prev) => prev + 1);
+      // setIndexRev((prev) => prev + 1);
+      // db.indexItems.clear();
+      index.export((key, value) => {
+        db.indexItems.put({
+          key: key as string,
+          value: value as any as string | undefined,
+        });
+      });
     });
   }, [allItemsKeys]);
 
