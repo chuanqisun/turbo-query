@@ -59,7 +59,7 @@ export const SetupForm: React.FC = () => {
         <section className="form-section">
           <div className="form-field">
             <label>Work email</label>
-            <input name="email" type="email" placeholder="john@example.com" required />
+            <input autoFocus name="email" type="email" placeholder="john@example.com" required />
           </div>
           <div className="form-field">
             <label>Personal access token</label>
