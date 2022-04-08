@@ -3,7 +3,7 @@ import { db } from "./data/db";
 import "./setup-form.css";
 import { getAllWorkItemIds } from "./utils/proxy";
 
-export const SetupForm: React.FC = (props) => {
+export const SetupForm: React.FC = () => {
   const formRef = useRef<HTMLFormElement | null>(null);
 
   const [statusMessage, setStatusMessage] = useState("");

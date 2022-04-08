@@ -21,6 +21,8 @@
 
 .form-actions button {
   padding: 4px 16px;
+  font-weight: 500;
+  font-size: 16px;
 }
 
 .form-field {
