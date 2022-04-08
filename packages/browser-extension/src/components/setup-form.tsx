@@ -58,12 +58,12 @@ export const SetupForm: React.FC = () => {
       <form className="setup-form" id="setup-form" onSubmit={handleSubmit} ref={formRef}>
         <section className="form-section">
           <div className="form-field">
-            <label>Work email</label>
-            <input autoFocus name="email" type="email" placeholder="john@example.com" required />
+            <label htmlFor="email">Work email</label>
+            <input id="email" autoFocus name="email" type="email" placeholder="john@example.com" required />
           </div>
           <div className="form-field">
-            <label>Personal access token</label>
-            <input name="pat" type="password" required />
+            <label htmlFor="pat">Personal access token</label>
+            <input id="pat" name="pat" type="password" required />
             <div className="label-hint">
               *Requires <em>Read</em> permission on the <em>Work Items</em> scope.{" "}
               <a href="https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate">Get help</a>
@@ -71,23 +71,23 @@ export const SetupForm: React.FC = () => {
           </div>
 
           <div className="form-field">
-            <label>Organization</label>
-            <input name="org" type="text" required />
+            <label htmlFor="org">Organization</label>
+            <input id="org" name="org" type="text" required />
           </div>
 
           <div className="form-field">
             <label htmlFor="project">Project</label>
-            <input name="project" type="text" required />
+            <input id="project" name="project" type="text" required />
           </div>
 
           <div className="form-field">
-            <label>Team</label>
-            <input name="team" type="text" required />
+            <label htmlFor="team">Team</label>
+            <input id="team" name="team" type="text" required />
           </div>
 
           <div className="form-field">
-            <label>Area path</label>
-            <input name="areaPath" type="text" required />
+            <label htmlFor="area-path">Area path</label>
+            <input id="area-path" name="areaPath" type="text" required />
           </div>
         </section>
       </form>
