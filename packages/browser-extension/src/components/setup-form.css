@@ -1,0 +1,41 @@
+.setup-form {
+  background-color: #eaeaea;
+  padding: 4px;
+
+  display: grid;
+  gap: 8px;
+}
+
+.form-field {
+  display: grid;
+  grid-template:
+    "label hint" auto
+    "field field" auto / 1fr auto;
+  gap: 2px;
+}
+
+.form-field label {
+  grid-area: label;
+
+  font-weight: 500;
+  font-size: 14px;
+}
+.form-field__hint {
+  grid-area: hint;
+}
+.form-field > *:where(input, select) {
+  grid-area: field;
+
+  padding: 0 4px;
+  font-size: 14px;
+}
+
+.form-section {
+  display: grid;
+  gap: 4px;
+}
+
+.step-heading {
+  font-size: 16px;
+  font-weight: 700;
+}
