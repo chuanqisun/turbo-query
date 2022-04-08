@@ -1,7 +1,8 @@
 {
-  "name": "adohpc",
+  "name": "turbo-query",
+  "description": "Speed up Azure DevOps query with in-browser Indexed DB",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1-alpha.0",
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build"
