@@ -196,6 +196,12 @@ async function sync(config?: SyncConfig) {
   const idPages = getIdPages(allIds);
   console.log(`[sync] ${allIds.length} items, ${idPages.length} pages`);
 
+  const syncSummary = {
+    add: 0,
+    delete: 0,
+    update: 0,
+  };
+
   try {
     const count = await db.workItems.count();
 
@@ -219,6 +225,8 @@ async function sync(config?: SyncConfig) {
       const allItems = pages.flat();
       await initializeDb(allItems);
       console.log(`[sync] populated with all dataset`);
+
+      syncSummary.add = allItems.length;
     } else {
       for (const [index, ids] of idPages.entries()) {
         const remoteItems = await getWorkItems(
@@ -238,6 +246,9 @@ async function sync(config?: SyncConfig) {
         await putDbItems(addedItems);
         await putDbItems(dirtItems);
 
+        syncSummary.add += addedItems.length;
+        syncSummary.update += dirtItems.length;
+
         // local items more recent than MRCI is either dirty or deleted
         if (syncPlan.cleanIds.length) {
           break;
@@ -246,10 +257,20 @@ async function sync(config?: SyncConfig) {
 
       const allDeletedIds = await allDeletedIdsAsync;
       const deletedIds = await deleteDbItems(allDeletedIds);
+
+      syncSummary.delete += deletedIds.length;
+
       console.log(`[sync] deleted ${deletedIds.length}`);
     }
 
-    config?.onSyncSuccess?.(`Sync success`);
+    let summaryMessage = "";
+    if (syncSummary.add) summaryMessage += ` ${syncSummary.add} added`;
+    if (syncSummary.update) summaryMessage += ` ${syncSummary.update} updated`;
+    if (syncSummary.delete) summaryMessage += ` ${syncSummary.delete} deleted`;
+
+    if (!summaryMessage.length) summaryMessage = "No change";
+
+    config?.onSyncSuccess?.(`Sync success... ${summaryMessage}`);
   } catch (error) {
     config?.onError?.(`Sync failed ${(error as any)?.message}`);
   }
