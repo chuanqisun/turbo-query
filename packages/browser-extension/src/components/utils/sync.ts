@@ -11,20 +11,20 @@ export interface SyncConfig {
   onError?: (message: string) => any;
 }
 export async function sync(config?: SyncConfig) {
-  config?.onIdProgress?.("Fetching item ids");
-  const allIds = await getAllWorkItemIds();
-  config?.onIdProgress?.(`Fetching item ids... ${allIds.length} found`);
-  const allDeletedIdsAsync = getAllDeletedWorkItemIds();
-  const idPages = getPages(allIds);
-  console.log(`[sync] ${allIds.length} items, ${idPages.length} pages`);
-
-  const syncSummary = {
-    add: 0,
-    delete: 0,
-    update: 0,
-  };
-
   try {
+    config?.onIdProgress?.("Fetching item ids");
+    const allIds = await getAllWorkItemIds();
+    config?.onIdProgress?.(`Fetching item ids... ${allIds.length} found`);
+    const allDeletedIdsAsync = getAllDeletedWorkItemIds();
+    const idPages = getPages(allIds);
+    console.log(`[sync] ${allIds.length} items, ${idPages.length} pages`);
+
+    const syncSummary = {
+      add: 0,
+      delete: 0,
+      update: 0,
+    };
+
     const count = await db.workItems.count();
 
     if (!count) {

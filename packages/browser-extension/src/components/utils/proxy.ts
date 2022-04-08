@@ -52,7 +52,11 @@ export async function getAllWorkItemIds(): Promise<number[]> {
     headers: { ...patHeader, "Content-Type": "application/json" },
     body,
   })
-    .then((result) => result.json())
+    .then(async (result) => {
+      const json = await result.json();
+      if (!result.ok) throw new Error((json as any)?.message ?? "Error getting work items");
+      return json;
+    })
     .then((result) => {
       return (result.workItems as { id: number }[]).map((item) => item.id);
     });

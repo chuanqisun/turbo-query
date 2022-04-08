@@ -1,8 +1,9 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { db, DbWorkItem } from "./data/db";
+import { useInterval } from "./hooks/use-interval";
+import { useIsOffline } from "./hooks/use-is-offline";
 import "./popup-window.css";
-import { SetupForm } from "./setup-form";
 import { TypeIcon } from "./type-icon/type-icon";
 import { Config, getConfig } from "./utils/config";
 import { selectElementContent } from "./utils/dom";
@@ -18,7 +19,7 @@ export const PopupWindow = () => {
   const [searchResult, setSearchResult] = useState<DbWorkItem[]>([]);
   const [config, setConfig] = useState<Config>();
 
-  const [isSetupMode, setIsSetupMode] = useState(false);
+  const isOffline = useIsOffline();
 
   const [progressMessage, setProgressMessage] = useState<null | string>(null);
   const setTimestampMessage = useCallback((message: string) => setProgressMessage(`${new Date().toLocaleTimeString()} ${message}`), []);
@@ -48,19 +49,18 @@ export const PopupWindow = () => {
   }, [query]);
 
   useEffect(() => {
-    const onOffline = () => setTimestampMessage("Network offline");
-    const onOnline = () => setTimestampMessage("Network online");
-    window.addEventListener("offline", onOffline);
-    window.addEventListener("online", onOnline);
-
-    return () => {
-      window.removeEventListener("offline", onOffline);
-      window.removeEventListener("online", onOnline);
-    };
-  });
+    setTimestampMessage(isOffline ? "Network offline" : "Network online");
+  }, [isOffline]);
 
   useEffect(() => {
-    getConfig().then(setConfig);
+    getConfig().then((config) => {
+      if (!Object.keys(config).length) {
+        chrome.runtime.openOptionsPage();
+        setTimestampMessage("Please complete the setup first");
+      } else {
+        setConfig(config);
+      }
+    });
   }, []);
 
   const recentItems = useLiveQuery(() => db.workItems.orderBy("changedDate").reverse().limit(100).toArray(), []);
@@ -85,15 +85,15 @@ export const PopupWindow = () => {
       onSyncSuccess: setTimestampMessage,
       onError: setTimestampMessage,
     }); // initial sync should not be delayed
-    const interval = setInterval(
-      sync.bind(null, {
-        onSyncSuccess: setTimestampMessage,
-        onError: setTimestampMessage,
-      }),
-      pollingInterval * 1000
-    );
-    return () => window.clearInterval(interval);
   }, []);
+
+  useInterval(
+    sync.bind(null, {
+      onSyncSuccess: setTimestampMessage,
+      onError: setTimestampMessage,
+    }),
+    isOffline ? null : pollingInterval * 1000
+  );
 
   // recent
   useEffect(() => {
@@ -114,12 +114,7 @@ export const PopupWindow = () => {
   }, [indexRev, query]);
 
   const openConfig = useCallback(() => {
-    // chrome.runtime.openOptionsPage();
-    setIsSetupMode(true);
-  }, []);
-
-  const saveConfig = useCallback(() => {
-    setIsSetupMode(false);
+    chrome.runtime.openOptionsPage();
   }, []);
 
   const handleClickId = useCallback<React.MouseEventHandler>((e: React.MouseEvent<HTMLSpanElement>) => selectElementContent(e.target as HTMLSpanElement), []);
@@ -128,53 +123,47 @@ export const PopupWindow = () => {
 
   return (
     <div className="stack-layout">
-      {isSetupMode ? (
-        <SetupForm />
-      ) : (
-        <>
-          <div className="query-bar">
-            <div className="query-bar__input-group">
-              <button onClick={openConfig}>⚙️</button>
-              <input
-                className="query-bar__input"
-                ref={inputRef}
-                type="search"
-                autoFocus
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder='Search ("/")'
-              />
+      <div className="query-bar">
+        <div className="query-bar__input-group">
+          <button onClick={openConfig}>⚙️</button>
+          <input
+            className="query-bar__input"
+            ref={inputRef}
+            type="search"
+            autoFocus
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder='Search ("/")'
+          />
+        </div>
+      </div>
+
+      <ul className="work-item-list">
+        {searchResult.map((item) => (
+          <li className="work-item" key={item.id}>
+            <span className="work-item__state" title={item.state}></span>
+            <TypeIcon type={item.workItemType} />
+            <div>
+              <span className="work-item__id" tabIndex={0} onFocus={handleFocusId} onBlur={handleBlurId} onClick={handleClickId}>
+                {item.id}
+              </span>{" "}
+              <a
+                className="work-item__link"
+                target="_blank"
+                onFocus={handleFocusId}
+                onBlur={handleBlurId}
+                href={`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}
+              >
+                {item.title}
+              </a>{" "}
+              <span className="work-item__type">{item.workItemType}</span> <span className="work-item__assigned-to">{item.assignedTo.displayName}</span>{" "}
+              <span className="work-item__path">{getShortIteration(item.iterationPath)}</span>
             </div>
-          </div>
+          </li>
+        ))}
+      </ul>
 
-          <ul className="work-item-list">
-            {searchResult.map((item) => (
-              <li className="work-item" key={item.id}>
-                <span className="work-item__state" title={item.state}></span>
-                <TypeIcon type={item.workItemType} />
-                <div>
-                  <span className="work-item__id" tabIndex={0} onFocus={handleFocusId} onBlur={handleBlurId} onClick={handleClickId}>
-                    {item.id}
-                  </span>{" "}
-                  <a
-                    className="work-item__link"
-                    target="_blank"
-                    onFocus={handleFocusId}
-                    onBlur={handleBlurId}
-                    href={`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}
-                  >
-                    {item.title}
-                  </a>{" "}
-                  <span className="work-item__type">{item.workItemType}</span> <span className="work-item__assigned-to">{item.assignedTo.displayName}</span>{" "}
-                  <span className="work-item__path">{getShortIteration(item.iterationPath)}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-
-          <output className="status-bar">{progressMessage}</output>
-        </>
-      )}
+      <output className="status-bar">{progressMessage}</output>
     </div>
   );
 };

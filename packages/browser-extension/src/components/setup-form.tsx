@@ -3,10 +3,10 @@ import { db } from "./data/db";
 import "./setup-form.css";
 import { getAllWorkItemIds } from "./utils/proxy";
 
-export const SetupForm: React.FC = () => {
+export const SetupForm: React.FC = (props) => {
   const formRef = useRef<HTMLFormElement | null>(null);
 
-  const [statusMessage, setStatusMessage] = useState<null | string>(null);
+  const [statusMessage, setStatusMessage] = useState("");
 
   const saveForm = useCallback(async () => {
     const formData = new FormData(formRef.current!);
@@ -23,7 +23,9 @@ export const SetupForm: React.FC = () => {
       Object.entries(configDict).forEach(([key, value]) => (formRef.current!.querySelector<HTMLInputElement>(`[name="${key}"]`)!.value = value));
 
       const isValid = formRef.current?.checkValidity();
-      if (isValid) checkStatus();
+      if (isValid) {
+        checkStatus();
+      }
     });
   }, []);
 
@@ -38,7 +40,7 @@ export const SetupForm: React.FC = () => {
     setStatusMessage(`⌛ Connecting...`);
     getAllWorkItemIds()
       .then((result) => {
-        setStatusMessage(`✅ Connecting... Success! ${result.length} work items founds.`);
+        setStatusMessage(`✅ Connecting... Success! ${result.length} work items found.`);
       })
       .catch((error) => {
         setStatusMessage(`⚠️ Connecting... Failed. ${error?.message}`);
@@ -46,56 +48,61 @@ export const SetupForm: React.FC = () => {
   }, []);
 
   const resetDb = useCallback(() => {
-    db.delete().then(() => location.reload());
+    db.delete().then();
+    setStatusMessage(`✅ Database reset... Success!`);
   }, []);
 
   return (
-    <form className="setup-form" onSubmit={handleSubmit} ref={formRef}>
-      <section className="form-section">
-        <div className="form-field">
-          <label>Work email</label>
-          <input name="email" type="email" required />
-        </div>
-        <div className="form-field">
-          <label>Personal access token</label>
-          <input name="pat" type="password" required />
-        </div>
-      </section>
+    <div className="setup-window">
+      <h1>Setup</h1>
+      <form className="setup-form" id="setup-form" onSubmit={handleSubmit} ref={formRef}>
+        <section className="form-section">
+          <div className="form-field">
+            <label>Work email</label>
+            <input name="email" type="email" placeholder="john@example.com" required />
+          </div>
+          <div className="form-field">
+            <label>Personal access token</label>
+            <input name="pat" type="password" required />
+            <div className="label-hint">
+              *Requires <em>Read</em> permission on the <em>Work Items</em> scope.{" "}
+              <a href="https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate">Get help</a>
+            </div>
+          </div>
 
-      <section className="form-section">
-        <div className="form-field">
-          <label>Organization</label>
-          <input name="org" type="text" required />
-        </div>
+          <div className="form-field">
+            <label>Organization</label>
+            <input name="org" type="text" required />
+          </div>
 
-        <div className="form-field">
-          <label htmlFor="project">Project</label>
-          <input name="project" type="text" required />
-        </div>
+          <div className="form-field">
+            <label htmlFor="project">Project</label>
+            <input name="project" type="text" required />
+          </div>
 
-        <div className="form-field">
-          <label>Team</label>
-          <input name="team" type="text" required />
-        </div>
+          <div className="form-field">
+            <label>Team</label>
+            <input name="team" type="text" required />
+          </div>
 
-        <div className="form-field">
-          <label>Area path</label>
-          <input name="areaPath" type="text" required />
-        </div>
-
-        <button type="submit">Update settings</button>
-      </section>
-
-      <section className="form-section">
-        <output>{statusMessage}</output>
-      </section>
-
-      <details>
-        <summary>More options</summary>
-        <button type="button" onClick={resetDb}>
-          Reset DB
+          <div className="form-field">
+            <label>Area path</label>
+            <input name="areaPath" type="text" required />
+          </div>
+        </section>
+      </form>
+      <section className="form-actions">
+        <button type="submit" form="setup-form">
+          Save and connect
         </button>
-      </details>
-    </form>
+        <button onClick={resetDb}>Reset database</button>
+      </section>
+
+      {statusMessage.length > 0 && (
+        <section className="form-section">
+          <output className="status-output">{statusMessage}</output>
+        </section>
+      )}
+    </div>
   );
 };
