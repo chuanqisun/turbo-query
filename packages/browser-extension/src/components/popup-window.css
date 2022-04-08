@@ -51,7 +51,6 @@
   transform: translateY(1px);
 }
 
-.work-item__type,
 .work-item__id {
   color: #333;
 }
@@ -82,10 +81,13 @@
   background-color: #007acc;
 }
 
+.work-item__type,
 .work-item__path,
 .work-item__assigned-to {
   color: #666;
 }
+
+.work-item__type::after,
 .work-item__assigned-to::after {
   content: " ·";
 }

@@ -95,10 +95,12 @@ export const PopupWindow = () => {
       onIdProgress: setTimestampMessage,
       onItemInitProgress: setTimestampMessage,
       onSyncSuccess: setTimestampMessage,
+      onError: setTimestampMessage,
     }); // initial sync should not be delayed
     const interval = setInterval(
       sync.bind(null, {
         onSyncSuccess: setTimestampMessage,
+        onError: setTimestampMessage,
       }),
       pollingInterval * 1000
     );
@@ -156,7 +158,6 @@ export const PopupWindow = () => {
             <span className="work-item__state" title={item.state}></span>
             <TypeIcon type={item.workItemType} />
             <div>
-              <span className="work-item__type">{item.workItemType}</span>{" "}
               <span className="work-item__id" tabIndex={0} onFocus={handleFocusId} onBlur={handleBlurId} onClick={handleClickId}>
                 {item.id}
               </span>{" "}
@@ -169,7 +170,7 @@ export const PopupWindow = () => {
               >
                 {item.title}
               </a>{" "}
-              <span className="work-item__assigned-to">{item.assignedTo.displayName}</span>{" "}
+              <span className="work-item__type">{item.workItemType}</span> <span className="work-item__assigned-to">{item.assignedTo.displayName}</span>{" "}
               <span className="work-item__path">{getShortIteration(item.iterationPath)}</span>
             </div>
           </li>
@@ -185,6 +186,7 @@ export interface SyncConfig {
   onIdProgress?: (message: string) => any;
   onItemInitProgress?: (message: string) => any;
   onSyncSuccess?: (message: string) => any;
+  onError?: (message: string) => any;
 }
 async function sync(config?: SyncConfig) {
   config?.onIdProgress?.("Fetching item ids");
@@ -194,63 +196,63 @@ async function sync(config?: SyncConfig) {
   const idPages = getIdPages(allIds);
   console.log(`[sync] ${allIds.length} items, ${idPages.length} pages`);
 
-  // Scenarios where re-population is required:
-  // - Empty store <- handled here
-  // - Data corrupted
-  // - DB migrated
-  const count = await db.workItems.count();
+  try {
+    const count = await db.workItems.count();
 
-  if (!count) {
-    let progress = 0;
-    const pages = await Promise.all(
-      idPages
-        .map(
-          getWorkItems.bind(null, ["System.Title", "System.WorkItemType", "System.ChangedDate", "System.AssignedTo", "System.State", "System.IterationPath"])
-        )
-        .map(async (page, i) => {
-          await page;
+    if (!count) {
+      let progress = 0;
+      const pages = await Promise.all(
+        idPages
+          .map(
+            getWorkItems.bind(null, ["System.Title", "System.WorkItemType", "System.ChangedDate", "System.AssignedTo", "System.State", "System.IterationPath"])
+          )
+          .map(async (page, i) => {
+            await page;
 
-          progress += idPages[i].length;
+            progress += idPages[i].length;
 
-          config?.onIdProgress?.(`Fetching item content: ${((progress / allIds.length) * 100).toFixed(2)}%`);
+            config?.onIdProgress?.(`Fetching item content: ${((progress / allIds.length) * 100).toFixed(2)}%`);
 
-          return page;
-        })
-    );
-    const allItems = pages.flat();
-    await initializeDb(allItems);
-    console.log(`[sync] populated with all dataset`);
-  } else {
-    for (const [index, ids] of idPages.entries()) {
-      const remoteItems = await getWorkItems(
-        ["System.Title", "System.WorkItemType", "System.ChangedDate", "System.AssignedTo", "System.State", "System.IterationPath"],
-        ids
+            return page;
+          })
       );
+      const allItems = pages.flat();
+      await initializeDb(allItems);
+      console.log(`[sync] populated with all dataset`);
+    } else {
+      for (const [index, ids] of idPages.entries()) {
+        const remoteItems = await getWorkItems(
+          ["System.Title", "System.WorkItemType", "System.ChangedDate", "System.AssignedTo", "System.State", "System.IterationPath"],
+          ids
+        );
 
-      const localItems = await db.workItems.bulkGet(remoteItems.map((item) => item.id));
+        const localItems = await db.workItems.bulkGet(remoteItems.map((item) => item.id));
 
-      const syncPlan = getPageDiff(remoteItems, localItems);
-      console.log(`[sync] page ${index}: +${syncPlan.addedIds.length} !${syncPlan.dirtyIds.length} *${syncPlan.cleanIds.length}`);
-      if (syncPlan.corruptIds.length) throw new Error("Data corrupted");
+        const syncPlan = getPageDiff(remoteItems, localItems);
+        console.log(`[sync] page ${index}: +${syncPlan.addedIds.length} !${syncPlan.dirtyIds.length} *${syncPlan.cleanIds.length}`);
+        if (syncPlan.corruptIds.length) throw new Error("Data corrupted");
 
-      const addedItems = remoteItems.filter((item) => syncPlan.addedIds.includes(item.id));
-      const dirtItems = remoteItems.filter((item) => syncPlan.dirtyIds.includes(item.id));
+        const addedItems = remoteItems.filter((item) => syncPlan.addedIds.includes(item.id));
+        const dirtItems = remoteItems.filter((item) => syncPlan.dirtyIds.includes(item.id));
 
-      await putDbItems(addedItems);
-      await putDbItems(dirtItems);
+        await putDbItems(addedItems);
+        await putDbItems(dirtItems);
 
-      // local items more recent than MRCI is either dirty or deleted
-      if (syncPlan.cleanIds.length) {
-        break;
+        // local items more recent than MRCI is either dirty or deleted
+        if (syncPlan.cleanIds.length) {
+          break;
+        }
       }
+
+      const allDeletedIds = await allDeletedIdsAsync;
+      const deletedIds = await deleteDbItems(allDeletedIds);
+      console.log(`[sync] deleted ${deletedIds.length}`);
     }
 
-    const allDeletedIds = await allDeletedIdsAsync;
-    const deletedIds = await deleteDbItems(allDeletedIds);
-    console.log(`[sync] deleted ${deletedIds.length}`);
+    config?.onSyncSuccess?.(`Sync success`);
+  } catch (error) {
+    config?.onError?.(`Sync failed ${(error as any)?.message}`);
   }
-
-  config?.onSyncSuccess?.(`Sync success`);
 }
 
 function parseQuery(raw: string) {
@@ -312,7 +314,7 @@ async function indexAllItems() {
     };
 
     db.workItems.each((item) => {
-      const fuzzyTokens = `${item.state} ${item.workItemType} ${item.id} ${item.assignedTo.displayName} ${getShortIteration(item.iterationPath)} ${item.title}`;
+      const fuzzyTokens = `${item.state} ${item.id} ${item.workItemType} ${item.assignedTo.displayName} ${getShortIteration(item.iterationPath)} ${item.title}`;
 
       index.addAsync(
         item.id,
