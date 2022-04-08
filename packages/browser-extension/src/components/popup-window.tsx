@@ -41,6 +41,10 @@ export const PopupWindow = () => {
     const lastQuery = localStorage.getItem("last-query");
     if (lastQuery) {
       setQuery(lastQuery);
+      setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }, 0);
     }
   }, []);
 
