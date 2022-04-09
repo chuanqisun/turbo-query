@@ -1,8 +1,8 @@
-import FlexSearch from "flexsearch";
+import FlexSearch, { IndexOptionsForDocumentSearch } from "flexsearch";
 import { db } from "../data/db";
 import { getShortIteration } from "./iteration";
 
-export const index = new FlexSearch.Document<IndexedItem>({
+const indexConfig: IndexOptionsForDocumentSearch<IndexedItem> = {
   preset: "match",
   worker: true,
   charset: "latin:advanced",
@@ -11,7 +11,10 @@ export const index = new FlexSearch.Document<IndexedItem>({
     id: "id",
     index: ["fuzzyTokens"],
   },
-});
+};
+
+export const index = new FlexSearch.Document<IndexedItem>(indexConfig);
+export const secondaryIndex = new FlexSearch.Document<IndexedItem>(indexConfig);
 
 export interface IndexedItem {
   id: number;
@@ -19,12 +22,13 @@ export interface IndexedItem {
 }
 
 export async function indexAllItems() {
-  return new Promise<void>(async (resolve) => {
+  return new Promise<FlexSearch.Document<IndexedItem, false>>(async (resolve) => {
     let counter = 0;
     const total = await db.workItems.count();
+
     const onAdd = () => {
       counter++;
-      if (counter == total) resolve();
+      if (counter == total) resolve(index);
     };
 
     db.workItems.each((item) => {
@@ -42,16 +46,16 @@ export async function indexAllItems() {
   });
 }
 
-export async function importIndex() {
+export async function importSecondaryIndex() {
   const total = await db.indexItems.count();
   let count = 0;
 
-  return new Promise<void>(async (resolve) => {
+  return new Promise<FlexSearch.Document<IndexedItem, false>>(async (resolve) => {
     db.indexItems.each(async (indexItem) => {
-      await index.import(indexItem.key, indexItem.value as any);
+      await secondaryIndex.import(indexItem.key, indexItem.value as any);
       count++;
 
-      if (count === total) resolve();
+      if (count === total) resolve(secondaryIndex);
     });
   });
 }

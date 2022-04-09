@@ -4,10 +4,10 @@ import { db, DbWorkItem } from "./data/db";
 import { useConfig } from "./hooks/use-config";
 import { useInterval } from "./hooks/use-interval";
 import { useIsOffline } from "./hooks/use-is-offline";
+import { useSearchIndex } from "./hooks/use-search-index";
 import "./popup-window.css";
 import { TypeIcon } from "./type-icon/type-icon";
 import { selectElementContent } from "./utils/dom";
-import { index, indexAllItems } from "./utils/fts";
 import { getShortIteration } from "./utils/iteration";
 import { sync } from "./utils/sync";
 
@@ -52,15 +52,6 @@ export const PopupWindow = () => {
     }
   }, []);
 
-  // useEffect(() => {
-  //   const startTime = performance.now();
-  //   importIndex().then(() => {
-  //     const duration = performance.now() - startTime;
-  //     setTimestampMessage(`Imported search index (${duration.toFixed(2)}ms)`);
-  //     setIndexRev((prev) => prev + 1);
-  //   });
-  // }, []);
-
   useEffect(() => {
     localStorage.setItem("last-query", query);
   }, [query]);
@@ -72,25 +63,10 @@ export const PopupWindow = () => {
   const recentItems = useLiveQuery(() => db.workItems.orderBy("changedDate").reverse().limit(20).toArray(), []);
   const allItemsKeys = useLiveQuery(() => db.workItems.toCollection().primaryKeys());
 
-  const [indexRev, setIndexRev] = useState(0);
-
-  // reindex
-  useEffect(() => {
-    const startTime = performance.now();
-    indexAllItems().then(async () => {
-      const duration = performance.now() - startTime;
-      setTimestampMessage(`Search index ready (${duration.toFixed(2)}ms)`);
-      console.log(`index duration: ${duration.toFixed(2)}ms)`);
-      setIndexRev((prev) => prev + 1);
-      db.indexItems.clear();
-      index.export((key, value) => {
-        db.indexItems.put({
-          key: key as string,
-          value: value as any as string | undefined,
-        });
-      });
-    });
-  }, [allItemsKeys]);
+  const { rev: indexRev, index } = useSearchIndex({
+    skip: !allItemsKeys,
+    deps: [allItemsKeys],
+  });
 
   // start-up sync
   useEffect(() => {
@@ -122,13 +98,13 @@ export const PopupWindow = () => {
   // search
   useEffect(() => {
     if (!query.trim().length) return;
+    if (!index) return;
 
-    console.log(indexRev);
     index.searchAsync(query.trim(), { index: "fuzzyTokens" }).then((matches) => {
       const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
       db.workItems.bulkGet(titleMatchIds).then((items) => setSearchResult(items as DbWorkItem[]));
     });
-  }, [indexRev, query]);
+  }, [indexRev, index, query]);
 
   const openConfig = useCallback(() => {
     chrome.runtime.openOptionsPage();
