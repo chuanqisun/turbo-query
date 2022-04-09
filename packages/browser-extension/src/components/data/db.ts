@@ -11,17 +11,24 @@ export interface DbWorkItem {
   iterationPath: string;
 }
 
+export interface DbIndexItem {
+  key: string;
+  value: string | undefined;
+}
+
 export interface DbUser {
   displayName: string;
 }
 
 export class Db extends Dexie {
   workItems!: Table<DbWorkItem>;
+  indexItems!: Table<DbIndexItem>;
 
   constructor() {
     super("adohpc_store");
-    this.version(1).stores({
+    this.version(2).stores({
       workItems: "id, title, changedDate",
+      indexItems: "key",
     });
   }
 }

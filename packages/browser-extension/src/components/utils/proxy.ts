@@ -1,5 +1,6 @@
 import { getPatHeader } from "./auth";
 import { getConfig } from "./config";
+import { getRootQuery } from "./query";
 
 export interface BatchSummary {
   count: number;
@@ -28,9 +29,12 @@ export interface AdoUser {
 export async function getAllDeletedWorkItemIds(): Promise<number[]> {
   const config = await getConfig();
   const patHeader = getPatHeader(config);
+  const body = JSON.stringify({ query: getRootQuery(config.areaPath, true) });
 
-  return fetch(`https://dev.azure.com/${config.org}/${config.project}/${config.team}/_apis/wit/wiql/${config.trashQueryId}?api-version=6.0`, {
-    headers: { ...patHeader },
+  return fetch(`https://dev.azure.com/${config.org}/${config.project}/${config.team}/_apis/wit/wiql/?api-version=6.0`, {
+    method: "post",
+    headers: { ...patHeader, "Content-Type": "application/json" },
+    body,
   })
     .then((result) => result.json())
     .then((result) => {
@@ -41,11 +45,18 @@ export async function getAllDeletedWorkItemIds(): Promise<number[]> {
 export async function getAllWorkItemIds(): Promise<number[]> {
   const config = await getConfig();
   const patHeader = getPatHeader(config);
+  const body = JSON.stringify({ query: getRootQuery(config.areaPath) });
 
-  return fetch(`https://dev.azure.com/${config.org}/${config.project}/${config.team}/_apis/wit/wiql/${config.rootQueryId}?api-version=6.0`, {
-    headers: { ...patHeader },
+  return fetch(`https://dev.azure.com/${config.org}/${config.project}/${config.team}/_apis/wit/wiql/?api-version=6.0`, {
+    method: "post",
+    headers: { ...patHeader, "Content-Type": "application/json" },
+    body,
   })
-    .then((result) => result.json())
+    .then(async (result) => {
+      const json = await result.json();
+      if (!result.ok) throw new Error((json as any)?.message ?? "Error getting work items");
+      return json;
+    })
     .then((result) => {
       return (result.workItems as { id: number }[]).map((item) => item.id);
     });

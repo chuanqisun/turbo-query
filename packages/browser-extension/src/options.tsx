@@ -1,11 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { OptionsWindow } from "./components/options-window";
+import { SetupForm } from "./components/setup-form";
 import "./index.css";
 
 ReactDOM.render(
   <React.StrictMode>
-    <OptionsWindow />
+    <SetupForm />
   </React.StrictMode>,
   document.getElementById("root")
 );
