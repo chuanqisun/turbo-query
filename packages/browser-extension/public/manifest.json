@@ -1,6 +1,6 @@
 {
   "name": "Turbo Query for Azure DevOps",
-  "description": "Instantly retrieve work items from Azure DevOps",
+  "description": "Instantly retrieve work items from Azure DevOps.",
   "version": "1.0.0",
   "manifest_version": 3,
   "action": {
