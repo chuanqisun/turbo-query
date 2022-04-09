@@ -5,7 +5,8 @@
   "version": "0.0.1-alpha.0",
   "scripts": {
     "dev": "vite build --watch",
-    "build": "vite build"
+    "build": "vite build",
+    "pack": "zip -r ./dist.zip ./dist"
   },
   "dependencies": {
     "dexie": "^3.2.1",
