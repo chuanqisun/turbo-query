@@ -1,12 +1,11 @@
 {
   "name": "turbo-query",
-  "description": "Instanly retrieve work items from Azure DevOps",
   "private": true,
-  "version": "0.0.1-alpha.0",
+  "version": "0.0.0",
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build",
-    "pack": "zip -r ./dist.zip ./dist"
+    "pack": "node scripts/pack.js"
   },
   "dependencies": {
     "dexie": "^3.2.1",
