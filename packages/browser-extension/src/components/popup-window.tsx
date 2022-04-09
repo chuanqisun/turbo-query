@@ -60,7 +60,7 @@ export const PopupWindow = () => {
     setTimestampMessage(isOffline ? "Network offline" : "Network online");
   }, [isOffline]);
 
-  const recentItems = useLiveQuery(() => db.workItems.orderBy("changedDate").reverse().limit(20).toArray(), []);
+  const recentItems = useLiveQuery(() => db.workItems.orderBy("changedDate").reverse().limit(100).toArray(), []);
   const allItemsKeys = useLiveQuery(() => db.workItems.toCollection().primaryKeys());
 
   const { rev: indexRev, index } = useSearchIndex({
