@@ -1,6 +1,6 @@
 {
   "name": "turbo-query",
-  "description": "Instanly retrieve work items from Azure DevOps by title or metadata",
+  "description": "Instanly retrieve work items from Azure DevOps",
   "private": true,
   "version": "0.0.1-alpha.0",
   "scripts": {
