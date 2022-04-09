@@ -41,3 +41,17 @@ export async function indexAllItems() {
     });
   });
 }
+
+export async function importIndex() {
+  const total = await db.indexItems.count();
+  let count = 0;
+
+  return new Promise<void>(async (resolve) => {
+    db.indexItems.each(async (indexItem) => {
+      await index.import(indexItem.key, indexItem.value as any);
+      count++;
+
+      if (count === total) resolve();
+    });
+  });
+}

@@ -1,11 +1,11 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { db, DbWorkItem } from "./data/db";
+import { useConfig } from "./hooks/use-config";
 import { useInterval } from "./hooks/use-interval";
 import { useIsOffline } from "./hooks/use-is-offline";
 import "./popup-window.css";
 import { TypeIcon } from "./type-icon/type-icon";
-import { Config, getConfig } from "./utils/config";
 import { selectElementContent } from "./utils/dom";
 import { index, indexAllItems } from "./utils/fts";
 import { getShortIteration } from "./utils/iteration";
@@ -14,15 +14,20 @@ import { sync } from "./utils/sync";
 const pollingInterval = 10;
 
 export const PopupWindow = () => {
-  const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState("");
   const [searchResult, setSearchResult] = useState<DbWorkItem[]>([]);
-  const [config, setConfig] = useState<Config>();
-
   const isOffline = useIsOffline();
-
   const [progressMessage, setProgressMessage] = useState<null | string>(null);
+
+  const initialQuery = useRef(localStorage.getItem("last-query"));
+
   const setTimestampMessage = useCallback((message: string) => setProgressMessage(`${new Date().toLocaleTimeString()} ${message}`), []);
+
+  const config = useConfig(() => {
+    chrome.runtime.openOptionsPage();
+    setTimestampMessage("Please complete the setup first");
+  });
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -37,24 +42,9 @@ export const PopupWindow = () => {
     return () => window.removeEventListener("keydown", handleKeydown);
   }, []);
 
-  const resumeIndex = async () => {
-    const total = await db.indexItems.count();
-    let count = 0;
-
-    return new Promise<void>(async (resolve) => {
-      db.indexItems.each(async (indexItem) => {
-        await index.import(indexItem.key, indexItem.value as any);
-        count++;
-
-        if (count === total) resolve();
-      });
-    });
-  };
-
   useEffect(() => {
-    const lastQuery = localStorage.getItem("last-query");
-    if (lastQuery) {
-      setQuery(lastQuery);
+    if (initialQuery.current) {
+      setQuery(initialQuery.current);
       setTimeout(() => {
         inputRef.current?.focus();
         inputRef.current?.select();
@@ -62,14 +52,14 @@ export const PopupWindow = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const startTime = performance.now();
-    resumeIndex().then(() => {
-      const duration = performance.now() - startTime;
-      setTimestampMessage(`Search index resumed (${duration.toFixed(2)}ms)`);
-      setIndexRev((prev) => prev + 1);
-    });
-  }, []);
+  // useEffect(() => {
+  //   const startTime = performance.now();
+  //   importIndex().then(() => {
+  //     const duration = performance.now() - startTime;
+  //     setTimestampMessage(`Imported search index (${duration.toFixed(2)}ms)`);
+  //     setIndexRev((prev) => prev + 1);
+  //   });
+  // }, []);
 
   useEffect(() => {
     localStorage.setItem("last-query", query);
@@ -79,18 +69,7 @@ export const PopupWindow = () => {
     setTimestampMessage(isOffline ? "Network offline" : "Network online");
   }, [isOffline]);
 
-  useEffect(() => {
-    getConfig().then((config) => {
-      if (!Object.keys(config).length) {
-        chrome.runtime.openOptionsPage();
-        setTimestampMessage("Please complete the setup first");
-      } else {
-        setConfig(config);
-      }
-    });
-  }, []);
-
-  const recentItems = useLiveQuery(() => db.workItems.orderBy("changedDate").reverse().limit(100).toArray(), []);
+  const recentItems = useLiveQuery(() => db.workItems.orderBy("changedDate").reverse().limit(20).toArray(), []);
   const allItemsKeys = useLiveQuery(() => db.workItems.toCollection().primaryKeys());
 
   const [indexRev, setIndexRev] = useState(0);
@@ -102,8 +81,8 @@ export const PopupWindow = () => {
       const duration = performance.now() - startTime;
       setTimestampMessage(`Search index ready (${duration.toFixed(2)}ms)`);
       console.log(`index duration: ${duration.toFixed(2)}ms)`);
-      // setIndexRev((prev) => prev + 1);
-      // db.indexItems.clear();
+      setIndexRev((prev) => prev + 1);
+      db.indexItems.clear();
       index.export((key, value) => {
         db.indexItems.put({
           key: key as string,
@@ -113,6 +92,7 @@ export const PopupWindow = () => {
     });
   }, [allItemsKeys]);
 
+  // start-up sync
   useEffect(() => {
     sync({
       onIdProgress: setTimestampMessage,
@@ -122,6 +102,7 @@ export const PopupWindow = () => {
     }); // initial sync should not be delayed
   }, []);
 
+  // polling sync
   useInterval(
     sync.bind(null, {
       onSyncSuccess: setTimestampMessage,
@@ -142,6 +123,7 @@ export const PopupWindow = () => {
   useEffect(() => {
     if (!query.trim().length) return;
 
+    console.log(indexRev);
     index.searchAsync(query.trim(), { index: "fuzzyTokens" }).then((matches) => {
       const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
       db.workItems.bulkGet(titleMatchIds).then((items) => setSearchResult(items as DbWorkItem[]));
