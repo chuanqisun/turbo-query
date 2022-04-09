@@ -4,8 +4,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite build --watch",
-    "build": "vite build",
-    "pack": "node scripts/pack.js"
+    "build": "vite build && node scripts/pack.js"
   },
   "dependencies": {
     "dexie": "^3.2.1",
