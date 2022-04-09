@@ -1,6 +1,6 @@
 {
-  "name": "Azure DevOps Turbo",
-  "description": "Quickly find work items",
+  "name": "Work Item Search for Azure DevOps",
+  "description": "Instanly retrieve work items by title or metadata",
   "version": "1.0",
   "manifest_version": 3,
   "action": {
