@@ -110,9 +110,24 @@ export const PopupWindow = () => {
     chrome.runtime.openOptionsPage();
   }, []);
 
-  const handleClickId = useCallback<React.MouseEventHandler>((e: React.MouseEvent<HTMLSpanElement>) => selectElementContent(e.target as HTMLSpanElement), []);
-  const handleFocusId = useCallback<React.FocusEventHandler>((e: React.FocusEvent<HTMLSpanElement>) => selectElementContent(e.target as HTMLSpanElement), []);
-  const handleBlurId = useCallback<React.FocusEventHandler>((_e: React.FocusEvent<HTMLSpanElement>) => window.getSelection()?.removeAllRanges(), []);
+  const handleTextFocus = useCallback<React.FocusEventHandler>((e: React.FocusEvent<HTMLSpanElement>) => selectElementContent(e.target as HTMLSpanElement), []);
+  const handleTextBlur = useCallback<React.FocusEventHandler>((_e: React.FocusEvent<HTMLSpanElement>) => window.getSelection()?.removeAllRanges(), []);
+
+  const handleIdClick = useCallback<React.MouseEventHandler>((e: React.MouseEvent<HTMLSpanElement>) => selectElementContent(e.target as HTMLSpanElement), []);
+
+  const handleLinkClick = useCallback<React.MouseEventHandler>(async (e: React.MouseEvent<HTMLSpanElement>) => {
+    e.preventDefault();
+
+    const isCtrl = e.ctrlKey || e.metaKey;
+    const isShift = e.shiftKey;
+    const url = (e.target as HTMLAnchorElement).href;
+
+    if (isCtrl) {
+      chrome.tabs.create({ url, active: isShift });
+    } else {
+      chrome.tabs.update({ url });
+    }
+  }, []);
 
   return (
     <div className="stack-layout">
@@ -137,14 +152,15 @@ export const PopupWindow = () => {
             <span className="work-item__state" title={item.state}></span>
             <TypeIcon type={item.workItemType} />
             <div>
-              <span className="work-item__id" tabIndex={0} onFocus={handleFocusId} onBlur={handleBlurId} onClick={handleClickId}>
+              <span className="work-item__id" tabIndex={0} onFocus={handleTextFocus} onBlur={handleTextBlur} onClick={handleIdClick}>
                 {item.id}
               </span>{" "}
               <a
                 className="work-item__link"
                 target="_blank"
-                onFocus={handleFocusId}
-                onBlur={handleBlurId}
+                onClick={handleLinkClick}
+                onFocus={handleTextFocus}
+                onBlur={handleTextBlur}
                 href={`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}
               >
                 {item.title}

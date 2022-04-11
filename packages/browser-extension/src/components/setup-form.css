@@ -1,22 +1,14 @@
-.setup-window {
-  padding: 16px;
-  display: grid;
-  gap: 12px;
-  align-content: start;
-
-  max-width: 800px;
-  margin: auto;
-}
-
-.setup-form {
+.advanced-actions {
+  padding-top: 8px;
   display: grid;
   gap: 8px;
+  grid-template-columns: 1fr 1fr;
 }
 
 .form-actions {
-  margin-top: 16px;
-  display: flex;
-  justify-content: space-between;
+  padding-top: 16px;
+  display: grid;
+  gap: 8px;
 }
 
 .form-actions button {
@@ -67,4 +59,19 @@
   border-radius: 4px;
   border: 1px solid #666;
   background-color: white;
+}
+
+.setup-window {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+
+  max-width: 800px;
+  margin: auto;
+}
+
+.setup-form {
+  display: grid;
+  gap: 8px;
 }

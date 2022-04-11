@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { db } from "./data/db";
 import "./setup-form.css";
 import { getAllWorkItemIds } from "./utils/proxy";
+import { sync } from "./utils/sync";
 
 export const SetupForm: React.FC = () => {
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -47,9 +48,19 @@ export const SetupForm: React.FC = () => {
       });
   }, []);
 
-  const resetDb = useCallback(() => {
-    db.delete().then();
+  const resetDb = useCallback(async () => {
+    await db.delete();
+    await db.open();
     setStatusMessage(`✅ Database reset... Success!`);
+  }, []);
+
+  const manualSync = useCallback(() => {
+    sync({
+      onIdProgress: (message) => setStatusMessage(`⌛ ${message}`),
+      onItemInitProgress: (message) => setStatusMessage(`⌛ ${message}`),
+      onSyncSuccess: (message) => setStatusMessage(`✅ ${message}`),
+      onError: (message) => setStatusMessage(`⚠️ ${message}`),
+    });
   }, []);
 
   return (
@@ -95,7 +106,13 @@ export const SetupForm: React.FC = () => {
         <button type="submit" form="setup-form">
           Save and connect
         </button>
-        <button onClick={resetDb}>Reset database</button>
+        <details>
+          <summary>Advanced actions</summary>
+          <div className="advanced-actions">
+            <button onClick={resetDb}>Reset database</button>
+            <button onClick={manualSync}>Manual sync</button>
+          </div>
+        </details>
       </section>
 
       {statusMessage.length > 0 && (
