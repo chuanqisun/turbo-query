@@ -62,7 +62,7 @@
   font-weight: 500;
   color: black;
 }
-.work-item__link:where(:hover, :focus) {
+.work-item__link:where(:hover) {
   text-decoration: underline;
 }
 
