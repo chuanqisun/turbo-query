@@ -31,7 +31,7 @@ export async function getAllDeletedWorkItemIds(): Promise<number[]> {
   const patHeader = getPatHeader(config);
   const body = JSON.stringify({ query: getRootQuery(config.areaPath, true) });
 
-  return fetch(`https://dev.azure.com/${config.org}/${config.project}/${config.team}/_apis/wit/wiql/?api-version=6.0`, {
+  return fetch(`https://dev.azure.com/${config.org}/${config.project}/_apis/wit/wiql/?api-version=6.0`, {
     method: "post",
     headers: { ...patHeader, "Content-Type": "application/json" },
     body,
@@ -47,7 +47,7 @@ export async function getAllWorkItemIds(): Promise<number[]> {
   const patHeader = getPatHeader(config);
   const body = JSON.stringify({ query: getRootQuery(config.areaPath) });
 
-  return fetch(`https://dev.azure.com/${config.org}/${config.project}/${config.team}/_apis/wit/wiql/?api-version=6.0`, {
+  return fetch(`https://dev.azure.com/${config.org}/${config.project}/_apis/wit/wiql/?api-version=6.0`, {
     method: "post",
     headers: { ...patHeader, "Content-Type": "application/json" },
     body,

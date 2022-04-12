@@ -92,11 +92,6 @@ export const SetupForm: React.FC = () => {
           </div>
 
           <div className="form-field">
-            <label htmlFor="team">Team</label>
-            <input id="team" name="team" type="text" required />
-          </div>
-
-          <div className="form-field">
             <label htmlFor="area-path">Area path</label>
             <input id="area-path" name="areaPath" type="text" required />
           </div>
