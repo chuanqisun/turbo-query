@@ -30,11 +30,12 @@ export const SetupForm: React.FC = () => {
     });
   }, []);
 
-  const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>((event) => {
+  const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>(async (event) => {
     event.preventDefault();
-    saveForm().then(() => {
-      checkStatus();
-    });
+    await resetDb();
+    await saveForm();
+
+    checkStatus();
   }, []);
 
   const checkStatus = useCallback(() => {
