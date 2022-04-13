@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v1.0.2
 
 - Added: Auto sync after connecting to data source
 - Changed: Text content adjustment
