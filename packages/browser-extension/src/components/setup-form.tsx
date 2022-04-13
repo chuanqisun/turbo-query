@@ -30,22 +30,23 @@ export const SetupForm: React.FC = () => {
     });
   }, []);
 
-  const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>((event) => {
+  const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>(async (event) => {
     event.preventDefault();
-    saveForm().then(() => {
-      checkStatus();
-    });
+    await resetDb();
+    await saveForm();
+
+    checkStatus();
   }, []);
 
-  const checkStatus = useCallback(() => {
+  const checkStatus = useCallback(async () => {
     setStatusMessage(`⌛ Connecting...`);
-    getAllWorkItemIds()
-      .then((result) => {
-        setStatusMessage(`✅ Connecting... Success! ${result.length} work items found.`);
-      })
-      .catch((error) => {
-        setStatusMessage(`⚠️ Connecting... Failed. ${error?.message}`);
-      });
+    try {
+      const result = await getAllWorkItemIds();
+      setStatusMessage(`✅ Connecting... Success! ${result.length} work items found.`);
+      await manualSync();
+    } catch (error) {
+      setStatusMessage(`⚠️ Connecting... Failed. ${(error as any)?.message}`);
+    }
   }, []);
 
   const resetDb = useCallback(async () => {
@@ -54,8 +55,8 @@ export const SetupForm: React.FC = () => {
     setStatusMessage(`✅ Database reset... Success!`);
   }, []);
 
-  const manualSync = useCallback(() => {
-    sync({
+  const manualSync = useCallback(async () => {
+    await sync({
       onIdProgress: (message) => setStatusMessage(`⌛ ${message}`),
       onItemInitProgress: (message) => setStatusMessage(`⌛ ${message}`),
       onSyncSuccess: (message) => setStatusMessage(`✅ ${message}`),
@@ -83,22 +84,17 @@ export const SetupForm: React.FC = () => {
 
           <div className="form-field">
             <label htmlFor="org">Organization</label>
-            <input id="org" name="org" type="text" required />
+            <input id="org" name="org" type="text" placeholder="My organization" required />
           </div>
 
           <div className="form-field">
             <label htmlFor="project">Project</label>
-            <input id="project" name="project" type="text" required />
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="team">Team</label>
-            <input id="team" name="team" type="text" required />
+            <input id="project" name="project" type="text" placeholder="My project" required />
           </div>
 
           <div className="form-field">
             <label htmlFor="area-path">Area path</label>
-            <input id="area-path" name="areaPath" type="text" required />
+            <input id="area-path" name="areaPath" type="text" placeholder="My\Area\Path" required />
           </div>
         </section>
       </form>

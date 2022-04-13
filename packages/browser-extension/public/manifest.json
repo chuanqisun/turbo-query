@@ -1,7 +1,7 @@
 {
   "name": "Turbo Query for Azure DevOps",
   "description": "Instantly retrieve work items from Azure DevOps.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "manifest_version": 3,
   "action": {
     "default_popup": "index.html",
@@ -11,6 +11,11 @@
       "48": "/images/Logo@48.png",
       "128": "/images/Logo@128.png"
     }
+  },
+  "icons": {
+    "16": "/images/Logo@16.png",
+    "48": "/images/Logo@48.png",
+    "128": "/images/Logo@128.png"
   },
   "options_page": "options.html",
   "permissions": ["storage"],

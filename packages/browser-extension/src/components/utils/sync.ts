@@ -12,7 +12,7 @@ export interface SyncConfig {
 }
 export async function sync(config?: SyncConfig) {
   try {
-    config?.onIdProgress?.("Fetching item ids");
+    config?.onIdProgress?.("Fetching item ids...");
     const allIds = await getAllWorkItemIds();
     config?.onIdProgress?.(`Fetching item ids... ${allIds.length} found`);
     const allDeletedIdsAsync = getAllDeletedWorkItemIds();

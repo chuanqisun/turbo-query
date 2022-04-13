@@ -141,7 +141,7 @@ export const PopupWindow = () => {
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by title or metadata [press / to focus]"
+            placeholder="Search by title or metadata... (press / to focus)"
           />
         </div>
       </div>
