@@ -61,6 +61,9 @@
   text-decoration: none;
   font-weight: 500;
   color: black;
+
+  overflow-wrap: break-word; /* not supported in Safari */
+  word-break: break-word; /* deprecated in Chrome, but needed in Safari */
 }
 .work-item__link:where(:hover) {
   text-decoration: underline;
@@ -84,6 +87,7 @@
 .work-item__path,
 .work-item__assigned-to {
   color: #666;
+  white-space: nowrap;
 }
 
 .work-item__type::after,
