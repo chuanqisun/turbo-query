@@ -15,7 +15,7 @@ export async function putDbItems(items: WorkItem[]) {
       changedDate: new Date(item.fields["System.ChangedDate"]),
       workItemType: item.fields["System.WorkItemType"],
       assignedTo: {
-        displayName: item.fields["System.AssignedTo"].displayName,
+        displayName: item.fields["System.AssignedTo"]?.displayName ?? "Unassigned",
       },
       state: item.fields["System.State"],
       iterationPath: item.fields["System.IterationPath"],
