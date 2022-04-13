@@ -38,15 +38,15 @@ export const SetupForm: React.FC = () => {
     checkStatus();
   }, []);
 
-  const checkStatus = useCallback(() => {
+  const checkStatus = useCallback(async () => {
     setStatusMessage(`⌛ Connecting...`);
-    getAllWorkItemIds()
-      .then((result) => {
-        setStatusMessage(`✅ Connecting... Success! ${result.length} work items found.`);
-      })
-      .catch((error) => {
-        setStatusMessage(`⚠️ Connecting... Failed. ${error?.message}`);
-      });
+    try {
+      const result = await getAllWorkItemIds();
+      setStatusMessage(`✅ Connecting... Success! ${result.length} work items found.`);
+      await manualSync();
+    } catch (error) {
+      setStatusMessage(`⚠️ Connecting... Failed. ${(error as any)?.message}`);
+    }
   }, []);
 
   const resetDb = useCallback(async () => {
@@ -55,8 +55,8 @@ export const SetupForm: React.FC = () => {
     setStatusMessage(`✅ Database reset... Success!`);
   }, []);
 
-  const manualSync = useCallback(() => {
-    sync({
+  const manualSync = useCallback(async () => {
+    await sync({
       onIdProgress: (message) => setStatusMessage(`⌛ ${message}`),
       onItemInitProgress: (message) => setStatusMessage(`⌛ ${message}`),
       onSyncSuccess: (message) => setStatusMessage(`✅ ${message}`),

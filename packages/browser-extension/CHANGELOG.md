@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added: Auto sync after connecting to data source
 - Changed: Text content adjustment
 - Fixed: Icon was missing in extensions list
 - Fixed: DB was dirty after saving config
