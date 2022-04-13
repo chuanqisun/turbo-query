@@ -1,7 +1,7 @@
 import FlexSearch from "flexsearch";
 import React, { useEffect, useState } from "react";
 import { db } from "../data/db";
-import { importSecondaryIndex, indexAllItems, IndexedItem } from "../utils/fts";
+import { indexAllItems, IndexedItem, loadCachedIndex } from "../utils/fts";
 
 export interface UseSearchIndexInput {
   skip?: boolean;
@@ -18,11 +18,11 @@ export function useSearchIndex(input: UseSearchIndexInput) {
 
   useEffect(() => {
     const startTime = performance.now();
-    importSecondaryIndex().then((secondaryIndex) => {
+    loadCachedIndex().then((cachedIndex) => {
       const duration = performance.now() - startTime;
-      console.log(`secondary index ready (${Math.round(duration)}ms)`);
+      console.log(`[index] Cached index ready (${Math.round(duration)}ms)`);
 
-      setActiveIndex(secondaryIndex);
+      setActiveIndex(cachedIndex);
       setIndexRev((prev) => prev + 1);
     });
   }, []);
@@ -33,7 +33,7 @@ export function useSearchIndex(input: UseSearchIndexInput) {
     const startTime = performance.now();
     indexAllItems().then(async (index) => {
       const duration = performance.now() - startTime;
-      console.log(`primary index ready (${Math.round(duration)}ms)`);
+      console.log(`[index] primary index ready (${Math.round(duration)}ms)`);
 
       setActiveIndex(index);
       setIndexRev((prev) => prev + 1);

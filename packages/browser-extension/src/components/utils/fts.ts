@@ -14,7 +14,7 @@ const indexConfig: IndexOptionsForDocumentSearch<IndexedItem> = {
 };
 
 export const index = new FlexSearch.Document<IndexedItem>(indexConfig);
-export const secondaryIndex = new FlexSearch.Document<IndexedItem>(indexConfig);
+export const cachedIndex = new FlexSearch.Document<IndexedItem>(indexConfig);
 
 export interface IndexedItem {
   id: number;
@@ -46,16 +46,16 @@ export async function indexAllItems() {
   });
 }
 
-export async function importSecondaryIndex() {
+export async function loadCachedIndex() {
   const total = await db.indexItems.count();
   let count = 0;
 
   return new Promise<FlexSearch.Document<IndexedItem, false>>(async (resolve) => {
     db.indexItems.each(async (indexItem) => {
-      await secondaryIndex.import(indexItem.key, indexItem.value as any);
+      await cachedIndex.import(indexItem.key, indexItem.value as any);
       count++;
 
-      if (count === total) resolve(secondaryIndex);
+      if (count === total) resolve(cachedIndex);
     });
   });
 }

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Chore: Logging clean-up
+
 ## v1.0.2
 
 - Added: Auto sync after connecting to data source

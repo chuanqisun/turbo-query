@@ -8,6 +8,7 @@ import { useSearchIndex } from "./hooks/use-search-index";
 import "./popup-window.css";
 import { TypeIcon } from "./type-icon/type-icon";
 import { selectElementContent } from "./utils/dom";
+import { isDefined } from "./utils/guard";
 import { getShortIteration } from "./utils/iteration";
 import { sync } from "./utils/sync";
 
@@ -102,7 +103,7 @@ export const PopupWindow = () => {
 
     index.searchAsync(query.trim(), { index: "fuzzyTokens" }).then((matches) => {
       const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
-      db.workItems.bulkGet(titleMatchIds).then((items) => setSearchResult(items as DbWorkItem[]));
+      db.workItems.bulkGet(titleMatchIds).then((items) => setSearchResult(items.filter(isDefined)));
     });
   }, [indexRev, index, query]);
 
