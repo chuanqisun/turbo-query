@@ -84,17 +84,17 @@ export const SetupForm: React.FC = () => {
 
           <div className="form-field">
             <label htmlFor="org">Organization</label>
-            <input id="org" name="org" type="text" required />
+            <input id="org" name="org" type="text" placeholder="My organization" required />
           </div>
 
           <div className="form-field">
             <label htmlFor="project">Project</label>
-            <input id="project" name="project" type="text" required />
+            <input id="project" name="project" type="text" placeholder="My project" required />
           </div>
 
           <div className="form-field">
             <label htmlFor="area-path">Area path</label>
-            <input id="area-path" name="areaPath" type="text" required />
+            <input id="area-path" name="areaPath" type="text" placeholder="My\Area\Path" required />
           </div>
         </section>
       </form>
