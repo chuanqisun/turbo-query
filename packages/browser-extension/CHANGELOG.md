@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed: Icon was missing in extensions list
 - Fixed: DB was dirty after saving config
 - Fixed: Sync failed due to unassigned work item
 - Fixed: Long title without whitespace caused overflow

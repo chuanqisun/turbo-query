@@ -12,6 +12,11 @@
       "128": "/images/Logo@128.png"
     }
   },
+  "icons": {
+    "16": "/images/Logo@16.png",
+    "48": "/images/Logo@48.png",
+    "128": "/images/Logo@128.png"
+  },
   "options_page": "options.html",
   "permissions": ["storage"],
   "host_permissions": ["https://dev.azure.com/"],
