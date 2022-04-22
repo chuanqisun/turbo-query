@@ -2,7 +2,7 @@ import { deleteDbItems, initializeDb, putDbItems } from "../data/business-logic"
 import { db } from "../data/db";
 import { getPageDiff } from "./diff";
 import { getPages } from "./page";
-import { getAllDeletedWorkItemIds, getAllWorkItemIds, getWorkItems } from "./proxy";
+import { ALL_FIELDS, getAllDeletedWorkItemIds, getAllWorkItemIds, getWorkItems } from "./proxy";
 
 export interface SyncConfig {
   onIdProgress?: (message: string) => any;
@@ -30,19 +30,15 @@ export async function sync(config?: SyncConfig) {
     if (!count) {
       let progress = 0;
       const pages = await Promise.all(
-        idPages
-          .map(
-            getWorkItems.bind(null, ["System.Title", "System.WorkItemType", "System.ChangedDate", "System.AssignedTo", "System.State", "System.IterationPath"])
-          )
-          .map(async (page, i) => {
-            await page;
+        idPages.map(getWorkItems.bind(null, ALL_FIELDS)).map(async (page, i) => {
+          await page;
 
-            progress += idPages[i].length;
+          progress += idPages[i].length;
 
-            config?.onIdProgress?.(`Fetching item content: ${((progress / allIds.length) * 100).toFixed(2)}%`);
+          config?.onIdProgress?.(`Fetching item content: ${((progress / allIds.length) * 100).toFixed(2)}%`);
 
-            return page;
-          })
+          return page;
+        })
       );
       const allItems = pages.flat();
       await initializeDb(allItems);
@@ -51,10 +47,7 @@ export async function sync(config?: SyncConfig) {
       syncSummary.add = allItems.length;
     } else {
       for (const [index, ids] of idPages.entries()) {
-        const remoteItems = await getWorkItems(
-          ["System.Title", "System.WorkItemType", "System.ChangedDate", "System.AssignedTo", "System.State", "System.IterationPath"],
-          ids
-        );
+        const remoteItems = await getWorkItems(ALL_FIELDS, ids);
 
         const localItems = await db.workItems.bulkGet(remoteItems.map((item) => item.id));
 
@@ -94,6 +87,7 @@ export async function sync(config?: SyncConfig) {
 
     config?.onSyncSuccess?.(`Sync success... ${summaryMessage}`);
   } catch (error) {
+    console.error(error);
     config?.onError?.(`Sync failed ${(error as any)?.message}`);
   }
 }

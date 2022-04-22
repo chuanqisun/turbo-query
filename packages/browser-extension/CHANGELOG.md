@@ -1,7 +1,11 @@
 # Changelog
 
-## Unreleased
+## v1.1.0
 
+- Added: Highlight matched fields during search
+- Added: Tags
+- Changed: "Cut" state is indicated by an empty bar
+- Changed: "Completed" and "Cut" items in search results are grouped and moved to bottom
 - Chore: Logging clean-up
 
 ## v1.0.2
