@@ -32,7 +32,9 @@ export async function indexAllItems() {
     };
 
     db.workItems.each((item) => {
-      const fuzzyTokens = `${item.state} ${item.id} ${item.workItemType} ${item.assignedTo.displayName} ${getShortIteration(item.iterationPath)} ${item.title}`;
+      const fuzzyTokens = `${item.state} ${item.id} ${item.workItemType} ${item.assignedTo.displayName} ${getShortIteration(item.iterationPath)} ${
+        item.title
+      } ${item.tags.join(" ")}`;
 
       index.addAsync(
         item.id,

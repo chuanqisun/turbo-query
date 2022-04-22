@@ -87,6 +87,15 @@
   border: 1px solid #b2b2b2;
 }
 
+.work-item__tag {
+  white-space: nowrap;
+  font-size: 12px;
+  padding-inline: 2px;
+  color: rgba(0,0,0,.5);
+  border: 1px solid #b2b2b2;
+  border-radius: 2px;
+}
+
 .work-item__type,
 .work-item__path,
 .work-item__assigned-to {

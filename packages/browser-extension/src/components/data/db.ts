@@ -9,6 +9,7 @@ export interface DbWorkItem {
   assignedTo: DbUser;
   state: string;
   iterationPath: string;
+  tags: string[];
 }
 
 export interface DbIndexItem {
@@ -26,10 +27,16 @@ export class Db extends Dexie {
 
   constructor() {
     super("adohpc_store");
-    this.version(2).stores({
-      workItems: "id, title, changedDate",
-      indexItems: "key",
-    });
+    this.version(3)
+      .stores({
+        workItems: "id, title, changedDate",
+        indexItems: "key",
+      })
+      .upgrade((tx) => {
+        // Reset DB to add Tags
+        console.log("[DB] Migration: 2->3");
+        tx.db.table("workItems").clear();
+      });
   }
 }
 

@@ -167,6 +167,12 @@ export const PopupWindow = () => {
               >
                 {item.title}
               </a>{" "}
+              {item.tags.length > 0 &&
+                item.tags.map((tag) => (
+                  <>
+                    <span className="work-item__tag">{tag}</span>{" "}
+                  </>
+                ))}
               <span className="work-item__type">{item.workItemType}</span> <span className="work-item__assigned-to">{item.assignedTo.displayName}</span>{" "}
               <span className="work-item__path">{getShortIteration(item.iterationPath)}</span>
             </div>

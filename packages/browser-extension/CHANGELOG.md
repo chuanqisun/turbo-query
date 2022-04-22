@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased - v1.1.0
+## v1.1.0
 
-- TODO: support tags
+- Added: Display and search by tags
 - Added: "Cut" state indicator
 - Changed: "Completed" and "Cut" items in search results are grouped and moved to bottom
 - Chore: Logging clean-up

@@ -18,10 +18,22 @@ export interface BasicFields {
   "System.Title": string;
   "System.WorkItemType": string;
   "System.ChangedDate": string;
-  "System.AssignedTo": AdoUser;
+  "System.AssignedTo"?: AdoUser; // Abscent when unassigned
   "System.State": string;
   "System.IterationPath": string;
+  "System.Tags"?: string; // Abscent when untagged
 }
+
+export const ALL_FIELDS: (keyof BasicFields)[] = [
+  "System.Title",
+  "System.WorkItemType",
+  "System.ChangedDate",
+  "System.AssignedTo",
+  "System.State",
+  "System.IterationPath",
+  "System.Tags",
+];
+
 export interface AdoUser {
   displayName: string;
 }

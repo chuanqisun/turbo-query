@@ -19,6 +19,7 @@ export async function putDbItems(items: WorkItem[]) {
       },
       state: item.fields["System.State"],
       iterationPath: item.fields["System.IterationPath"],
+      tags: item.fields["System.Tags"]?.split("; ") ?? [],
     }))
   );
 }
