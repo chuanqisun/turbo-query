@@ -165,7 +165,7 @@ export const PopupWindow = () => {
       <ul className="work-item-list">
         {searchResult.map((item) => (
           <li className="work-item" key={item.id}>
-            <span className="work-item__state" title={item.state}></span>
+            <span className="work-item__state-bar" title={item.state}></span>
             <TypeIcon type={item.workItemType} />
             <div>
               <span
@@ -196,7 +196,7 @@ export const PopupWindow = () => {
                     </span>{" "}
                   </>
                 ))}
-              <span className="work-item__state-text work-item__matchable" data-matched={isTokenMatch(item.state)}>
+              <span className="work-item__state work-item__matchable" data-matched={isTokenMatch(item.state)}>
                 {item.state}
               </span>
               {" · "}
