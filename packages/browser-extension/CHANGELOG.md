@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## Unreleased - v1.1.0
 
+- TODO: rerank cut items
+- TODO: support tags
+- Added: "Cut" state indicator
 - Chore: Logging clean-up
 
 ## v1.0.2

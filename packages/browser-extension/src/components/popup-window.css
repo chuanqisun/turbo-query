@@ -82,6 +82,10 @@
 .work-item__state:where([title="Started"], [title="Committed"], [title="Resolved"]) {
   background-color: #007acc;
 }
+.work-item__state:where([title="Cut"]) {
+  background-color: transparent;
+  border: 1px solid #b2b2b2;
+}
 
 .work-item__type,
 .work-item__path,
