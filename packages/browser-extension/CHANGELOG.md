@@ -2,8 +2,9 @@
 
 ## v1.1.0
 
-- Added: Display and search by tags
-- Added: "Cut" state indicator
+- Added: Highlight matched fields during search
+- Added: Tags
+- Changed: "Cut" state is indicated an empty bar
 - Changed: "Completed" and "Cut" items in search results are grouped and moved to bottom
 - Chore: Logging clean-up
 

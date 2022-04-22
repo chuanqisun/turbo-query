@@ -97,15 +97,17 @@
 }
 
 .work-item__type,
+.work-item__state-text,
 .work-item__path,
 .work-item__assigned-to {
   color: #666;
   white-space: nowrap;
 }
 
-.work-item__type::after,
-.work-item__assigned-to::after {
-  content: " ·";
+.work-item__matchable[data-matched="true"] {
+  background-color: yellow;
+  color: black;
+  border-color: black;
 }
 
 .status-bar {

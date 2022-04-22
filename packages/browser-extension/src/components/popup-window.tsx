@@ -1,5 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { db, DbWorkItem } from "./data/db";
 import { useConfig } from "./hooks/use-config";
 import { useInterval } from "./hooks/use-interval";
@@ -12,6 +12,7 @@ import { isDefined } from "./utils/guard";
 import { getShortIteration } from "./utils/iteration";
 import { sortByState } from "./utils/sort";
 import { sync } from "./utils/sync";
+import { tokenize } from "./utils/token";
 
 const pollingInterval = 10;
 
@@ -108,6 +109,19 @@ export const PopupWindow = () => {
     });
   }, [indexRev, index, query]);
 
+  const queryTokens = useMemo(() => tokenize(query), [query]);
+  const isTokenMatch = useCallback(
+    (maybeToken: string) =>
+      queryTokens.some((token) =>
+        maybeToken
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLocaleLowerCase()
+          .includes(token)
+      ),
+    [queryTokens]
+  );
+
   const openConfig = useCallback(() => {
     chrome.runtime.openOptionsPage();
   }, []);
@@ -154,7 +168,14 @@ export const PopupWindow = () => {
             <span className="work-item__state" title={item.state}></span>
             <TypeIcon type={item.workItemType} />
             <div>
-              <span className="work-item__id" tabIndex={0} onFocus={handleTextFocus} onBlur={handleTextBlur} onClick={handleIdClick}>
+              <span
+                className="work-item__id work-item__matchable"
+                data-matched={isTokenMatch(item.id.toString())}
+                tabIndex={0}
+                onFocus={handleTextFocus}
+                onBlur={handleTextBlur}
+                onClick={handleIdClick}
+              >
                 {item.id}
               </span>{" "}
               <a
@@ -170,11 +191,26 @@ export const PopupWindow = () => {
               {item.tags.length > 0 &&
                 item.tags.map((tag) => (
                   <>
-                    <span className="work-item__tag">{tag}</span>{" "}
+                    <span className="work-item__tag work-item__matchable" data-matched={isTokenMatch(tag)}>
+                      {tag}
+                    </span>{" "}
                   </>
                 ))}
-              <span className="work-item__type">{item.workItemType}</span> <span className="work-item__assigned-to">{item.assignedTo.displayName}</span>{" "}
-              <span className="work-item__path">{getShortIteration(item.iterationPath)}</span>
+              <span className="work-item__state-text work-item__matchable" data-matched={isTokenMatch(item.state)}>
+                {item.state}
+              </span>
+              {" · "}
+              <span className="work-item__type work-item__matchable" data-matched={isTokenMatch(item.workItemType)}>
+                {item.workItemType}
+              </span>
+              {" · "}
+              <span className="work-item__assigned-to work-item__matchable" data-matched={isTokenMatch(item.assignedTo.displayName)}>
+                {item.assignedTo.displayName}
+              </span>
+              {" · "}
+              <span className="work-item__path work-item__matchable" data-matched={isTokenMatch(item.iterationPath)}>
+                {getShortIteration(item.iterationPath)}
+              </span>
             </div>
           </li>
         ))}
