@@ -2,9 +2,9 @@
 
 ## Unreleased - v1.1.0
 
-- TODO: rerank cut items
 - TODO: support tags
 - Added: "Cut" state indicator
+- Changed: "Completed" and "Cut" items in search results are grouped and moved to bottom
 - Chore: Logging clean-up
 
 ## v1.0.2

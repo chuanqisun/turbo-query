@@ -10,6 +10,7 @@ import { TypeIcon } from "./type-icon/type-icon";
 import { selectElementContent } from "./utils/dom";
 import { isDefined } from "./utils/guard";
 import { getShortIteration } from "./utils/iteration";
+import { sortByState } from "./utils/sort";
 import { sync } from "./utils/sync";
 
 const pollingInterval = 10;
@@ -103,7 +104,7 @@ export const PopupWindow = () => {
 
     index.searchAsync(query.trim(), { index: "fuzzyTokens" }).then((matches) => {
       const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
-      db.workItems.bulkGet(titleMatchIds).then((items) => setSearchResult(items.filter(isDefined)));
+      db.workItems.bulkGet(titleMatchIds).then((items) => setSearchResult(items.filter(isDefined).sort(sortByState)));
     });
   }, [indexRev, index, query]);
 
