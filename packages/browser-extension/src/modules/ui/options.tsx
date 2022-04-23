@@ -2,9 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { getCompleteConfig } from "../utils/ado/config";
 import { WorkerClient } from "../utils/ipc/client";
-import { db } from "./components/data/db";
-import { getAllWorkItemIds } from "./components/utils/proxy";
-import { sync } from "./components/utils/sync";
+import { SyncProgressUpdate, SyncRequest, SyncResponse } from "../workers/handlers/handle-sync";
+import { TestConnectionRequest, TestConnectionResponse } from "../workers/handlers/handle-test-connection";
 
 const syncWorker = new Worker("./modules/workers/sync.js");
 const syncClient = new WorkerClient(syncWorker);
@@ -39,43 +38,54 @@ export const SetupForm: React.FC = () => {
 
   const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>(async (event) => {
     event.preventDefault();
-    await resetDb();
+    await clearCache();
     await saveForm();
 
     checkStatus();
   }, []);
 
   const checkStatus = useCallback(async () => {
+    const config = await getCompleteConfig();
+    if (!config) {
+      setStatusMessage(`⚠️ Connection failed! Missing config.`);
+      return;
+    }
+
     setStatusMessage(`⌛ Connecting...`);
-    try {
-      const result = await getAllWorkItemIds();
-      setStatusMessage(`✅ Connecting... Success! ${result.length} work items found.`);
+    const result = await workerClientRef.current.post<TestConnectionRequest, TestConnectionResponse>("test-connection", { config });
+    if (result.status === "success") {
       await manualSync();
-    } catch (error) {
-      setStatusMessage(`⚠️ Connecting... Failed. ${(error as any)?.message}`);
+    } else {
+      setStatusMessage(`⚠️ ${result.message}`);
     }
   }, []);
 
-  const resetDb = useCallback(async () => {
-    await db.delete();
-    await db.open();
-    setStatusMessage(`✅ Database reset... Success!`);
+  const clearCache = useCallback(async () => {
+    await workerClientRef.current.post("reset", {});
+    setStatusMessage(`✅ Clearing cache... Success!`);
   }, []);
 
   const manualSync = useCallback(async () => {
-    await sync({
-      onIdProgress: (message) => setStatusMessage(`⌛ ${message}`),
-      onItemInitProgress: (message) => setStatusMessage(`⌛ ${message}`),
-      onSyncSuccess: (message) => setStatusMessage(`✅ ${message}`),
-      onError: (message) => setStatusMessage(`⚠️ ${message}`),
-    });
-  }, []);
-
-  const manualSyncV2 = useCallback(async () => {
     const config = await getCompleteConfig();
     if (!config) return;
-    await workerClientRef.current.post("config", config);
-    await workerClientRef.current.post("sync", null); // TODO return sync summary
+
+    function syncProgressObserver(update: SyncProgressUpdate) {
+      switch (update.type) {
+        case "progress":
+          setStatusMessage(`⌛ ${update.message}`);
+          break;
+        case "success":
+          setStatusMessage(`✅ ${update.message}`);
+          break;
+        case "error":
+          setStatusMessage(`⚠️ ${update.message}`);
+          break;
+      }
+    }
+
+    workerClientRef.current.subscribe<SyncProgressUpdate>("sync-progress", syncProgressObserver);
+    await workerClientRef.current.post<SyncRequest, SyncResponse>("sync", { config });
+    workerClientRef.current.unsubscribe("sync-progress", syncProgressObserver);
   }, []);
 
   return (
@@ -119,9 +129,8 @@ export const SetupForm: React.FC = () => {
         <details>
           <summary>Advanced actions</summary>
           <div className="advanced-actions">
-            <button onClick={resetDb}>Reset database</button>
+            <button onClick={clearCache}>Clear cache</button>
             <button onClick={manualSync}>Manual sync</button>
-            <button onClick={manualSyncV2}>Manual sync v2</button>
           </div>
         </details>
       </section>
