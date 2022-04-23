@@ -189,12 +189,12 @@ export const PopupWindow = () => {
                 {item.title}
               </a>{" "}
               {item.tags.length > 0 &&
-                item.tags.map((tag) => (
-                  <>
+                item.tags.map((tag, i) => (
+                  <React.Fragment key={i}>
                     <span className="work-item__tag work-item__matchable" data-matched={isTokenMatch(tag)}>
                       {tag}
                     </span>{" "}
-                  </>
+                  </React.Fragment>
                 ))}
               <span className="work-item__state work-item__matchable" data-matched={isTokenMatch(item.state)}>
                 {item.state}
