@@ -13,7 +13,3 @@ export async function getCompleteConfig(): Promise<Config | null> {
 export function isConfigComplete(config: Config): boolean {
   return !!(config.org?.length && config.project?.length && config.areaPath?.length && config.email?.length && config.pat?.length);
 }
-
-export async function setConfig(config: Partial<Config>) {
-  await chrome.storage.sync.set(config);
-}
