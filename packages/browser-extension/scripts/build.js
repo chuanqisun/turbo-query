@@ -24,6 +24,7 @@ async function build() {
       format: "esm",
       sourcemap: "inline",
       watch: isWatch,
+      minify: !isWatch,
       outdir: path.join(UNPACKED_OUT_DIR, "modules/ui"),
     })
     .catch(() => process.exit(1));
@@ -35,6 +36,7 @@ async function build() {
       format: "iife",
       sourcemap: "inline",
       watch: isWatch,
+      minify: !isWatch,
       outdir: path.join(UNPACKED_OUT_DIR, "modules/worker"),
     })
     .catch(() => process.exit(1));
@@ -45,6 +47,7 @@ async function build() {
       bundle: true,
       sourcemap: "inline",
       watch: isWatch,
+      minify: !isWatch,
       outdir: path.join(UNPACKED_OUT_DIR, "modules/ui"),
     })
     .catch(() => process.exit(1));
