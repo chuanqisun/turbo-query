@@ -1,3 +1,7 @@
+body {
+  background-color: #eaeaea;
+}
+
 .advanced-actions {
   padding-top: 8px;
   display: grid;

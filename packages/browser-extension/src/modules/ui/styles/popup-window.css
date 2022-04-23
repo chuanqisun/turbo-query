@@ -3,6 +3,10 @@
   overflow-y: scroll;
 }
 
+body {
+  width: 600px;
+}
+
 .query-bar {
   position: sticky;
   top: 0;
@@ -91,7 +95,7 @@
   white-space: nowrap;
   font-size: 12px;
   padding-inline: 2px;
-  color: rgba(0,0,0,.5);
+  color: rgba(0, 0, 0, 0.5);
   border: 1px solid #b2b2b2;
   border-radius: 2px;
 }

@@ -1,3 +1,4 @@
+import React from "react";
 import { SVGIconComponent } from "./icon";
 
 export const TrophyIcon: SVGIconComponent = (props) => (

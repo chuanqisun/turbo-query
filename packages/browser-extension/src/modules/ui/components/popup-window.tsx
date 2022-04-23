@@ -5,7 +5,6 @@ import { useConfig } from "./hooks/use-config";
 import { useInterval } from "./hooks/use-interval";
 import { useIsOffline } from "./hooks/use-is-offline";
 import { useSearchIndex } from "./hooks/use-search-index";
-import "./popup-window.css";
 import { TypeIcon } from "./type-icon/type-icon";
 import { selectElementContent } from "./utils/dom";
 import { isDefined } from "./utils/guard";

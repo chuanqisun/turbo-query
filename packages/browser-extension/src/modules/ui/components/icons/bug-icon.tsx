@@ -1,3 +1,4 @@
+import React from "react";
 import type { SVGIconComponent } from "./icon";
 
 export const BugIcon: SVGIconComponent = (props) => (

@@ -2,7 +2,7 @@ const { promisify } = require("util");
 const path = require("path");
 const { exec } = require("child_process");
 
-const UNPACKED_OUT_DIR = `dist/unpacked`;
+const UNPACKED_OUT_DIR = `dist/unpacked/chrome`;
 
 const execAsync = promisify(exec);
 

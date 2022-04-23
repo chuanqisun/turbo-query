@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { db } from "./data/db";
-import "./setup-form.css";
 import { getAllWorkItemIds } from "./utils/proxy";
 import { sync } from "./utils/sync";
 
