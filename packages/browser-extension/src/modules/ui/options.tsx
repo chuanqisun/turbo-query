@@ -1,11 +1,22 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
+import { WorkerClient } from "../ipc/worker-client";
 import { db } from "./components/data/db";
 import { getAllWorkItemIds } from "./components/utils/proxy";
 import { sync } from "./components/utils/sync";
 
+const worker = new Worker("./modules/worker/worker.js");
+const workerClient = new WorkerClient(worker);
+
 export const SetupForm: React.FC = () => {
   const formRef = useRef<HTMLFormElement | null>(null);
+  const workerClientRef = useRef<WorkerClient>(workerClient);
+
+  useEffect(() => {
+    workerClientRef.current.post("heartbeat", 42).then((res) => {
+      console.log(`[options] worker return:`, res);
+    });
+  }, []);
 
   const [statusMessage, setStatusMessage] = useState("");
 
@@ -18,9 +29,8 @@ export const SetupForm: React.FC = () => {
   // init form
   useEffect(() => {
     const formData = new FormData(formRef.current!);
-    console.log(...formData.keys());
     chrome.storage.sync.get([...formData.keys()]).then((configDict) => {
-      console.log({ ...configDict });
+      console.log(`[options]`, { ...configDict });
       Object.entries(configDict).forEach(([key, value]) => (formRef.current!.querySelector<HTMLInputElement>(`[name="${key}"]`)!.value = value));
 
       const isValid = formRef.current?.checkValidity();

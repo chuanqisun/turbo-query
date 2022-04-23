@@ -35,7 +35,7 @@ async function build() {
       format: "iife",
       sourcemap: "inline",
       watch: isWatch,
-      outdir: path.join(UNPACKED_OUT_DIR, "modules/store"),
+      outdir: path.join(UNPACKED_OUT_DIR, "modules/worker"),
     })
     .catch(() => process.exit(1));
 

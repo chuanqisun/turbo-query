@@ -1,3 +1,7 @@
-console.log("worker thread live");
+import { WorkerServer } from "../ipc/worker-server";
 
-export default self;
+const server = new WorkerServer(self as any as Worker);
+
+server.addRequestHandler("heartbeat", async (req: number) => {
+  return req + 1;
+});
