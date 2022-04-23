@@ -13,8 +13,12 @@ export const SetupForm: React.FC = () => {
   const workerClientRef = useRef<WorkerClient>(workerClient);
 
   useEffect(() => {
-    workerClientRef.current.post("heartbeat", 42).then((res) => {
+    workerClientRef.current.post("ping", 42).then((res) => {
       console.log(`[options] worker return:`, res);
+    });
+
+    workerClientRef.current.subscribe("heartbeat", (res) => {
+      console.log(`[options] worker heartbeat:`, res);
     });
   }, []);
 

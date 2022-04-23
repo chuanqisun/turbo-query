@@ -1,6 +1,9 @@
+import type { RequestData, ResponseData, UpdateData } from "./worker-server";
+
 export class WorkerClient {
   #worker: Worker;
-  #connectionHandles = new Map<number, any>();
+  #connectionHandles = new Map<number, Resolver>();
+  #observers = new Map<string, Observer[]>();
   #connectionId = 0;
 
   constructor(worker: Worker) {
@@ -9,28 +12,53 @@ export class WorkerClient {
   }
 
   #start() {
-    this.#worker.addEventListener("message", (ev) => {
+    this.#worker.addEventListener("message", (ev: MessageEvent<ResponseData | UpdateData>) => {
       const [id, route, response] = ev.data;
-      const resolver = this.#connectionHandles.get(id);
-      if (!resolver) {
-        throw new Error(`[worker-proxy] has no resolver found for response id ${id}: ${JSON.stringify(response)}`);
-      }
 
-      resolver(response);
-      this.#connectionHandles.delete(id);
-      console.log(`[worker-client] #${id}|${route}|${performance.measure(`request ${id} duration`, `req-${id}`).duration.toFixed(2)}ms`);
+      if (id !== null) {
+        // one-off messages
+        const resolver = this.#connectionHandles.get(id);
+        resolver?.(response);
+        this.#connectionHandles.delete(id);
+        console.log(`[worker-client] #${id}:${route}:${performance.measure(`request ${id} duration`, `req-${id}`).duration.toFixed(2)}ms`);
+      } else {
+        // subscriptions
+        const observers = this.#observers.get(route) ?? [];
+        observers.forEach((observer) => observer(response));
+        console.log(`[worker-client] #sub:${route}:${observers.length} notified`);
+      }
     });
 
     console.log(`[worker-proxy] worker proxy started`);
   }
 
-  post<RequestType, ReturnType>(route: string, request: RequestType): Promise<ReturnType> {
+  subscribe<UpdateType>(route: string, observer: Observer<UpdateType>) {
+    const observers = this.#observers.get(route) ?? [];
+    observers.push(observer);
+    this.#observers.set(route, observers);
+  }
+
+  unsubscribe(route: string, observer: Observer) {
+    const observers = this.#observers.get(route) ?? [];
+    const remainingObservers = observers.filter((o) => o !== observer);
+    if (remainingObservers.length) {
+      this.#observers.set(route, remainingObservers);
+    } else {
+      this.#observers.delete(route);
+    }
+  }
+
+  post<RequestType, ResponseType>(route: string, request: RequestType): Promise<ResponseType> {
     return new Promise((resolver) => {
       const id = ++this.#connectionId;
       performance.mark(`req-${id}`);
-
       this.#connectionHandles.set(id, resolver);
-      this.#worker.postMessage([id, route, request]);
+
+      const message: RequestData<RequestType> = [id, route, request];
+      this.#worker.postMessage(message);
     });
   }
 }
+
+export type Observer<UpdateType = any> = (update: UpdateType) => any;
+type Resolver = (value: any) => any;
