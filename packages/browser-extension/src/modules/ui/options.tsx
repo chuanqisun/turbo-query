@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import { getCompleteConfig } from "../utils/ado/config";
-import { WorkerClient } from "../utils/ipc/client";
-import { SyncProgressUpdate, SyncRequest, SyncResponse } from "../workers/handlers/handle-sync";
-import { TestConnectionRequest, TestConnectionResponse } from "../workers/handlers/handle-test-connection";
+import { WorkerClient } from "../ipc/client";
+import { getCompleteConfig } from "../sync/ado/config";
+import { SyncProgressUpdate, SyncRequest, SyncResponse } from "../sync/handlers/handle-sync";
+import { TestConnectionRequest, TestConnectionResponse } from "../sync/handlers/handle-test-connection";
 
-const syncWorker = new Worker("./modules/workers/sync.js");
+const syncWorker = new Worker("./modules/sync/worker.js");
 const syncClient = new WorkerClient(syncWorker);
 
 export const SetupForm: React.FC = () => {

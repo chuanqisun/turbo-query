@@ -1,4 +1,4 @@
-import type { DbWorkItem } from "../../data/db";
+import type { DbWorkItem } from "../../sync/data/db";
 import type { WorkItem } from "../ado/api-proxy";
 
 export interface PageDiffSummary {

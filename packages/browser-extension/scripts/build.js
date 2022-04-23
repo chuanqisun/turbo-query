@@ -31,13 +31,13 @@ async function build() {
 
   const webWorkerBuild = require("esbuild")
     .build({
-      entryPoints: ["src/modules/workers/search.ts", "src/modules/workers/sync.ts"],
+      entryPoints: ["src/modules/search/worker.ts", "src/modules/sync/worker.ts"],
       bundle: true,
       format: "iife",
       sourcemap: "inline",
       watch: isWatch,
       minify: !isWatch,
-      outdir: path.join(UNPACKED_OUT_DIR, "modules/workers"),
+      outdir: path.join(UNPACKED_OUT_DIR, "modules"),
     })
     .catch(() => process.exit(1));
 

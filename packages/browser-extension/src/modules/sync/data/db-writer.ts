@@ -1,5 +1,5 @@
-import { db } from "../../data/db";
 import { WorkItem } from "../ado/api-proxy";
+import { db } from "./db";
 
 export async function initializeDb(allItems: WorkItem[]) {
   await db.workItems.clear();

@@ -50,7 +50,7 @@ export class WorkerClient {
 
   post<RequestType, ResponseType>(route: string, request: RequestType): Promise<ResponseType> {
     return new Promise((resolver) => {
-      const id = ++this.#connectionId;
+      const id = ++this.#connectionId % Number.MAX_SAFE_INTEGER;
       performance.mark(`req-${id}`);
       this.#connectionHandles.set(id, resolver);
 

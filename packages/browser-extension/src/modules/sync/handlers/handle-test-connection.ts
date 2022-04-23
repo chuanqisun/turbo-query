@@ -1,5 +1,5 @@
-import { ApiProxy, Config } from "../../utils/ado/api-proxy";
-import { WorkerServer } from "../../utils/ipc/server";
+import { WorkerServer } from "../../ipc/server";
+import { ApiProxy, Config } from "../ado/api-proxy";
 
 export interface TestConnectionRequest {
   config: Config;

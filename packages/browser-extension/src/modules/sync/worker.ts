@@ -1,4 +1,4 @@
-import { WorkerServer } from "../utils/ipc/server";
+import { WorkerServer } from "../ipc/server";
 import { handleReset } from "./handlers/handle-reset";
 import { handleSync } from "./handlers/handle-sync";
 import { handleTestConnection } from "./handlers/handle-test-connection";

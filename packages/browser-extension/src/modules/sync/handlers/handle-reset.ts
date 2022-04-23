@@ -1,4 +1,4 @@
-import { db } from "../../data/db";
+import { db } from "../data/db";
 
 export async function handleReset(): Promise<void> {
   await db.workItems.clear();

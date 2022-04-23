@@ -1,9 +1,9 @@
-import { db } from "../../data/db";
-import { ALL_FIELDS, ApiProxy, Config } from "../../utils/ado/api-proxy";
-import { WorkerServer } from "../../utils/ipc/server";
-import { deleteDbItems, initializeDb, putDbItems } from "../../utils/sync/db-writer";
-import { getPageDiff } from "../../utils/sync/diff";
-import { getPages } from "../../utils/sync/page";
+import { WorkerServer } from "../../ipc/server";
+import { ALL_FIELDS, ApiProxy, Config } from "../ado/api-proxy";
+import { db } from "../data/db";
+import { deleteDbItems, initializeDb, putDbItems } from "../data/db-writer";
+import { getPageDiff } from "../utils/diff";
+import { getPages } from "../utils/page";
 
 export interface SyncRequest {
   config: Config;
