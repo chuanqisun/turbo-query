@@ -1,7 +1,7 @@
+import { db } from "../../db/db";
+import { deleteDbItems, initializeDb, putDbItems } from "../../db/db-writer";
 import { WorkerServer } from "../../ipc/server";
 import { ALL_FIELDS, ApiProxy, Config } from "../ado/api-proxy";
-import { db } from "../data/db";
-import { deleteDbItems, initializeDb, putDbItems } from "../data/db-writer";
 import { getPageDiff } from "../utils/diff";
 import { getPages } from "../utils/page";
 
