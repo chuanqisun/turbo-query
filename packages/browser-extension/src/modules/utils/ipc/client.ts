@@ -29,7 +29,7 @@ export class WorkerClient {
       }
     });
 
-    console.log(`[worker-proxy] worker proxy started`);
+    console.log(`[worker-client] worker client started`);
   }
 
   subscribe<UpdateType>(route: string, observer: Observer<UpdateType>) {

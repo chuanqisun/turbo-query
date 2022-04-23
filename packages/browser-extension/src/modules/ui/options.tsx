@@ -1,26 +1,19 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import { WorkerClient } from "../ipc/client";
+import { getCompleteConfig } from "../utils/ado/config";
+import { WorkerClient } from "../utils/ipc/client";
 import { db } from "./components/data/db";
 import { getAllWorkItemIds } from "./components/utils/proxy";
 import { sync } from "./components/utils/sync";
 
-const worker = new Worker("./modules/worker/worker.js");
-const workerClient = new WorkerClient(worker);
+const syncWorker = new Worker("./modules/workers/sync.js");
+const syncClient = new WorkerClient(syncWorker);
 
 export const SetupForm: React.FC = () => {
   const formRef = useRef<HTMLFormElement | null>(null);
-  const workerClientRef = useRef<WorkerClient>(workerClient);
+  const workerClientRef = useRef<WorkerClient>(syncClient);
 
-  useEffect(() => {
-    workerClientRef.current.post("ping", 42).then((res) => {
-      console.log(`[options] worker return:`, res);
-    });
-
-    workerClientRef.current.subscribe("heartbeat", (res) => {
-      console.log(`[options] worker heartbeat:`, res);
-    });
-  }, []);
+  useEffect(() => {}, []);
 
   const [statusMessage, setStatusMessage] = useState("");
 
@@ -78,6 +71,13 @@ export const SetupForm: React.FC = () => {
     });
   }, []);
 
+  const manualSyncV2 = useCallback(async () => {
+    const config = await getCompleteConfig();
+    if (!config) return;
+    await workerClientRef.current.post("config", config);
+    await workerClientRef.current.post("sync", null); // TODO return sync summary
+  }, []);
+
   return (
     <div className="setup-window">
       <h1>Setup</h1>
@@ -121,6 +121,7 @@ export const SetupForm: React.FC = () => {
           <div className="advanced-actions">
             <button onClick={resetDb}>Reset database</button>
             <button onClick={manualSync}>Manual sync</button>
+            <button onClick={manualSyncV2}>Manual sync v2</button>
           </div>
         </details>
       </section>
