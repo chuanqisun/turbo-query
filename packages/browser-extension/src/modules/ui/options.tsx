@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import { WorkerClient } from "../ipc/worker-client";
+import { WorkerClient } from "../ipc/client";
 import { db } from "./components/data/db";
 import { getAllWorkItemIds } from "./components/utils/proxy";
 import { sync } from "./components/utils/sync";

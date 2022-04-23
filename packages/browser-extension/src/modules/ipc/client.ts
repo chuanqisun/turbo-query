@@ -1,4 +1,4 @@
-import type { RequestData, ResponseData, UpdateData } from "./worker-server";
+import type { RequestData, ResponseData, UpdateData } from "./server";
 
 export class WorkerClient {
   #worker: Worker;

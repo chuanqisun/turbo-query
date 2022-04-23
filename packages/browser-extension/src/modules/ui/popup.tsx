@@ -16,7 +16,7 @@ import { tokenize } from "./components/utils/token";
 
 const pollingInterval = 10;
 
-export const PopupWindow = () => {
+export const PopupWindow: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [searchResult, setSearchResult] = useState<DbWorkItem[]>([]);
