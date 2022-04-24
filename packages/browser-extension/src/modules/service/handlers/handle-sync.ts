@@ -3,6 +3,7 @@ import { WorkerServer } from "../../ipc/server";
 import { ALL_FIELDS, ApiProxy, Config } from "../ado/api-proxy";
 import { deleteDbItems, initializeDb, putDbItems } from "../utils/db-writer";
 import { getPageDiff } from "../utils/diff";
+import { getSummaryMessage } from "../utils/get-summary-message";
 import { getPages } from "../utils/page";
 import { HandlerContext } from "../worker";
 
@@ -124,15 +125,4 @@ async function incrementalSync(db: Db, server: WorkerServer, api: ApiProxy): Pro
   };
 
   return summary;
-}
-
-function getSummaryMessage(syncResponse: SyncResponse): string {
-  let summaryMessage = "";
-  if (syncResponse.addedIds.length) summaryMessage += ` ${syncResponse.addedIds.length} added`;
-  if (syncResponse.updatedIds.length) summaryMessage += ` ${syncResponse.updatedIds.length} updated`;
-  if (syncResponse.deletedIds.length) summaryMessage += ` ${syncResponse.deletedIds.length} deleted`;
-
-  if (!summaryMessage.length) summaryMessage += " No change";
-
-  return `Sync success... ${summaryMessage}`;
 }

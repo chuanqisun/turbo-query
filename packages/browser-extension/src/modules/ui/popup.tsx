@@ -4,6 +4,7 @@ import ReactDOM from "react-dom";
 import { WorkerClient } from "../ipc/client";
 import { SearchRequest, SearchResponse } from "../service/handlers/handle-search";
 import { SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
+import { getSummaryMessage } from "../service/utils/get-summary-message";
 import { IndexChangedUpdate } from "../service/utils/index-manager";
 import { getShortIteration } from "../service/utils/iteration";
 import { db, DbWorkItem } from "./components/data/db";
@@ -63,7 +64,7 @@ export const PopupWindow: React.FC = () => {
   }, [query]);
 
   useEffect(() => {
-    setTimestampMessage(isOffline ? "Network offline" : "Network online");
+    setTimestampMessage(isOffline ? "Offline" : "Online");
   }, [isOffline]);
 
   const recentItems = useLiveQuery(() => db.workItems.orderBy("changedDate").reverse().limit(100).toArray(), []);
@@ -74,7 +75,9 @@ export const PopupWindow: React.FC = () => {
   // start-up sync
   const requestSync = useCallback(() => {
     if (!config) return;
-    workerClient.post<SyncRequest, SyncResponse>("sync", { config });
+    workerClient.post<SyncRequest, SyncResponse>("sync", { config }).then((summary) => {
+      setTimestampMessage(getSummaryMessage(summary));
+    });
   }, [config]);
 
   // polling sync
