@@ -25,13 +25,16 @@ export const SetupForm: React.FC = () => {
   // init form
   useEffect(() => {
     const formData = new FormData(formRef.current!);
-    chrome.storage.sync.get([...formData.keys()]).then((configDict) => {
+    chrome.storage.sync.get([...formData.keys()]).then(async (configDict) => {
       console.log(`[options]`, { ...configDict });
       Object.entries(configDict).forEach(([key, value]) => (formRef.current!.querySelector<HTMLInputElement>(`[name="${key}"]`)!.value = value));
 
-      const isValid = formRef.current?.checkValidity();
-      if (isValid) {
-        checkStatus();
+      const isFormValid = formRef.current?.checkValidity();
+      if (isFormValid) {
+        const isConnectionValid = await getConnectionStatus();
+        if (isConnectionValid) {
+          manualSync();
+        }
       }
     });
   }, []);
@@ -41,10 +44,13 @@ export const SetupForm: React.FC = () => {
     await clearCache();
     await saveForm();
 
-    checkStatus();
+    const isValidStatus = await getConnectionStatus();
+    if (isValidStatus) {
+      manualSync();
+    }
   }, []);
 
-  const checkStatus = useCallback(async () => {
+  const getConnectionStatus = useCallback(async () => {
     const config = await getCompleteConfig();
     if (!config) {
       setStatusMessage(`⚠️ Connection failed! Missing config.`);
@@ -54,9 +60,11 @@ export const SetupForm: React.FC = () => {
     setStatusMessage(`⌛ Connecting...`);
     const result = await workerClientRef.current.post<TestConnectionRequest, TestConnectionResponse>("test-connection", { config });
     if (result.status === "success") {
-      await manualSync();
+      setStatusMessage(`✅ Connecting... Success!`);
+      return true;
     } else {
       setStatusMessage(`⚠️ ${result.message}`);
+      return false;
     }
   }, []);
 
@@ -86,6 +94,12 @@ export const SetupForm: React.FC = () => {
     workerClientRef.current.subscribe<SyncProgressUpdate>("sync-progress", syncProgressObserver);
     await workerClientRef.current.post<SyncRequest, SyncResponse>("sync", { config });
     workerClientRef.current.unsubscribe("sync-progress", syncProgressObserver);
+  }, []);
+
+  const buildIndex = useCallback(async () => {
+    setStatusMessage(`⌛ Indexing...`);
+    await workerClientRef.current.post("build-index", {});
+    setStatusMessage(`✅ Indexing... Success!`);
   }, []);
 
   return (
@@ -131,6 +145,7 @@ export const SetupForm: React.FC = () => {
           <div className="advanced-actions">
             <button onClick={clearCache}>Clear cache</button>
             <button onClick={manualSync}>Manual sync</button>
+            <button onClick={buildIndex}>Build index</button>
           </div>
         </details>
       </section>

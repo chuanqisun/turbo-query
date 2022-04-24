@@ -4,6 +4,7 @@ import { WorkerServer } from "../../ipc/server";
 import { ALL_FIELDS, ApiProxy, Config } from "../ado/api-proxy";
 import { getPageDiff } from "../utils/diff";
 import { getPages } from "../utils/page";
+import { HandlerContext } from "../worker";
 
 export interface SyncRequest {
   config: Config;
@@ -20,13 +21,16 @@ export type SyncProgressUpdate = {
   message: string;
 };
 
-export async function handleSync(server: WorkerServer, request: SyncRequest): Promise<SyncResponse> {
+export async function handleSync({ server, indexManager }: HandlerContext, request: SyncRequest): Promise<SyncResponse> {
   const count = await db.workItems.count();
   const api = new ApiProxy(request.config);
   const syncStrategy = count ? incrementalSync.bind(null, server, api) : fullSync.bind(null, server, api);
 
   try {
     const summary = await syncStrategy();
+    server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Indexing..." });
+    await indexManager.buildIndex();
+    server.push<SyncProgressUpdate>("sync-progress", { type: "success", message: getSummaryMessage(summary) });
 
     return summary;
   } catch (e) {
@@ -71,8 +75,6 @@ async function fullSync(server: WorkerServer, api: ApiProxy): Promise<SyncRespon
     updatedIds: [],
     deletedIds: [],
   };
-
-  server.push<SyncProgressUpdate>("sync-progress", { type: "success", message: getSummaryMessage(summary) });
 
   return summary;
 }
@@ -120,8 +122,6 @@ async function incrementalSync(server: WorkerServer, api: ApiProxy): Promise<Syn
     updatedIds,
     deletedIds,
   };
-
-  server.push<SyncProgressUpdate>("sync-progress", { type: "success", message: getSummaryMessage(summary) });
 
   return summary;
 }

@@ -1,5 +1,5 @@
-import { WorkerServer } from "../../ipc/server";
 import { ApiProxy, Config } from "../ado/api-proxy";
+import { HandlerContext } from "../worker";
 
 export interface TestConnectionRequest {
   config: Config;
@@ -10,7 +10,7 @@ export interface TestConnectionResponse {
   message: string;
 }
 
-export async function handleTestConnection(server: WorkerServer, request: TestConnectionRequest): Promise<TestConnectionResponse> {
+export async function handleTestConnection(_ctx: HandlerContext, request: TestConnectionRequest): Promise<TestConnectionResponse> {
   const api = new ApiProxy(request.config);
   try {
     const ids = await api.getAllWorkItemIds();
