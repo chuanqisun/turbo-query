@@ -5,13 +5,13 @@ import { WorkerClient } from "../ipc/client";
 import { SearchRequest, SearchResponse } from "../service/handlers/handle-search";
 import { SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
 import { IndexChangedUpdate } from "../service/utils/index-manager";
+import { getShortIteration } from "../service/utils/iteration";
 import { db, DbWorkItem } from "./components/data/db";
-import { useConfig } from "./components/hooks/use-config";
+import { useConfigGuard } from "./components/hooks/use-config-guard";
 import { useInterval } from "./components/hooks/use-interval";
 import { useIsOffline } from "./components/hooks/use-is-offline";
 import { TypeIcon } from "./components/type-icon/type-icon";
 import { selectElementContent } from "./components/utils/dom";
-import { getShortIteration } from "./components/utils/iteration";
 import { tokenize } from "./components/utils/token";
 
 const pollingInterval = 10;
@@ -30,7 +30,7 @@ export const PopupWindow: React.FC = () => {
 
   const setTimestampMessage = useCallback((message: string) => setProgressMessage(`${new Date().toLocaleTimeString()} ${message}`), []);
 
-  const config = useConfig(() => {
+  const config = useConfigGuard(() => {
     chrome.runtime.openOptionsPage();
     setTimestampMessage("Please complete the setup first");
   });

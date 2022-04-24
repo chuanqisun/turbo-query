@@ -13,6 +13,10 @@ const indexConfig: IndexOptionsForDocumentSearch<IndexedItem> = {
   },
 };
 
+// Currenly primary + secondary index because Flexsearch has performance issue when updating an imported index
+// When app initially opens, we import into secondary index (quick) and enables search
+// Then we build a primary index from scratch (slow). When ready, we swap out secondary and swap in primary
+
 export class IndexManager extends EventTarget {
   #nativeIndex = new FlexSearch.Document<IndexedItem>(indexConfig);
   #importedIndex = new FlexSearch.Document<IndexedItem>(indexConfig);
