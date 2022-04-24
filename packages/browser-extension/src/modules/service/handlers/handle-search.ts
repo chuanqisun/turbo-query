@@ -12,7 +12,7 @@ export interface SearchResponse {
 
 export interface SearchResultItem extends DbWorkItem {} // TODO: add highlight
 
-export async function handleSearch({ db, indexManager }: HandlerContext, { query }: SearchRequest): Promise<SearchResponse> {
+export async function handleSearch({ db, server, indexManager }: HandlerContext, { query }: SearchRequest): Promise<SearchResponse> {
   const matches = await (await indexManager.getIndex()).searchAsync(query.trim(), { index: "fuzzyTokens" });
   const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
 

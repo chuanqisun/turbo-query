@@ -3,17 +3,15 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import ReactDOM from "react-dom";
 import { WorkerClient } from "../ipc/client";
 import { SearchRequest, SearchResponse } from "../service/handlers/handle-search";
-import { isDefined } from "../service/utils/guard";
-import { sortByState } from "../service/utils/sort";
+import { SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
+import { IndexChangedUpdate } from "../service/utils/index-manager";
 import { db, DbWorkItem } from "./components/data/db";
 import { useConfig } from "./components/hooks/use-config";
 import { useInterval } from "./components/hooks/use-interval";
 import { useIsOffline } from "./components/hooks/use-is-offline";
-import { useSearchIndex } from "./components/hooks/use-search-index";
 import { TypeIcon } from "./components/type-icon/type-icon";
 import { selectElementContent } from "./components/utils/dom";
 import { getShortIteration } from "./components/utils/iteration";
-import { sync } from "./components/utils/sync";
 import { tokenize } from "./components/utils/token";
 
 const pollingInterval = 10;
@@ -26,6 +24,7 @@ export const PopupWindow: React.FC = () => {
   const [searchResult, setSearchResult] = useState<DbWorkItem[]>([]);
   const isOffline = useIsOffline();
   const [progressMessage, setProgressMessage] = useState<null | string>(null);
+  const [indexRev, setIndexRev] = useState<number | null>(null);
 
   const initialQuery = useRef(localStorage.getItem("last-query"));
 
@@ -68,31 +67,20 @@ export const PopupWindow: React.FC = () => {
   }, [isOffline]);
 
   const recentItems = useLiveQuery(() => db.workItems.orderBy("changedDate").reverse().limit(100).toArray(), []);
-  const allItemsKeys = useLiveQuery(() => db.workItems.toCollection().primaryKeys());
 
-  const { rev: indexRev, index } = useSearchIndex({
-    skip: !allItemsKeys,
-    deps: [allItemsKeys],
-  });
+  // watch for index updates
+  useEffect(() => workerClient.subscribe<IndexChangedUpdate>("index-changed", (update) => setIndexRev(update.rev)), []);
 
   // start-up sync
-  useEffect(() => {
-    sync({
-      onIdProgress: setTimestampMessage,
-      onItemInitProgress: setTimestampMessage,
-      onSyncSuccess: setTimestampMessage,
-      onError: setTimestampMessage,
-    }); // initial sync should not be delayed
-  }, []);
+  const requestSync = useCallback(() => {
+    if (!config) return;
+    workerClient.post<SyncRequest, SyncResponse>("sync", { config });
+  }, [config]);
 
   // polling sync
-  useInterval(
-    sync.bind(null, {
-      onSyncSuccess: setTimestampMessage,
-      onError: setTimestampMessage,
-    }),
-    isOffline ? null : pollingInterval * 1000
-  );
+  // TODO start interval after prev request is finished
+  useInterval(requestSync, isOffline ? null : pollingInterval * 1000);
+  useEffect(requestSync, [config]); // start now
 
   // recent
   useEffect(() => {
@@ -105,18 +93,14 @@ export const PopupWindow: React.FC = () => {
   // search
   useEffect(() => {
     if (!query.trim().length) return;
-    if (!index) return;
+    if (indexRev === null) return;
 
     workerClient.post<SearchRequest, SearchResponse>("search", { query }).then((response) => {
-      console.log(response.items);
+      setSearchResult(response.items);
     });
+  }, [indexRev, query]);
 
-    index.searchAsync(query.trim(), { index: "fuzzyTokens" }).then((matches) => {
-      const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
-      db.workItems.bulkGet(titleMatchIds).then((items) => setSearchResult(items.filter(isDefined).sort(sortByState)));
-    });
-  }, [indexRev, index, query]);
-
+  // TODO move highlight logic to worker thread
   const queryTokens = useMemo(() => tokenize(query), [query]);
   const isTokenMatch = useCallback(
     (maybeToken: string) =>
@@ -153,7 +137,7 @@ export const PopupWindow: React.FC = () => {
     }
   }, []);
 
-  return (
+  return config ? (
     <div className="stack-layout">
       <div className="query-bar">
         <div className="query-bar__input-group">
@@ -226,7 +210,7 @@ export const PopupWindow: React.FC = () => {
 
       <output className="status-bar">{progressMessage}</output>
     </div>
-  );
+  ) : null;
 };
 
 ReactDOM.render(
