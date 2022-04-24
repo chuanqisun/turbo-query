@@ -145,7 +145,6 @@ export const SetupForm: React.FC = () => {
           <div className="advanced-actions">
             <button onClick={clearCache}>Clear cache</button>
             <button onClick={manualSync}>Manual sync</button>
-            <button onClick={buildIndex}>Build index</button>
           </div>
         </details>
       </section>
