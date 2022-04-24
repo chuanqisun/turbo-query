@@ -3,6 +3,7 @@ import { WorkerServer } from "../../ipc/server";
 import { ALL_FIELDS, ApiProxy, Config } from "../ado/api-proxy";
 import { deleteDbItems, initializeDb, putDbItems } from "../utils/db-writer";
 import { getPageDiff } from "../utils/diff";
+import { isSummaryDirty } from "../utils/get-is-summary-dirty";
 import { getSummaryMessage } from "../utils/get-summary-message";
 import { getPages } from "../utils/page";
 import { HandlerContext } from "../worker";
@@ -32,13 +33,15 @@ export async function handleSync({ server, indexManager, db }: HandlerContext, r
     const summary = await syncStrategy();
 
     performance.mark("index");
+
     if (request.rebuildIndex) {
       server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Building index..." });
       await indexManager.buildIndex();
-    } else {
+    } else if (isSummaryDirty(summary)) {
       server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Updating index..." });
       await indexManager.updateIndex(summary);
     }
+
     console.log(`[sync] indexed ${performance.measure("import duration", "index").duration}`);
 
     server.push<SyncProgressUpdate>("sync-progress", { type: "success", message: getSummaryMessage(summary) });
@@ -89,7 +92,18 @@ async function fullSync(server: WorkerServer, api: ApiProxy): Promise<SyncRespon
 
   return summary;
 }
+
 async function incrementalSync(db: Db, server: WorkerServer, api: ApiProxy): Promise<SyncResponse> {
+  server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: `Peaking changes...` });
+  const isChanged = await peekIsChanged(db, api);
+  if (!isChanged) {
+    return {
+      addedIds: [],
+      updatedIds: [],
+      deletedIds: [],
+    };
+  }
+
   server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: `Fetching ids...` });
   const allIds = await api.getAllWorkItemIds();
   const allDeletedIdsAsync = api.getAllDeletedWorkItemIds();
@@ -135,4 +149,28 @@ async function incrementalSync(db: Db, server: WorkerServer, api: ApiProxy): Pro
   };
 
   return summary;
+}
+
+async function peekIsChanged(db: Db, api: ApiProxy) {
+  const hasUpsertionAsync = await api.getAllWorkItemIds({ top: 1 }).then(async (ids) => {
+    if (!ids.length) return true; // Remote should not be empty. Treat as dirty to be safe
+    const localItem = await db.workItems.get(ids[0]);
+    if (!localItem) return true; // Local is missing. Treat as dirty.
+
+    const remoteItems = await api.getWorkItems(ALL_FIELDS, ids);
+    if (!remoteItems.length) return true; // Remote id should always exist. Treat as dirty to be safe
+
+    return remoteItems[0].rev !== localItem.rev;
+  });
+
+  const hasDeletionAsync = await api.getAllDeletedWorkItemIds({ top: 1 }).then(async (ids) => {
+    if (!ids.length) return false; // No deleted item. Treat as clean;
+    const localItem = await db.workItems.get(ids[0]);
+    if (localItem) return true; // Remote deleted but local exists. Definitely changed.
+
+    return false;
+  });
+
+  const [hasUpsertion, hasDeletion] = await Promise.all([hasUpsertionAsync, hasDeletionAsync]);
+  return hasUpsertion || hasDeletion;
 }

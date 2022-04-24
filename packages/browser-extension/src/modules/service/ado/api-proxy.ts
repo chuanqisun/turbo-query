@@ -8,11 +8,13 @@ export class ApiProxy {
     this.#config = config;
   }
 
-  async getAllDeletedWorkItemIds(): Promise<number[]> {
+  async getAllDeletedWorkItemIds(params?: QueryParams): Promise<number[]> {
     const patHeader = getPatHeader(this.#config);
     const body = JSON.stringify({ query: getRootQuery(this.#config.areaPath, true) });
+    const searchParams = new URLSearchParams(`api-version=6.0`);
+    if (params?.top) searchParams.set("$top", params.top.toString());
 
-    return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/wiql/?api-version=6.0`, {
+    return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/wiql/?${searchParams.toString()}`, {
       method: "post",
       headers: { ...patHeader, "Content-Type": "application/json" },
       body,
@@ -23,11 +25,13 @@ export class ApiProxy {
       });
   }
 
-  async getAllWorkItemIds(): Promise<number[]> {
+  async getAllWorkItemIds(params?: QueryParams): Promise<number[]> {
     const patHeader = getPatHeader(this.#config);
     const body = JSON.stringify({ query: getRootQuery(this.#config.areaPath) });
+    const searchParams = new URLSearchParams(`api-version=6.0`);
+    if (params?.top) searchParams.set("$top", params.top.toString());
 
-    return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/wiql/?api-version=6.0`, {
+    return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/wiql/?${searchParams.toString()}`, {
       method: "post",
       headers: { ...patHeader, "Content-Type": "application/json" },
       body,
@@ -78,6 +82,10 @@ export interface WorkItem {
   rev: number;
   fields: BasicFields;
   url: string;
+}
+
+export interface QueryParams {
+  top?: number;
 }
 
 export interface BasicFields {

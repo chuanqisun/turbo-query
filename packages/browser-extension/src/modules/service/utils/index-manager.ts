@@ -70,24 +70,26 @@ export class IndexManager extends EventTarget {
   async updateIndex(summary: SyncResponse) {
     await this.#nativeIndexPopulatedAsync;
 
-    const addedItems = await db.workItems.bulkGet(summary.addedIds);
-    const updatedItems = await db.workItems.bulkGet(summary.updatedIds);
+    const addedItems = (await db.workItems.bulkGet(summary.addedIds)).filter(isDefined);
+    const updatedItems = (await db.workItems.bulkGet(summary.updatedIds)).filter(isDefined);
 
     summary.deletedIds.map((id) => this.#nativeIndex.remove(id));
 
-    addedItems.filter(isDefined).map((item) =>
+    addedItems.map((item) =>
       this.#nativeIndex.add(item.id, {
         id: item.id,
         fuzzyTokens: getFuzzyTitle(item),
       })
     );
 
-    updatedItems.filter(isDefined).map((item) =>
+    updatedItems.map((item) =>
       this.#nativeIndex.update(item.id, {
         id: item.id,
         fuzzyTokens: getFuzzyTitle(item),
       })
     );
+
+    this.dispatchEvent(new CustomEvent<IndexChangedEventDetail>("changed", { detail: { rev: ++this.#indexRev } }));
   }
 
   async #exportIndex() {
