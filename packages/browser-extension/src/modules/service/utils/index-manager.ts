@@ -22,16 +22,10 @@ export class IndexManager extends EventTarget {
   #nativeIndex = new FlexSearch.Document<IndexedItem>(indexConfig);
   #importedIndex = new FlexSearch.Document<IndexedItem>(indexConfig);
   #activeIndex: FlexSearch.Document<IndexedItem, false> | null = null;
+  #initialIndexAsync = this.#importIndex();
 
-  constructor() {
-    super();
-
-    this.#importIndex();
-  }
-
-  get index() {
-    if (!this.#activeIndex) throw new Error("No index is selected. Import or build the index first.");
-    return this.#activeIndex;
+  async getIndex() {
+    return this.#activeIndex ?? (await this.#initialIndexAsync);
   }
 
   async #importIndex() {

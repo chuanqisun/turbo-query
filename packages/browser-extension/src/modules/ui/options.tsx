@@ -1,16 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { WorkerClient } from "../ipc/client";
-import { getCompleteConfig } from "../worker/ado/config";
-import { SyncProgressUpdate, SyncRequest, SyncResponse } from "../worker/handlers/handle-sync";
-import { TestConnectionRequest, TestConnectionResponse } from "../worker/handlers/handle-test-connection";
+import { getCompleteConfig } from "../service/ado/config";
+import { SyncProgressUpdate, SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
+import { TestConnectionRequest, TestConnectionResponse } from "../service/handlers/handle-test-connection";
 
-const worker = new Worker("./modules/worker.js");
+const worker = new Worker("./modules/service/worker.js");
 const workerClient = new WorkerClient(worker);
 
 export const SetupForm: React.FC = () => {
   const formRef = useRef<HTMLFormElement | null>(null);
-  const workerClientRef = useRef<WorkerClient>(workerClient);
 
   useEffect(() => {}, []);
 
@@ -58,7 +57,7 @@ export const SetupForm: React.FC = () => {
     }
 
     setStatusMessage(`⌛ Connecting...`);
-    const result = await workerClientRef.current.post<TestConnectionRequest, TestConnectionResponse>("test-connection", { config });
+    const result = await workerClient.post<TestConnectionRequest, TestConnectionResponse>("test-connection", { config });
     if (result.status === "success") {
       setStatusMessage(`✅ Connecting... Success!`);
       return true;
@@ -69,7 +68,7 @@ export const SetupForm: React.FC = () => {
   }, []);
 
   const clearCache = useCallback(async () => {
-    await workerClientRef.current.post("reset", {});
+    await workerClient.post("reset", {});
     setStatusMessage(`✅ Clearing cache... Success!`);
   }, []);
 
@@ -91,15 +90,9 @@ export const SetupForm: React.FC = () => {
       }
     }
 
-    workerClientRef.current.subscribe<SyncProgressUpdate>("sync-progress", syncProgressObserver);
-    await workerClientRef.current.post<SyncRequest, SyncResponse>("sync", { config });
-    workerClientRef.current.unsubscribe("sync-progress", syncProgressObserver);
-  }, []);
-
-  const buildIndex = useCallback(async () => {
-    setStatusMessage(`⌛ Indexing...`);
-    await workerClientRef.current.post("build-index", {});
-    setStatusMessage(`✅ Indexing... Success!`);
+    workerClient.subscribe<SyncProgressUpdate>("sync-progress", syncProgressObserver);
+    await workerClient.post<SyncRequest, SyncResponse>("sync", { config });
+    workerClient.unsubscribe("sync-progress", syncProgressObserver);
   }, []);
 
   return (

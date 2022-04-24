@@ -1,3 +1,4 @@
+import { db, Db } from "../db/db";
 import { WorkerServer } from "../ipc/server";
 import { handleReset } from "./handlers/handle-reset";
 import { handleSearch } from "./handlers/handle-search";
@@ -13,6 +14,7 @@ class WorkerContainer {
     const handlerContext: HandlerContext = {
       server: this.#server,
       indexManager: this.#indexManager,
+      db,
     };
 
     this.#server.addRequestHandler("sync", handleSync.bind(null, handlerContext));
@@ -30,4 +32,5 @@ new WorkerContainer().start();
 export interface HandlerContext {
   server: WorkerServer;
   indexManager: IndexManager;
+  db: Db;
 }

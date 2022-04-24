@@ -1,4 +1,4 @@
-import { db } from "../../db/db";
+import { Db } from "../../db/db";
 import { deleteDbItems, initializeDb, putDbItems } from "../../db/db-writer";
 import { WorkerServer } from "../../ipc/server";
 import { ALL_FIELDS, ApiProxy, Config } from "../ado/api-proxy";
@@ -21,10 +21,10 @@ export type SyncProgressUpdate = {
   message: string;
 };
 
-export async function handleSync({ server, indexManager }: HandlerContext, request: SyncRequest): Promise<SyncResponse> {
+export async function handleSync({ server, indexManager, db }: HandlerContext, request: SyncRequest): Promise<SyncResponse> {
   const count = await db.workItems.count();
   const api = new ApiProxy(request.config);
-  const syncStrategy = count ? incrementalSync.bind(null, server, api) : fullSync.bind(null, server, api);
+  const syncStrategy = count ? incrementalSync.bind(null, db, server, api) : fullSync.bind(null, server, api);
 
   try {
     const summary = await syncStrategy();
@@ -78,7 +78,7 @@ async function fullSync(server: WorkerServer, api: ApiProxy): Promise<SyncRespon
 
   return summary;
 }
-async function incrementalSync(server: WorkerServer, api: ApiProxy): Promise<SyncResponse> {
+async function incrementalSync(db: Db, server: WorkerServer, api: ApiProxy): Promise<SyncResponse> {
   server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: `Fetching ids...` });
   const allIds = await api.getAllWorkItemIds();
   const allDeletedIdsAsync = api.getAllDeletedWorkItemIds();

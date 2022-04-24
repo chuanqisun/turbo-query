@@ -1,6 +1,10 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
+import { WorkerClient } from "../ipc/client";
+import { SearchRequest, SearchResponse } from "../service/handlers/handle-search";
+import { isDefined } from "../service/utils/guard";
+import { sortByState } from "../service/utils/sort";
 import { db, DbWorkItem } from "./components/data/db";
 import { useConfig } from "./components/hooks/use-config";
 import { useInterval } from "./components/hooks/use-interval";
@@ -8,13 +12,13 @@ import { useIsOffline } from "./components/hooks/use-is-offline";
 import { useSearchIndex } from "./components/hooks/use-search-index";
 import { TypeIcon } from "./components/type-icon/type-icon";
 import { selectElementContent } from "./components/utils/dom";
-import { isDefined } from "./components/utils/guard";
 import { getShortIteration } from "./components/utils/iteration";
-import { sortByState } from "./components/utils/sort";
 import { sync } from "./components/utils/sync";
 import { tokenize } from "./components/utils/token";
 
 const pollingInterval = 10;
+const worker = new Worker("./modules/service/worker.js");
+const workerClient = new WorkerClient(worker);
 
 export const PopupWindow: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -102,6 +106,10 @@ export const PopupWindow: React.FC = () => {
   useEffect(() => {
     if (!query.trim().length) return;
     if (!index) return;
+
+    workerClient.post<SearchRequest, SearchResponse>("search", { query }).then((response) => {
+      console.log(response.items);
+    });
 
     index.searchAsync(query.trim(), { index: "fuzzyTokens" }).then((matches) => {
       const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
