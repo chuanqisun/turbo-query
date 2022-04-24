@@ -7,6 +7,19 @@ const UNPACKED_OUT_DIR = `dist/unpacked/chrome`;
 
 const isWatch = process.argv.includes("--watch");
 
+const getWatcher = (isWatch, name) =>
+  isWatch
+    ? {
+        onRebuild: (error) => {
+          if (error) {
+            console.error(`${name} rebuild error`, error);
+          } else {
+            console.log(`${name} rebuild success`);
+          }
+        },
+      }
+    : false;
+
 async function build() {
   console.log("[build] start building extension...");
 
@@ -23,7 +36,7 @@ async function build() {
       bundle: true,
       format: "esm",
       sourcemap: "inline",
-      watch: isWatch,
+      watch: getWatcher(isWatch, "main"),
       minify: !isWatch,
       outdir: path.join(UNPACKED_OUT_DIR, "modules/ui"),
     })
@@ -31,11 +44,11 @@ async function build() {
 
   const webWorkerBuild = require("esbuild")
     .build({
-      entryPoints: ["src/modules/search/worker.ts", "src/modules/sync/worker.ts"],
+      entryPoints: ["src/modules/worker/worker.ts"],
       bundle: true,
       format: "iife",
       sourcemap: "inline",
-      watch: isWatch,
+      watch: getWatcher(isWatch, "worker"),
       minify: !isWatch,
       outdir: path.join(UNPACKED_OUT_DIR, "modules"),
     })
@@ -46,7 +59,7 @@ async function build() {
       entryPoints: ["src/modules/ui/popup.css", "src/modules/ui/options.css"],
       bundle: true,
       sourcemap: "inline",
-      watch: isWatch,
+      watch: getWatcher(isWatch, "styles"),
       minify: !isWatch,
       outdir: path.join(UNPACKED_OUT_DIR, "modules/ui"),
     })
