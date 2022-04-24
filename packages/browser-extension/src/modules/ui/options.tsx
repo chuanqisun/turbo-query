@@ -91,7 +91,7 @@ export const SetupForm: React.FC = () => {
     }
 
     workerClient.subscribe<SyncProgressUpdate>("sync-progress", syncProgressObserver);
-    await workerClient.post<SyncRequest, SyncResponse>("sync", { config });
+    await workerClient.post<SyncRequest, SyncResponse>("sync", { config, rebuildIndex: true });
     workerClient.unsubscribe("sync-progress", syncProgressObserver);
   }, []);
 
@@ -133,13 +133,6 @@ export const SetupForm: React.FC = () => {
         <button type="submit" form="setup-form">
           Save and connect
         </button>
-        <details>
-          <summary>Advanced actions</summary>
-          <div className="advanced-actions">
-            <button onClick={clearCache}>Clear cache</button>
-            <button onClick={manualSync}>Manual sync</button>
-          </div>
-        </details>
       </section>
 
       {statusMessage.length > 0 && (

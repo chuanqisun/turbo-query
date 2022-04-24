@@ -2,13 +2,6 @@ body {
   background-color: #eaeaea;
 }
 
-.advanced-actions {
-  padding-top: 8px;
-  display: grid;
-  gap: 8px;
-  grid-template-columns: 1fr 1fr;
-}
-
 .form-actions {
   padding-top: 16px;
   display: grid;

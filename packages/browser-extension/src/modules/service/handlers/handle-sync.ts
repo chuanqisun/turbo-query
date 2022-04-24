@@ -31,10 +31,16 @@ export async function handleSync({ server, indexManager, db }: HandlerContext, r
   try {
     const summary = await syncStrategy();
 
-    if (request.rebuildIndex || Object.values(summary).some((item) => item?.length)) {
-      server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Indexing..." });
+    performance.mark("index");
+    if (request.rebuildIndex) {
+      server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Building index..." });
       await indexManager.buildIndex();
+    } else {
+      server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Updating index..." });
+      await indexManager.updateIndex(summary);
     }
+    console.log(`[sync] indexed ${performance.measure("import duration", "index").duration}`);
+
     server.push<SyncProgressUpdate>("sync-progress", { type: "success", message: getSummaryMessage(summary) });
 
     return summary;

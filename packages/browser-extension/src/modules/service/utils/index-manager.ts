@@ -1,6 +1,8 @@
 import FlexSearch, { IndexOptionsForDocumentSearch } from "flexsearch";
 import { db } from "../../db/db";
-import { getShortIteration } from "./iteration";
+import { SyncResponse } from "../handlers/handle-sync";
+import { getFuzzyTitle } from "./get-fuzzy-title";
+import { isDefined } from "./guard";
 
 const indexConfig: IndexOptionsForDocumentSearch<IndexedItem> = {
   preset: "match",
@@ -22,6 +24,10 @@ export class IndexManager extends EventTarget {
   #importedIndex = new FlexSearch.Document<IndexedItem>(indexConfig);
   #activeIndex: IndexType | null = null;
   #initialIndexAsync = this.#importIndex();
+
+  #resolveNativeIndexPopulated!: () => any;
+  #nativeIndexPopulatedAsync = new Promise<void>((resolve) => (this.#resolveNativeIndexPopulated = resolve));
+
   #indexRev = 0;
 
   async getIndex() {
@@ -31,13 +37,11 @@ export class IndexManager extends EventTarget {
   async #importIndex(): Promise<IndexType> {
     const importTasks: Promise<any>[] = [];
 
-    performance.mark("import");
     await db.indexItems.each(async (indexItem) => {
       importTasks.push(this.#importedIndex.import(indexItem.key, indexItem.value as any));
     });
 
     await Promise.all(importTasks);
-    console.log(performance.measure("i", "import").duration);
 
     this.#activeIndex = this.#importedIndex;
     this.dispatchEvent(new CustomEvent<IndexChangedEventDetail>("changed", { detail: { rev: ++this.#indexRev } }));
@@ -46,22 +50,44 @@ export class IndexManager extends EventTarget {
   }
 
   async buildIndex(): Promise<IndexType> {
-    await db.workItems.each((item) => {
-      const fuzzyTokens = `${item.state} ${item.id} ${item.workItemType} ${item.assignedTo.displayName} ${getShortIteration(item.iterationPath)} ${
-        item.title
-      } ${item.tags.join(" ")}`;
-
+    await db.workItems.each((item) =>
       this.#nativeIndex.add(item.id, {
         id: item.id,
-        fuzzyTokens,
-      });
-    });
+        fuzzyTokens: getFuzzyTitle(item),
+      })
+    );
 
     await this.#exportIndex();
+
     this.#activeIndex = this.#nativeIndex;
+    this.#resolveNativeIndexPopulated();
+
     this.dispatchEvent(new CustomEvent<IndexChangedEventDetail>("changed", { detail: { rev: ++this.#indexRev } }));
 
     return this.#importedIndex;
+  }
+
+  async updateIndex(summary: SyncResponse) {
+    await this.#nativeIndexPopulatedAsync;
+
+    const addedItems = await db.workItems.bulkGet(summary.addedIds);
+    const updatedItems = await db.workItems.bulkGet(summary.updatedIds);
+
+    summary.deletedIds.map((id) => this.#nativeIndex.remove(id));
+
+    addedItems.filter(isDefined).map((item) =>
+      this.#nativeIndex.add(item.id, {
+        id: item.id,
+        fuzzyTokens: getFuzzyTitle(item),
+      })
+    );
+
+    updatedItems.filter(isDefined).map((item) =>
+      this.#nativeIndex.update(item.id, {
+        id: item.id,
+        fuzzyTokens: getFuzzyTitle(item),
+      })
+    );
   }
 
   async #exportIndex() {

@@ -64,7 +64,7 @@ export const PopupWindow: React.FC = () => {
   }, [query]);
 
   useEffect(() => {
-    setTimestampMessage(isOffline ? "Offline" : "Online");
+    setTimestampMessage(isOffline ? "System offline" : "System online");
   }, [isOffline]);
 
   const recentItems = useLiveQuery(() => db.workItems.orderBy("changedDate").reverse().limit(100).toArray(), []);
