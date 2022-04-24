@@ -72,18 +72,20 @@ export const PopupWindow: React.FC = () => {
   // watch for index updates
   useEffect(() => workerClient.subscribe<IndexChangedUpdate>("index-changed", (update) => setIndexRev(update.rev)), []);
 
-  // start-up sync
-  const requestSync = useCallback(() => {
-    if (!config) return;
-    workerClient.post<SyncRequest, SyncResponse>("sync", { config }).then((summary) => {
-      setTimestampMessage(getSummaryMessage(summary));
-    });
-  }, [config]);
+  const requestSync = useCallback(
+    (rebuildIndex?: boolean) => {
+      if (!config) return;
+      workerClient.post<SyncRequest, SyncResponse>("sync", { config, rebuildIndex }).then((summary) => {
+        setTimestampMessage(getSummaryMessage(summary));
+      });
+    },
+    [config]
+  );
 
   // polling sync
   // TODO start interval after prev request is finished
   useInterval(requestSync, isOffline ? null : pollingInterval * 1000);
-  useEffect(requestSync, [config]); // start now
+  useEffect(requestSync.bind(null, true), [config]); // start now and rebuild index on this initial sync
 
   // recent
   useEffect(() => {

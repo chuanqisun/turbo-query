@@ -9,6 +9,7 @@ import { HandlerContext } from "../worker";
 
 export interface SyncRequest {
   config: Config;
+  rebuildIndex?: boolean;
 }
 
 export interface SyncResponse {
@@ -29,8 +30,11 @@ export async function handleSync({ server, indexManager, db }: HandlerContext, r
 
   try {
     const summary = await syncStrategy();
-    server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Indexing..." });
-    await indexManager.buildIndex();
+
+    if (request.rebuildIndex || Object.values(summary).some((item) => item?.length)) {
+      server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Indexing..." });
+      await indexManager.buildIndex();
+    }
     server.push<SyncProgressUpdate>("sync-progress", { type: "success", message: getSummaryMessage(summary) });
 
     return summary;
