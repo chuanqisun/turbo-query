@@ -1,4 +1,4 @@
-import { WorkItem } from "../sync/ado/api-proxy";
+import { WorkItem } from "../worker/ado/api-proxy";
 import { db } from "./db";
 
 export async function initializeDb(allItems: WorkItem[]) {

@@ -1,16 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { WorkerClient } from "../ipc/client";
-import { getCompleteConfig } from "../sync/ado/config";
-import { SyncProgressUpdate, SyncRequest, SyncResponse } from "../sync/handlers/handle-sync";
-import { TestConnectionRequest, TestConnectionResponse } from "../sync/handlers/handle-test-connection";
+import { getCompleteConfig } from "../worker/ado/config";
+import { SyncProgressUpdate, SyncRequest, SyncResponse } from "../worker/handlers/handle-sync";
+import { TestConnectionRequest, TestConnectionResponse } from "../worker/handlers/handle-test-connection";
 
-const syncWorker = new Worker("./modules/sync/worker.js");
-const syncClient = new WorkerClient(syncWorker);
+const worker = new Worker("./modules/worker.js");
+const workerClient = new WorkerClient(worker);
 
 export const SetupForm: React.FC = () => {
   const formRef = useRef<HTMLFormElement | null>(null);
-  const workerClientRef = useRef<WorkerClient>(syncClient);
+  const workerClientRef = useRef<WorkerClient>(workerClient);
 
   useEffect(() => {}, []);
 
