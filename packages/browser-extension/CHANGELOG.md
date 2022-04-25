@@ -5,6 +5,7 @@
 - Added: Click icon to make a copy-friendly selection
 - Changed: Improved performance and reduced bandwidth usage
 - Changed: Left click on link will close the popup
+- Changed: Default keyboard shortcut will be Alt+A
 - Fixed: Long tag caused overflow
 - Fixed: Typing into search box didn't reset scroll
 
