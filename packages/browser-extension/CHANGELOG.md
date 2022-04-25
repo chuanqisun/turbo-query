@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.2.0
+
+- Added: Click icon to make a copy-friendly selection
+- Added: In-app documentation
+- Changed: Improved performance and reduced bandwidth usage
+- Changed: Left click on link will close the popup
+- Changed: Default keyboard shortcut will be Alt+A
+- Fixed: Long tag caused overflow
+- Fixed: Typing into search box didn't reset scroll
+
 ## v1.1.0
 
 - Added: Highlight matched fields during search
