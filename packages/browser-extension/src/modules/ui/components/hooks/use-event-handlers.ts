@@ -19,8 +19,13 @@ export function useHandleIconCopy() {
     const li = (e.target as SVGElement).closest("li");
     const copyElement = li?.querySelector<HTMLElement>(".js-copy-target");
     if (copyElement) {
+      // reveal content during copying
+      copyElement.classList.add("u-visually-hidden--copying");
       selectElementContent(copyElement);
+
+      // setTimeout to allow browser to finish copying. The selection will flash briefly, which is desired as visual feedback.
       setTimeout(() => {
+        copyElement.classList.remove("u-visually-hidden--copying");
         // restore selection after
         const li = (e.target as SVGElement).closest("li");
         const start = li?.querySelector<HTMLElement>(".js-select-item-start");
