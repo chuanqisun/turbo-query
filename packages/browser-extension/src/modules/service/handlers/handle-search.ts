@@ -1,24 +1,37 @@
-import { DbWorkItem } from "../../db/db";
+import { DisplayItem, getSearchDisplayItem } from "../utils/get-display-item";
 import { isDefined } from "../utils/guard";
 import { sortByState } from "../utils/sort";
+import { tokenize } from "../utils/token";
 import { HandlerContext } from "../worker";
 
 export interface SearchRequest {
   query: string;
 }
 export interface SearchResponse {
-  items: SearchResultItem[];
+  items: DisplayItem[];
 }
 
-export interface SearchResultItem extends DbWorkItem {} // TODO: add highlight
-
-export async function handleSearch({ db, server, indexManager }: HandlerContext, { query }: SearchRequest): Promise<SearchResponse> {
+export async function handleSearch({ db, indexManager }: HandlerContext, { query }: SearchRequest): Promise<SearchResponse> {
   const matches = await (await indexManager.getIndex()).searchAsync(query.trim(), { index: "fuzzyTokens" });
   const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
 
   const dbItems = await db.workItems.bulkGet(titleMatchIds).then((items) => items.filter(isDefined).sort(sortByState));
+  const queryTokens = tokenize(query);
+  const tokenMatcher = isTokenMatch.bind(null, queryTokens);
+
+  const matchItems = dbItems.map(getSearchDisplayItem.bind(null, tokenMatcher));
 
   return {
-    items: dbItems,
+    items: matchItems,
   };
+}
+
+function isTokenMatch(queryTokens: string[], maybeToken: string) {
+  return queryTokens.some((token) =>
+    maybeToken
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLocaleLowerCase()
+      .includes(token)
+  );
 }

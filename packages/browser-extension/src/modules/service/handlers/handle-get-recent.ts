@@ -1,8 +1,8 @@
-import { DbWorkItem } from "../../db/db";
+import { DisplayItem } from "../utils/get-display-item";
 import { HandlerContext } from "../worker";
 
 export interface RecentItemsResponse {
-  items: DbWorkItem[];
+  items: DisplayItem[];
 }
 
 export async function handleRecentItems({ recentContentManager }: HandlerContext): Promise<RecentItemsResponse> {
