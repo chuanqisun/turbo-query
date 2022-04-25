@@ -1,13 +1,14 @@
-import { useLiveQuery } from "dexie-react-hooks";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
+import { DbWorkItem } from "../db/db";
 import { WorkerClient } from "../ipc/client";
+import { IndexChangedUpdate } from "../service/emitters/index-manager";
+import { RecentItemsChangedUpdate } from "../service/emitters/recent-content-manager";
+import { RecentItemsResponse } from "../service/handlers/handle-get-recent";
 import { SearchRequest, SearchResponse } from "../service/handlers/handle-search";
 import { SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
 import { getSummaryMessage } from "../service/utils/get-summary-message";
-import { IndexChangedUpdate } from "../service/utils/index-manager";
 import { getShortIteration } from "../service/utils/iteration";
-import { db, DbWorkItem } from "./components/data/db";
 import { useConfigGuard } from "./components/hooks/use-config-guard";
 import { useInterval } from "./components/hooks/use-interval";
 import { useIsOffline } from "./components/hooks/use-is-offline";
@@ -21,13 +22,14 @@ const workerClient = new WorkerClient(worker);
 
 export const PopupWindow: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [query, setQuery] = useState("");
-  const [searchResult, setSearchResult] = useState<DbWorkItem[]>([]);
-  const isOffline = useIsOffline();
+  const [searchResult, setSearchResult] = useState<DbWorkItem[]>();
   const [progressMessage, setProgressMessage] = useState<null | string>(null);
   const [indexRev, setIndexRev] = useState<number | null>(null);
 
-  const initialQuery = useRef(localStorage.getItem("last-query"));
+  const initialQuery = useRef(localStorage.getItem("last-query") ?? "");
+  const [activeQuery, setActiveQuery] = useState(initialQuery.current);
+
+  const isOffline = useIsOffline();
 
   const setTimestampMessage = useCallback((message: string) => setProgressMessage(`${new Date().toLocaleTimeString()} ${message}`), []);
 
@@ -35,6 +37,15 @@ export const PopupWindow: React.FC = () => {
     chrome.runtime.openOptionsPage();
     setTimestampMessage("Please complete the setup first");
   });
+
+  useEffect(() => {
+    if (!config) return;
+
+    if (initialQuery.current.length) {
+      console.log(`[input] Auto-selected last used query`);
+      inputRef.current?.select();
+    }
+  }, [config]);
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -49,28 +60,32 @@ export const PopupWindow: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeydown);
   }, []);
 
-  useEffect(() => {
-    if (initialQuery.current) {
-      setQuery(initialQuery.current);
-      setTimeout(() => {
-        inputRef.current?.focus();
-        inputRef.current?.select();
-      }, 0);
-    }
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setActiveQuery(e.target.value);
+    localStorage.setItem("last-query", e.target.value);
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem("last-query", query);
-  }, [query]);
 
   useEffect(() => {
     setTimestampMessage(isOffline ? "System offline" : "System online");
   }, [isOffline]);
 
-  const recentItems = useLiveQuery(() => db.workItems.orderBy("changedDate").reverse().limit(100).toArray(), []);
+  const [recentItems, setRecentItems] = useState<any[] | null>(null);
 
   // watch for index updates
   useEffect(() => workerClient.subscribe<IndexChangedUpdate>("index-changed", (update) => setIndexRev(update.rev)), []);
+
+  // watch for recent content
+  const [isRecentQueryLive, setIsRecentQueryLive] = useState(false);
+
+  useEffect(() => {
+    if (isRecentQueryLive) return;
+    if (!activeQuery.trim().length) {
+      console.log(`[recent] Start watching...`);
+      workerClient.post<any, RecentItemsResponse>("recent-items", {}).then((response) => setRecentItems(response.items)); // initial query
+      workerClient.subscribe<RecentItemsChangedUpdate>("recent-items-changed", (update) => setRecentItems(update.recentItems)); // updates
+      setIsRecentQueryLive(true);
+    }
+  }, [isRecentQueryLive, activeQuery]);
 
   const requestSync = useCallback(
     (rebuildIndex?: boolean) => {
@@ -90,23 +105,23 @@ export const PopupWindow: React.FC = () => {
   // recent
   useEffect(() => {
     if (!recentItems) return;
-    if (query.trim().length) return;
+    if (activeQuery.trim().length) return;
 
     setSearchResult(recentItems);
-  }, [recentItems, query]);
+  }, [recentItems, activeQuery]);
 
   // search
   useEffect(() => {
-    if (!query.trim().length) return;
+    if (!activeQuery.trim().length) return;
     if (indexRev === null) return;
 
-    workerClient.post<SearchRequest, SearchResponse>("search", { query }).then((response) => {
+    workerClient.post<SearchRequest, SearchResponse>("search", { query: activeQuery }).then((response) => {
       setSearchResult(response.items);
     });
-  }, [indexRev, query]);
+  }, [indexRev, activeQuery]);
 
   // TODO move highlight logic to worker thread
-  const queryTokens = useMemo(() => tokenize(query), [query]);
+  const queryTokens = useMemo(() => tokenize(activeQuery), [activeQuery]);
   const isTokenMatch = useCallback(
     (maybeToken: string) =>
       queryTokens.some((token) =>
@@ -152,15 +167,17 @@ export const PopupWindow: React.FC = () => {
             ref={inputRef}
             type="search"
             autoFocus
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            value={activeQuery}
+            onChange={handleInputChange}
             placeholder="Search by title or metadata... (press / to focus)"
           />
         </div>
       </div>
 
       <ul className="work-item-list">
-        {searchResult.map((item) => (
+        {searchResult === undefined && <li className="work-item">Initializing...</li>}
+        {searchResult?.length === 0 && <li className="work-item">No result</li>}
+        {searchResult?.map((item) => (
           <li className="work-item" key={item.id}>
             <span className="work-item__state-bar" title={item.state}></span>
             <TypeIcon type={item.workItemType} />

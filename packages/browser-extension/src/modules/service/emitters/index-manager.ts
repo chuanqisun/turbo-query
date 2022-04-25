@@ -1,8 +1,8 @@
 import FlexSearch, { IndexOptionsForDocumentSearch } from "flexsearch";
 import { db } from "../../db/db";
 import { SyncResponse } from "../handlers/handle-sync";
-import { getFuzzyTitle } from "./get-fuzzy-title";
-import { isDefined } from "./guard";
+import { getFuzzyTitle } from "../utils/get-fuzzy-title";
+import { isDefined } from "../utils/guard";
 
 const indexConfig: IndexOptionsForDocumentSearch<IndexedItem> = {
   preset: "match",
@@ -44,7 +44,7 @@ export class IndexManager extends EventTarget {
     await Promise.all(importTasks);
 
     this.#activeIndex = this.#importedIndex;
-    this.dispatchEvent(new CustomEvent<IndexChangedEventDetail>("changed", { detail: { rev: ++this.#indexRev } }));
+    this.dispatchEvent(new CustomEvent<IndexChangedUpdate>("changed", { detail: { rev: ++this.#indexRev } }));
 
     return this.#importedIndex;
   }
@@ -62,7 +62,7 @@ export class IndexManager extends EventTarget {
     this.#activeIndex = this.#nativeIndex;
     this.#resolveNativeIndexPopulated();
 
-    this.dispatchEvent(new CustomEvent<IndexChangedEventDetail>("changed", { detail: { rev: ++this.#indexRev } }));
+    this.dispatchEvent(new CustomEvent<IndexChangedUpdate>("changed", { detail: { rev: ++this.#indexRev } }));
 
     return this.#importedIndex;
   }
@@ -89,7 +89,7 @@ export class IndexManager extends EventTarget {
       })
     );
 
-    this.dispatchEvent(new CustomEvent<IndexChangedEventDetail>("changed", { detail: { rev: ++this.#indexRev } }));
+    this.dispatchEvent(new CustomEvent<IndexChangedUpdate>("changed", { detail: { rev: ++this.#indexRev } }));
   }
 
   async #exportIndex() {
@@ -109,10 +109,6 @@ export interface IndexUpdateResult {
 }
 
 export type IndexType = FlexSearch.Document<IndexedItem, false>;
-
-export interface IndexChangedEventDetail {
-  rev: number;
-}
 
 export type IndexChangedUpdate = {
   rev: number;

@@ -35,21 +35,21 @@ export async function handleSync({ server, indexManager, db }: HandlerContext, r
     performance.mark("index");
 
     if (request.rebuildIndex) {
-      server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Building index..." });
+      server.emit<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Building index..." });
       await indexManager.buildIndex();
     } else if (isSummaryDirty(summary)) {
-      server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Updating index..." });
+      server.emit<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Updating index..." });
       await indexManager.updateIndex(summary);
     }
 
     console.log(`[sync] indexed ${performance.measure("import duration", "index").duration}`);
 
-    server.push<SyncProgressUpdate>("sync-progress", { type: "success", message: getSummaryMessage(summary) });
+    server.emit<SyncProgressUpdate>("sync-progress", { type: "success", message: getSummaryMessage(summary) });
 
     return summary;
   } catch (e) {
     console.error(e);
-    server.push("sync-progress", { type: "error", message: (e as any)?.message ?? "Unknown error" });
+    server.emit("sync-progress", { type: "error", message: (e as any)?.message ?? "Unknown error" });
     return {
       addedIds: [],
       updatedIds: [],
@@ -59,10 +59,10 @@ export async function handleSync({ server, indexManager, db }: HandlerContext, r
 }
 
 async function fullSync(server: WorkerServer, api: ApiProxy): Promise<SyncResponse> {
-  server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Fetching ids..." });
+  server.emit<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Fetching ids..." });
   const allIds = await api.getAllWorkItemIds();
   const idPages = getPages(allIds);
-  server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: `Fetching ids... found ${allIds.length} items, ${idPages.length} pages` });
+  server.emit<SyncProgressUpdate>("sync-progress", { type: "progress", message: `Fetching ids... found ${allIds.length} items, ${idPages.length} pages` });
 
   let progress = 0;
   const pages = await Promise.all(
@@ -71,7 +71,7 @@ async function fullSync(server: WorkerServer, api: ApiProxy): Promise<SyncRespon
 
       progress += idPages[i].length;
 
-      server.push<SyncProgressUpdate>("sync-progress", {
+      server.emit<SyncProgressUpdate>("sync-progress", {
         type: "progress",
         message: `Fetching content: ${((progress / allIds.length) * 100).toFixed(2)}%`,
       });
@@ -94,7 +94,7 @@ async function fullSync(server: WorkerServer, api: ApiProxy): Promise<SyncRespon
 }
 
 async function incrementalSync(db: Db, server: WorkerServer, api: ApiProxy): Promise<SyncResponse> {
-  server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: `Peaking changes...` });
+  server.emit<SyncProgressUpdate>("sync-progress", { type: "progress", message: `Peaking changes...` });
   const isChanged = await peekIsChanged(db, api);
   if (!isChanged) {
     return {
@@ -104,11 +104,11 @@ async function incrementalSync(db: Db, server: WorkerServer, api: ApiProxy): Pro
     };
   }
 
-  server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: `Fetching ids...` });
+  server.emit<SyncProgressUpdate>("sync-progress", { type: "progress", message: `Fetching ids...` });
   const allIds = await api.getAllWorkItemIds();
   const allDeletedIdsAsync = api.getAllDeletedWorkItemIds();
   const idPages = getPages(allIds);
-  server.push<SyncProgressUpdate>("sync-progress", { type: "progress", message: `Fetching item ids... found ${allIds.length} items, ${idPages.length} pages` });
+  server.emit<SyncProgressUpdate>("sync-progress", { type: "progress", message: `Fetching item ids... found ${allIds.length} items, ${idPages.length} pages` });
 
   const addedIds: number[] = [];
   const updatedIds: number[] = [];

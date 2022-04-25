@@ -23,7 +23,7 @@ export class WorkerServer {
     this.#handlers.set(route, handler);
   }
 
-  push<UpdateType>(route: string, update: UpdateType) {
+  emit<UpdateType>(route: string, update: UpdateType) {
     const message: UpdateData<UpdateType> = [null, route, update];
     this.#worker.postMessage(message);
   }
