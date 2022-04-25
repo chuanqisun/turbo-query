@@ -10,13 +10,13 @@ import { SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
 import { getSummaryMessage } from "../service/utils/get-summary-message";
 import { getShortIteration } from "../service/utils/iteration";
 import { useConfigGuard } from "./components/hooks/use-config-guard";
-import { useInterval } from "./components/hooks/use-interval";
 import { useIsOffline } from "./components/hooks/use-is-offline";
+import { useRecursiveTimer } from "./components/hooks/use-recursive-timer";
 import { TypeIcon } from "./components/type-icon/type-icon";
 import { selectElementContent } from "./components/utils/dom";
 import { tokenize } from "./components/utils/token";
 
-const pollingInterval = 10;
+const pollingInterval = 5;
 const worker = new Worker("./modules/service/worker.js");
 const workerClient = new WorkerClient(worker);
 
@@ -88,9 +88,9 @@ export const PopupWindow: React.FC = () => {
   }, [isRecentQueryLive, activeQuery]);
 
   const requestSync = useCallback(
-    (rebuildIndex?: boolean) => {
+    async (rebuildIndex?: boolean) => {
       if (!config) return;
-      workerClient.post<SyncRequest, SyncResponse>("sync", { config, rebuildIndex }).then((summary) => {
+      await workerClient.post<SyncRequest, SyncResponse>("sync", { config, rebuildIndex }).then((summary) => {
         setTimestampMessage(getSummaryMessage(summary));
       });
     },
@@ -99,8 +99,10 @@ export const PopupWindow: React.FC = () => {
 
   // polling sync
   // TODO start interval after prev request is finished
-  useInterval(requestSync, isOffline ? null : pollingInterval * 1000);
-  useEffect(requestSync.bind(null, true), [config]); // start now and rebuild index on this initial sync
+  useRecursiveTimer(requestSync, isOffline ? null : pollingInterval * 1000);
+  useEffect(() => {
+    requestSync(true);
+  }, [config]); // start now and rebuild index on this initial sync
 
   // recent
   useEffect(() => {

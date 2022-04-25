@@ -32,17 +32,17 @@ export async function handleSync({ server, indexManager, db }: HandlerContext, r
   try {
     const summary = await syncStrategy();
 
-    performance.mark("index");
-
     if (request.rebuildIndex) {
+      performance.mark("index");
       server.emit<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Building index..." });
       await indexManager.buildIndex();
+      console.log(`[sync] Built index ${performance.measure("import duration", "index").duration.toFixed(2)}ms`);
     } else if (isSummaryDirty(summary)) {
+      performance.mark("index");
       server.emit<SyncProgressUpdate>("sync-progress", { type: "progress", message: "Updating index..." });
       await indexManager.updateIndex(summary);
+      console.log(`[sync] Updated index ${performance.measure("import duration", "index").duration.toFixed(2)}ms`);
     }
-
-    console.log(`[sync] indexed ${performance.measure("import duration", "index").duration}`);
 
     server.emit<SyncProgressUpdate>("sync-progress", { type: "success", message: getSummaryMessage(summary) });
 
