@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { selectElementContent } from "../utils/dom";
 
 export function useHandleIconClick() {
@@ -62,4 +62,30 @@ export function useHandleLinkClick(props?: UseHandleLinkClickProps) {
 
 export function useClickToSelect() {
   return useCallback<React.MouseEventHandler>((e: React.MouseEvent<HTMLElement>) => selectElementContent(e.target as HTMLElement), []);
+}
+
+export function useHandleEscapeGlobal(inputRef: React.RefObject<HTMLInputElement>) {
+  useEffect(() => {
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+
+      if (e.target === inputRef.current) {
+        if (inputRef.current?.value.length) {
+          // no-op when input has content
+          return;
+        } else {
+          // close popup when escaping on empty input
+          window.close();
+        }
+      } else {
+        // re-focus on input
+        e.preventDefault();
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, []);
 }

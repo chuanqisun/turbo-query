@@ -9,7 +9,7 @@ import { SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
 import { DisplayItem } from "../service/utils/get-display-item";
 import { getSummaryMessage } from "../service/utils/get-summary-message";
 import { useConfigGuard } from "./components/hooks/use-config-guard";
-import { useClickToSelect, useHandleIconClick, useHandleIconCopy, useHandleLinkClick } from "./components/hooks/use-event-handlers";
+import { useClickToSelect, useHandleEscapeGlobal, useHandleIconClick, useHandleIconCopy, useHandleLinkClick } from "./components/hooks/use-event-handlers";
 import { useIsOffline } from "./components/hooks/use-is-offline";
 import { useRecursiveTimer } from "./components/hooks/use-recursive-timer";
 import { TypeIcon } from "./components/type-icon/type-icon";
@@ -45,19 +45,6 @@ export const PopupWindow: React.FC = () => {
       inputRef.current?.select();
     }
   }, [config]);
-
-  useEffect(() => {
-    const handleKeydown = (e: KeyboardEvent) => {
-      if (e.key === "/" && e.target !== inputRef.current) {
-        e.preventDefault();
-        inputRef.current?.focus();
-        inputRef.current?.select();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeydown);
-    return () => window.removeEventListener("keydown", handleKeydown);
-  }, []);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setActiveQuery(e.target.value);
@@ -135,6 +122,8 @@ export const PopupWindow: React.FC = () => {
   const handleIconClick = useHandleIconClick();
   const handleIconCopy = useHandleIconCopy();
 
+  useHandleEscapeGlobal(inputRef);
+
   return config ? (
     <div className="stack-layout">
       <div className="query-bar">
@@ -147,7 +136,7 @@ export const PopupWindow: React.FC = () => {
             autoFocus
             value={activeQuery}
             onChange={handleInputChange}
-            placeholder="Search by title or metadata... (press / to focus)"
+            placeholder="Search by title or field values…"
           />
         </div>
       </div>
