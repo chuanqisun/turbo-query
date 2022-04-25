@@ -42,6 +42,13 @@ body {
   gap: 8px;
 }
 
+.key-name {
+  border: 1px solid #999;
+  border-radius: 4px;
+  background-color: white;
+  padding-inline: 4px;
+}
+
 .label-hint {
   font-size: 14px;
   color: #333;
@@ -71,4 +78,28 @@ body {
 .setup-form {
   display: grid;
   gap: 8px;
+}
+
+.shortcuts-section {
+  margin-top: 32px;
+}
+
+.shortcuts-table {
+  margin-top: 16px;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.shortcuts-table,
+.shortcuts-table :where(th, td) {
+  border: 1px solid #999;
+}
+.shortcuts-table :where(th, td) {
+  padding: 4px 8px;
+}
+
+.url-tooltip {
+  cursor: help;
+  text-decoration: underline;
+  text-decoration-style: dotted;
 }

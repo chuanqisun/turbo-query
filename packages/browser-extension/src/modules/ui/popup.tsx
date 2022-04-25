@@ -9,7 +9,7 @@ import { SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
 import { DisplayItem } from "../service/utils/get-display-item";
 import { getSummaryMessage } from "../service/utils/get-summary-message";
 import { useConfigGuard } from "./components/hooks/use-config-guard";
-import { useHandleIconClick, useHandleIconCopy, useHandleLinkClick } from "./components/hooks/use-event-handlers";
+import { useClickToSelect, useHandleIconClick, useHandleIconCopy, useHandleLinkClick } from "./components/hooks/use-event-handlers";
 import { useIsOffline } from "./components/hooks/use-is-offline";
 import { useRecursiveTimer } from "./components/hooks/use-recursive-timer";
 import { TypeIcon } from "./components/type-icon/type-icon";
@@ -129,10 +129,7 @@ export const PopupWindow: React.FC = () => {
   const handleTextFocus = useCallback<React.FocusEventHandler>((e: React.FocusEvent<HTMLSpanElement>) => selectElementContent(e.target as HTMLSpanElement), []);
   const handleTextBlur = useCallback<React.FocusEventHandler>((_e: React.FocusEvent<HTMLSpanElement>) => window.getSelection()?.removeAllRanges(), []);
 
-  const handleClickToSelect = useCallback<React.MouseEventHandler>(
-    (e: React.MouseEvent<HTMLSpanElement>) => selectElementContent(e.target as HTMLSpanElement),
-    []
-  );
+  const handleClickToSelect = useClickToSelect();
 
   const handleLinkClick = useHandleLinkClick();
   const handleIconClick = useHandleIconClick();

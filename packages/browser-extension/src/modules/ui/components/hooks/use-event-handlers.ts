@@ -51,3 +51,7 @@ export function useHandleLinkClick() {
     }
   }, []);
 }
+
+export function useClickToSelect() {
+  return useCallback<React.MouseEventHandler>((e: React.MouseEvent<HTMLElement>) => selectElementContent(e.target as HTMLElement), []);
+}
