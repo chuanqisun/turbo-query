@@ -9,6 +9,7 @@ import { SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
 import { DisplayItem } from "../service/utils/get-display-item";
 import { getSummaryMessage } from "../service/utils/get-summary-message";
 import { useConfigGuard } from "./components/hooks/use-config-guard";
+import { useHandleIconClick, useHandleIconCopy, useHandleLinkClick } from "./components/hooks/use-event-handlers";
 import { useIsOffline } from "./components/hooks/use-is-offline";
 import { useRecursiveTimer } from "./components/hooks/use-recursive-timer";
 import { TypeIcon } from "./components/type-icon/type-icon";
@@ -61,6 +62,7 @@ export const PopupWindow: React.FC = () => {
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setActiveQuery(e.target.value);
     localStorage.setItem("last-query", e.target.value);
+    document.querySelector(".js-scroll")?.scrollTo({ top: 0 });
   }, []);
 
   useEffect(() => {
@@ -127,21 +129,14 @@ export const PopupWindow: React.FC = () => {
   const handleTextFocus = useCallback<React.FocusEventHandler>((e: React.FocusEvent<HTMLSpanElement>) => selectElementContent(e.target as HTMLSpanElement), []);
   const handleTextBlur = useCallback<React.FocusEventHandler>((_e: React.FocusEvent<HTMLSpanElement>) => window.getSelection()?.removeAllRanges(), []);
 
-  const handleIdClick = useCallback<React.MouseEventHandler>((e: React.MouseEvent<HTMLSpanElement>) => selectElementContent(e.target as HTMLSpanElement), []);
+  const handleClickToSelect = useCallback<React.MouseEventHandler>(
+    (e: React.MouseEvent<HTMLSpanElement>) => selectElementContent(e.target as HTMLSpanElement),
+    []
+  );
 
-  const handleLinkClick = useCallback<React.MouseEventHandler>(async (e: React.MouseEvent<HTMLSpanElement>) => {
-    e.preventDefault();
-
-    const isCtrl = e.ctrlKey || e.metaKey;
-    const isShift = e.shiftKey;
-    const url = (e.target as HTMLAnchorElement).href;
-
-    if (isCtrl) {
-      chrome.tabs.create({ url, active: isShift });
-    } else {
-      chrome.tabs.update({ url });
-    }
-  }, []);
+  const handleLinkClick = useHandleLinkClick();
+  const handleIconClick = useHandleIconClick();
+  const handleIconCopy = useHandleIconCopy();
 
   return config ? (
     <div className="stack-layout">
@@ -166,20 +161,32 @@ export const PopupWindow: React.FC = () => {
         {searchResult?.map((item) => (
           <li className="work-item" key={item.id}>
             <span className="work-item__state-bar" title={item.state}></span>
-            <TypeIcon type={item.workItemType} />
-            <div>
+            <a
+              tabIndex={-1}
+              className="u-visually-hidden js-copy-target"
+              href={`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}
+            >
+              {item.workItemType} {item.id}: {item.title}
+            </a>
+            <span className="work-item__icon-interaction js-select-item-start" onClick={handleIconClick} title={item.workItemType}>
+              <TypeIcon type={item.workItemType} />
+              <span onCopy={handleIconCopy} className="u-visually-hidden">
+                {item.workItemType}
+              </span>
+            </span>
+            <div className="work-item__label-list">
               <span
                 className="work-item__id work-item__matchable"
                 data-matched={item.isIdMatched}
                 tabIndex={0}
                 onFocus={handleTextFocus}
                 onBlur={handleTextBlur}
-                onClick={handleIdClick}
+                onClick={handleClickToSelect}
               >
                 {item.id}
               </span>{" "}
               <a
-                className="work-item__link"
+                className="work-item__link js-select-item-end"
                 target="_blank"
                 onClick={handleLinkClick}
                 onFocus={handleTextFocus}
@@ -191,8 +198,8 @@ export const PopupWindow: React.FC = () => {
               {item.tags.length > 0 &&
                 item.tags.map((tag, i) => (
                   <React.Fragment key={i}>
-                    <span className="work-item__tag work-item__matchable" data-matched={item.isTagMatched?.[i]}>
-                      {tag}
+                    <span onClick={handleClickToSelect} className="work-item__tag work-item__matchable" title={tag} data-matched={item.isTagMatched?.[i]}>
+                      <span className="work-item__tag-overflow-guard">{tag}</span>
                     </span>{" "}
                   </React.Fragment>
                 ))}

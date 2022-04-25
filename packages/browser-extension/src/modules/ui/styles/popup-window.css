@@ -48,6 +48,11 @@ body {
   grid-template-columns: auto auto 1fr;
   gap: 4px;
   font-size: 14px;
+  line-height: 18px;
+}
+
+.work-item__icon-interaction {
+  cursor: cell;
 }
 
 .work-item__icon {
@@ -55,6 +60,9 @@ body {
 }
 
 .work-item__id {
+  height: 18px; /* Match indicator height when wrapping */
+  display: inline-flex;
+  align-items: center;
   color: #333;
 }
 .work-item__id:hover {
@@ -92,12 +100,22 @@ body {
 }
 
 .work-item__tag {
-  white-space: nowrap;
   font-size: 12px;
+  height: 18px;
+  margin-block: 1px;
   padding-inline: 2px;
   color: rgba(0, 0, 0, 0.5);
   border: 1px solid #b2b2b2;
   border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  max-width: 32ch;
+}
+
+.work-item__tag-overflow-guard {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .work-item__type,
