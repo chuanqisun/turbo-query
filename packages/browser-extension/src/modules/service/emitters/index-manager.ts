@@ -6,7 +6,6 @@ import { isDefined } from "../utils/guard";
 
 const indexConfig: IndexOptionsForDocumentSearch<IndexedItem> = {
   preset: "match",
-  worker: true,
   charset: "latin:advanced",
   tokenize: "forward",
   document: {
