@@ -131,7 +131,7 @@ export const PopupWindow: React.FC = () => {
 
   const handleClickToSelect = useClickToSelect();
 
-  const handleLinkClick = useHandleLinkClick();
+  const handleLinkClick = useHandleLinkClick({ isPopup: true });
   const handleIconClick = useHandleIconClick();
   const handleIconCopy = useHandleIconCopy();
 

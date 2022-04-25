@@ -2,11 +2,12 @@
 
 ## unreleased
 
+- Added: Link to chrome shortcuts page
 - Changed: Cursor style tweak
 - Chore: Removed unused package
+- Fixed: HTML talbe semantics
 - TODO: Improve keyboard navigation, escape to close, row level movement
 - TODO: Paste to Azure DevOps results in whitespace
-- TODO: Open shortcuts from browser API
 - TODO: More and customizable item types
 
 ## v1.2.0

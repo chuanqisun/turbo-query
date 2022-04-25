@@ -4,7 +4,7 @@ import { WorkerClient } from "../ipc/client";
 import { getCompleteConfig } from "../service/ado/config";
 import { SyncProgressUpdate, SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
 import { TestConnectionRequest, TestConnectionResponse } from "../service/handlers/handle-test-connection";
-import { useClickToSelect } from "./components/hooks/use-event-handlers";
+import { useHandleLinkClick } from "./components/hooks/use-event-handlers";
 
 const worker = new Worker("./modules/service/worker.js");
 const workerClient = new WorkerClient(worker);
@@ -96,7 +96,7 @@ export const SetupForm: React.FC = () => {
     workerClient.unsubscribe("sync-progress", syncProgressObserver);
   }, []);
 
-  const clickToSelect = useClickToSelect();
+  const handleLinkClick = useHandleLinkClick();
 
   return (
     <div className="setup-window">
@@ -151,9 +151,9 @@ export const SetupForm: React.FC = () => {
               <td>Open popup</td>
               <td>
                 <kbd className="key-name">Alt</kbd> + <kbd className="key-name">A</kbd>, or customize at{" "}
-                <code className="url-tooltip" title="You can click to select this URL." onClick={clickToSelect}>
+                <a href="chrome://extensions/shortcuts" onClick={handleLinkClick}>
                   chrome://extensions/shortcuts
-                </code>
+                </a>
               </td>
             </tr>
             <tr>
