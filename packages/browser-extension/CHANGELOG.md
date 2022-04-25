@@ -1,5 +1,14 @@
 # Changelog
 
+## unreleased
+
+- Changed: Cursor style tweak
+- Chore: Removed unused package
+- TODO: Improve keyboard navigation, escape to close, row level movement
+- TODO: Paste to Azure DevOps results in whitespace
+- TODO: Open shortcuts from browser API
+- TODO: More and customizable item types
+
 ## v1.2.0
 
 - Added: Click icon to make a copy-friendly selection

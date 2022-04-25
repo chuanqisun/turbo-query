@@ -64,6 +64,7 @@ body {
   display: inline-flex;
   align-items: center;
   color: #333;
+  cursor: default;
 }
 .work-item__id:hover {
   background-color: #ccc;
@@ -87,6 +88,7 @@ body {
   height: 18px;
   border-radius: 2px;
   background-color: #b2b2b2;
+  cursor: help;
 }
 .work-item__state-bar[title="Completed"] {
   background-color: #339933;
@@ -110,6 +112,7 @@ body {
   display: inline-flex;
   align-items: center;
   max-width: 32ch;
+  cursor: default;
 }
 
 .work-item__tag-overflow-guard {
