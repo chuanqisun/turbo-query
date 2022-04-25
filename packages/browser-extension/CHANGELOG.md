@@ -1,14 +1,12 @@
 # Changelog
 
-## unreleased
+## v1.3.0
 
 - Added: Link to chrome shortcuts page
 - Changed: Cursor style tweak
 - Chore: Removed unused package
 - Fixed: HTML talbe semantics
 - Fixed: Paste to Azure DevOps results in whitespace
-- TODO: Improve keyboard navigation, escape to close, row level movement
-- TODO: More and customizable item types
 
 ## v1.2.0
 
