@@ -1,14 +1,16 @@
-# Changelog
-
-## unreleased
-
-- Added: Link to chrome shortcuts page
-- Changed: Cursor style tweak
-- Chore: Removed unused package
-- Fixed: HTML talbe semantics
-- Fixed: Paste to Azure DevOps results in whitespace
 - TODO: Improve keyboard navigation, escape to close, row level movement
 - TODO: More and customizable item types
+
+# Changelog
+
+## v1.3.0
+
+- Added: Link to chrome shortcuts page
+- Changed: <kbd>Esc</kbd> to re-focus search box and close popup
+- Changed: Cursor style tweak
+- Chore: Removed unused package
+- Fixed: HTML table semantics
+- Fixed: Paste to Azure DevOps results in whitespace
 
 ## v1.2.0
 
@@ -16,7 +18,7 @@
 - Added: In-app documentation
 - Changed: Improved performance and reduced bandwidth usage
 - Changed: Left click on link will close the popup
-- Changed: Default keyboard shortcut will be Alt+A
+- Changed: Default keyboard shortcut will be <kbd>Alt</kbd>+<kbd>A</kbd>
 - Fixed: Long tag caused overflow
 - Fixed: Typing into search box didn't reset scroll
 

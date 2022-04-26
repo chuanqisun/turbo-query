@@ -143,6 +143,7 @@ export const SetupForm: React.FC = () => {
           <output className="status-output">{statusMessage}</output>
         </section>
       )}
+
       <section className="shortcuts-section">
         <h2>Shortcuts</h2>
         <table className="shortcuts-table">
@@ -196,12 +197,6 @@ export const SetupForm: React.FC = () => {
             <tr>
               <td>Select tag</td>
               <td>Click on tag</td>
-            </tr>
-            <tr>
-              <td>Re-focus search box</td>
-              <td>
-                <kbd className="key-name">/</kbd>
-              </td>
             </tr>
           </tbody>
         </table>
