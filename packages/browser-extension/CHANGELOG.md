@@ -1,3 +1,6 @@
+- TODO: Improve keyboard navigation, escape to close, row level movement
+- TODO: More and customizable item types
+
 # Changelog
 
 ## v1.3.0
