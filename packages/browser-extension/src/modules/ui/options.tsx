@@ -143,6 +143,7 @@ export const SetupForm: React.FC = () => {
           <output className="status-output">{statusMessage}</output>
         </section>
       )}
+
       <section className="shortcuts-section">
         <h2>Shortcuts</h2>
         <table className="shortcuts-table">
