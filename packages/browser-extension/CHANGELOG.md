@@ -6,7 +6,7 @@
 - Changed: <kbd>Esc</kbd> to re-focus search box and close popup
 - Changed: Cursor style tweak
 - Chore: Removed unused package
-- Fixed: HTML talbe semantics
+- Fixed: HTML table semantics
 - Fixed: Paste to Azure DevOps results in whitespace
 
 ## v1.2.0
