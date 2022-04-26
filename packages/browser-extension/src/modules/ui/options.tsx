@@ -4,7 +4,7 @@ import { WorkerClient } from "../ipc/client";
 import { getCompleteConfig } from "../service/ado/config";
 import { SyncProgressUpdate, SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
 import { TestConnectionRequest, TestConnectionResponse } from "../service/handlers/handle-test-connection";
-import { useClickToSelect } from "./components/hooks/use-event-handlers";
+import { useHandleLinkClick } from "./components/hooks/use-event-handlers";
 
 const worker = new Worker("./modules/service/worker.js");
 const workerClient = new WorkerClient(worker);
@@ -96,7 +96,7 @@ export const SetupForm: React.FC = () => {
     workerClient.unsubscribe("sync-progress", syncProgressObserver);
   }, []);
 
-  const clickToSelect = useClickToSelect();
+  const handleLinkClick = useHandleLinkClick();
 
   return (
     <div className="setup-window">
@@ -143,65 +143,62 @@ export const SetupForm: React.FC = () => {
           <output className="status-output">{statusMessage}</output>
         </section>
       )}
+
       <section className="shortcuts-section">
         <h2>Shortcuts</h2>
         <table className="shortcuts-table">
-          <tr>
-            <td>Open popup</td>
-            <td>
-              <kbd className="key-name">Alt</kbd> + <kbd className="key-name">A</kbd>, or customize at{" "}
-              <code className="url-tooltip" title="You can click to select this URL." onClick={clickToSelect}>
-                chrome://extensions/shortcuts
-              </code>
-            </td>
-          </tr>
-          <tr>
-            <td>Copy item ID + title</td>
-            <td>
-              Click on item icon, then <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">C</kbd> or <kbd className="key-name">⌘</kbd> +{" "}
-              <kbd className="key-name">C</kbd>
-            </td>
-          </tr>
-          <tr>
-            <td>Copy item ID</td>
-            <td>
-              Click on item ID, then <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">C</kbd> or <kbd className="key-name">⌘</kbd> +{" "}
-              <kbd className="key-name">C</kbd>
-            </td>
-          </tr>
-          <tr>
-            <td>Open in current tab</td>
-            <td>Click on item title</td>
-          </tr>
-          <tr>
-            <td>Open in new tab</td>
-            <td>
-              <kbd className="key-name">Ctrl</kbd> + click or <kbd className="key-name">⌘</kbd> + click on item title
-            </td>
-          </tr>
-          <tr>
-            <td>Open in new tab and navigate to it</td>
-            <td>
-              <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">Shift</kbd> + click or <kbd className="key-name">⌘</kbd> +{" "}
-              <kbd className="key-name">Shift</kbd> + click on item title
-            </td>
-          </tr>
-          <tr>
-            <td>Select title</td>
-            <td>
-              <kbd className="key-name">Alt</kbd> + click on the title
-            </td>
-          </tr>
-          <tr>
-            <td>Select tag</td>
-            <td>Click on tag</td>
-          </tr>
-          <tr>
-            <td>Re-focus search box</td>
-            <td>
-              <kbd className="key-name">/</kbd>
-            </td>
-          </tr>
+          <tbody>
+            <tr>
+              <td>Open popup</td>
+              <td>
+                <kbd className="key-name">Alt</kbd> + <kbd className="key-name">A</kbd>, or customize at{" "}
+                <a href="chrome://extensions/shortcuts" onClick={handleLinkClick}>
+                  chrome://extensions/shortcuts
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td>Copy item ID + title</td>
+              <td>
+                Click on item icon, then <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">C</kbd> or <kbd className="key-name">⌘</kbd> +{" "}
+                <kbd className="key-name">C</kbd>
+              </td>
+            </tr>
+            <tr>
+              <td>Copy item ID</td>
+              <td>
+                Click on item ID, then <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">C</kbd> or <kbd className="key-name">⌘</kbd> +{" "}
+                <kbd className="key-name">C</kbd>
+              </td>
+            </tr>
+            <tr>
+              <td>Open in current tab</td>
+              <td>Click on item title</td>
+            </tr>
+            <tr>
+              <td>Open in new tab</td>
+              <td>
+                <kbd className="key-name">Ctrl</kbd> + click or <kbd className="key-name">⌘</kbd> + click on item title
+              </td>
+            </tr>
+            <tr>
+              <td>Open in new tab and navigate to it</td>
+              <td>
+                <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">Shift</kbd> + click or <kbd className="key-name">⌘</kbd> +{" "}
+                <kbd className="key-name">Shift</kbd> + click on item title
+              </td>
+            </tr>
+            <tr>
+              <td>Select title</td>
+              <td>
+                <kbd className="key-name">Alt</kbd> + click on the title
+              </td>
+            </tr>
+            <tr>
+              <td>Select tag</td>
+              <td>Click on tag</td>
+            </tr>
+          </tbody>
         </table>
       </section>
     </div>
