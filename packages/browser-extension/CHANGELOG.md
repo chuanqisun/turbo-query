@@ -1,5 +1,6 @@
 - TODO: Improve keyboard navigation, escape to close, row level movement
 - TODO: More and customizable item types
+- TODO: Start polling only after initial sync finishes 
 
 # Changelog
 
