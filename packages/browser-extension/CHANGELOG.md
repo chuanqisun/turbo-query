@@ -3,6 +3,7 @@
 - TODO: Start polling only after initial sync finishes 
 - TODO: Click filter to toggle corresponding string in query
 - TODO: adjust polling rate based on network quality
+- TODO: Support dark theme and handle `color-scheme: light dark;`
 
 # Changelog
 
