@@ -1,6 +1,8 @@
 - TODO: Improve keyboard navigation, escape to close, row level movement
 - TODO: More and customizable item types
 - TODO: Start polling only after initial sync finishes 
+- TODO: Click filter to toggle corresponding string in query
+- TODO: adjust polling rate based on network quality
 
 # Changelog
 
