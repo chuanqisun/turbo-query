@@ -4,6 +4,7 @@
 - TODO: Click filter to toggle corresponding string in query
 - TODO: adjust polling rate based on network quality
 - TODO: Support dark theme and handle `color-scheme: light dark;`
+- TODO: Open Sprint task board by clicking on Iteration path
 
 # Changelog
 
