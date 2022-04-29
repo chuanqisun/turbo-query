@@ -1,13 +1,15 @@
 - TODO: Improve keyboard navigation, escape to close, row level movement
 - TODO: More and customizable item types
   - Core: Objectives, KeyResults, Epics, Features, User Stories, Product backlog item
-  - Additional: Task groups 
+  - Additional: Task groups
 - TODO: More states: Removed should show as empty, Committed, Active, In progress should show as blue
-- TODO: Start polling only after initial sync finishes 
+- TODO: Start polling only after initial sync finishes
 - TODO: Click filter to toggle corresponding string in query
 - TODO: adjust polling rate based on network quality
 - TODO: Support dark theme and handle `color-scheme: light dark;`
 - TODO: Open Sprint task board by clicking on Iteration path
+- TODO: Display progress when during initial loading
+- TODO: Scroll log on options page
 
 # Changelog
 
