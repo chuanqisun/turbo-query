@@ -39,7 +39,10 @@ export interface DbWorkItem {
 
 export interface DbWorkItemType {
   name: string;
-  image: Blob;
+  icon: {
+    url: string;
+    image: Blob;
+  };
   states: DbWorkItemState[];
 }
 

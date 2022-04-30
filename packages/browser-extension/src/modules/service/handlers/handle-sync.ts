@@ -24,27 +24,10 @@ export type SyncProgressUpdate = {
   message: string;
 };
 
-export async function handleSync({ server, indexManager, db }: HandlerContext, request: SyncRequest): Promise<SyncResponse> {
+export async function handleSync({ server, indexManager, metadataManager, db }: HandlerContext, request: SyncRequest): Promise<SyncResponse> {
   const count = await db.workItems.count();
   const api = new ApiProxy(request.config);
-  const syncStrategy = count ? incrementalSync.bind(null, db, server, api) : fullSync.bind(null, server, api);
-
-  // WIP, refactor to function
-  const itemTypes = await api.getWorkItemTypes();
-  const itemTypeSyncTasks = itemTypes
-    .filter((itemType) => !itemType.isDisabled)
-    .map(async (itemType) => {
-      const image = await fetch(itemTypes[0].icon.url).then((result) => result.blob());
-      await db.workItemTypes.put({
-        name: itemType.name,
-        image,
-        states: itemType.states,
-      });
-
-      // Save object URL in a dictionary
-      console.log(URL.createObjectURL(image));
-    });
-  await Promise.all(itemTypeSyncTasks);
+  const syncStrategy = count ? incrementalSync.bind(null, db, server, api) : fullSync.bind(null, server, api, metadataManager);
 
   try {
     const summary = await syncStrategy();

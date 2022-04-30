@@ -8,5 +8,5 @@ export function getSummaryMessage(syncResponse: SyncResponse): string {
 
   if (!summaryMessage.length) summaryMessage += " No change";
 
-  return `Sync success... ${summaryMessage}`;
+  return `Sync items... Success! (${summaryMessage})`;
 }

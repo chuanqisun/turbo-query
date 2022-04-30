@@ -3,18 +3,38 @@ import ReactDOM from "react-dom";
 import { WorkerClient } from "../ipc/client";
 import { getCompleteConfig } from "../service/ado/config";
 import { SyncProgressUpdate, SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
+import { SyncMetadataRequest, SyncMetadataResponse, SyncMetadataUpdate } from "../service/handlers/handle-sync-metadata";
 import { TestConnectionRequest, TestConnectionResponse } from "../service/handlers/handle-test-connection";
 import { useHandleLinkClick } from "./components/hooks/use-event-handlers";
 
 const worker = new Worker("./modules/service/worker.js");
 const workerClient = new WorkerClient(worker);
 
+interface OutputThread {
+  name: string;
+  message: string;
+}
+
 export const SetupForm: React.FC = () => {
   const formRef = useRef<HTMLFormElement | null>(null);
+  const [outputMessages, setOutputMessages] = useState<OutputThread[]>([]);
 
-  useEffect(() => {}, []);
+  const printStatusMessage = useCallback((threadName: string, message: string) => {
+    setOutputMessages((previousMessages) => {
+      const matchedIndex = previousMessages.findIndex((m) => m.name === threadName);
+      if (matchedIndex < 0) {
+        return [...previousMessages, { name: threadName, message }];
+      } else {
+        const mutableMessages = [...previousMessages];
+        mutableMessages.splice(matchedIndex, 1, { name: threadName, message });
+        return mutableMessages;
+      }
+    });
+  }, []);
 
-  const [statusMessage, setStatusMessage] = useState("");
+  const clearOutput = useCallback(() => {
+    setOutputMessages([]);
+  }, []);
 
   const saveForm = useCallback(async () => {
     const formData = new FormData(formRef.current!);
@@ -29,18 +49,27 @@ export const SetupForm: React.FC = () => {
       console.log(`[options]`, { ...configDict });
       Object.entries(configDict).forEach(([key, value]) => (formRef.current!.querySelector<HTMLInputElement>(`[name="${key}"]`)!.value = value));
 
+      const isOnline = getNetworkStatus();
+      if (!isOnline) return;
+
       const isFormValid = formRef.current?.checkValidity();
-      if (isFormValid) {
-        const isConnectionValid = await getConnectionStatus();
-        if (isConnectionValid) {
-          manualSync();
-        }
-      }
+      if (!isFormValid) return;
+
+      const isConnectionValid = await getConnectionStatus();
+      if (!isConnectionValid) return;
+
+      manualSync();
     });
   }, []);
 
   const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>(async (event) => {
     event.preventDefault();
+
+    const isOnline = getNetworkStatus();
+    if (!isOnline) return;
+
+    await clearOutput();
+
     await clearCache();
     await saveForm();
 
@@ -50,27 +79,36 @@ export const SetupForm: React.FC = () => {
     }
   }, []);
 
+  const getNetworkStatus = useCallback(() => {
+    if (!navigator.onLine) {
+      printStatusMessage("network-status", `⚠️ Network is offline`);
+      return false;
+    }
+    printStatusMessage("network-status", `✅ Network is online`);
+    return true;
+  }, []);
+
   const getConnectionStatus = useCallback(async () => {
     const config = await getCompleteConfig();
     if (!config) {
-      setStatusMessage(`⚠️ Connection failed! Missing config.`);
+      printStatusMessage("connection-status", `⚠️ Connection failed. Config is incomplete.`);
       return;
     }
 
-    setStatusMessage(`⌛ Connecting...`);
+    printStatusMessage("connection-status", `⌛ Connecting...`);
     const result = await workerClient.post<TestConnectionRequest, TestConnectionResponse>("test-connection", { config });
     if (result.status === "success") {
-      setStatusMessage(`✅ Connecting... Success!`);
+      printStatusMessage("connection-status", `✅ Connecting... Success!`);
       return true;
     } else {
-      setStatusMessage(`⚠️ ${result.message}`);
+      printStatusMessage("connection-status", `⚠️ ${result.message}`);
       return false;
     }
   }, []);
 
   const clearCache = useCallback(async () => {
     await workerClient.post("reset", {});
-    setStatusMessage(`✅ Clearing cache... Success!`);
+    printStatusMessage("reset", `✅ Clearing cache... Success!`);
   }, []);
 
   const manualSync = useCallback(async () => {
@@ -80,20 +118,41 @@ export const SetupForm: React.FC = () => {
     function syncProgressObserver(update: SyncProgressUpdate) {
       switch (update.type) {
         case "progress":
-          setStatusMessage(`⌛ ${update.message}`);
+          printStatusMessage("sync", `⌛ ${update.message}`);
           break;
         case "success":
-          setStatusMessage(`✅ ${update.message}`);
+          printStatusMessage("sync", `✅ ${update.message}`);
           break;
         case "error":
-          setStatusMessage(`⚠️ ${update.message}`);
+          printStatusMessage("sync", `⚠️ ${update.message}`);
+          break;
+      }
+    }
+
+    function syncMeatadataProgressObserver(update: SyncMetadataUpdate) {
+      switch (update.type) {
+        case "progress":
+          printStatusMessage("sync-metadata", `⌛ ${update.message}`);
+          break;
+        case "success":
+          printStatusMessage("sync-metadata", `✅ ${update.message}`);
+          break;
+        case "error":
+          printStatusMessage("sync-metadata", `⚠️ ${update.message}`);
           break;
       }
     }
 
     workerClient.subscribe<SyncProgressUpdate>("sync-progress", syncProgressObserver);
-    await workerClient.post<SyncRequest, SyncResponse>("sync", { config, rebuildIndex: true });
+    workerClient.subscribe<SyncMetadataUpdate>("sync-metadata-progress", syncMeatadataProgressObserver);
+
+    await Promise.all([
+      workerClient.post<SyncRequest, SyncResponse>("sync", { config, rebuildIndex: true }),
+      workerClient.post<SyncMetadataRequest, SyncMetadataResponse>("sync-metadata", { config, clear: true }),
+    ]);
+
     workerClient.unsubscribe("sync-progress", syncProgressObserver);
+    workerClient.unsubscribe("sync-metadata-progress", syncMeatadataProgressObserver);
   }, []);
 
   const handleLinkClick = useHandleLinkClick();
@@ -132,15 +191,20 @@ export const SetupForm: React.FC = () => {
           </div>
         </section>
       </form>
+
       <section className="form-actions">
         <button type="submit" form="setup-form">
           Save and connect
         </button>
       </section>
 
-      {statusMessage.length > 0 && (
+      {outputMessages.length > 0 && (
         <section className="form-section">
-          <output className="status-output">{statusMessage}</output>
+          <output className="status-output">
+            {outputMessages.map((message) => (
+              <div key={message.name}>{message.message}</div>
+            ))}
+          </output>
         </section>
       )}
 

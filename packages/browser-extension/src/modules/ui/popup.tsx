@@ -6,6 +6,7 @@ import { RecentItemsChangedUpdate } from "../service/emitters/recent-content-man
 import { RecentItemsResponse } from "../service/handlers/handle-get-recent";
 import { SearchRequest, SearchResponse } from "../service/handlers/handle-search";
 import { SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
+import { SyncMetadataRequest } from "../service/handlers/handle-sync-metadata";
 import { DisplayItem } from "../service/utils/get-display-item";
 import { getSummaryMessage } from "../service/utils/get-summary-message";
 import { useConfigGuard } from "./components/hooks/use-config-guard";
@@ -84,12 +85,22 @@ export const PopupWindow: React.FC = () => {
     [config]
   );
 
+  const requestSyncMetadata = useCallback(async () => {
+    if (!config) return;
+    await workerClient.post<SyncMetadataRequest, any>("sync-metadata", { config }).then(() => {
+      setTimestampMessage("Metadata updated");
+    });
+  }, [config]);
+
   // polling sync
-  // TODO start interval after prev request is finished
-  useRecursiveTimer(requestSync, isOffline ? null : pollingInterval * 1000);
+  // TODO perform full sync when network goes online the first time
+  useRecursiveTimer(requestSync, isOffline || !config ? null : pollingInterval * 1000);
   useEffect(() => {
+    if (!config) return;
+
     requestSync(true);
-  }, [config]); // start now and rebuild index on this initial sync
+    requestSyncMetadata();
+  }, [config]); // start initial sync now
 
   // recent
   useEffect(() => {

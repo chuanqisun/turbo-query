@@ -1,29 +1,34 @@
 import { db, Db } from "../db/db";
 import { WorkerServer } from "../ipc/server";
 import { IndexChangedUpdate, IndexManager } from "./emitters/index-manager";
+import { MetadataManager } from "./emitters/metadata-manager";
 import { RecentItemsChangedUpdate, RecentItemsManager } from "./emitters/recent-content-manager";
 import { handleRecentItems } from "./handlers/handle-get-recent";
 import { handleReset } from "./handlers/handle-reset";
 import { handleSearch } from "./handlers/handle-search";
 import { handleSync } from "./handlers/handle-sync";
+import { handleSyncMetadata } from "./handlers/handle-sync-metadata";
 import { handleTestConnection } from "./handlers/handle-test-connection";
 
 class WorkerContainer {
   #server = new WorkerServer(self as any as Worker);
   #indexManager = new IndexManager();
   #recentItemsManager = new RecentItemsManager();
+  #metadataManager = new MetadataManager();
 
   async start() {
     const handlerContext: HandlerContext = {
       server: this.#server,
       indexManager: this.#indexManager,
       recentContentManager: this.#recentItemsManager,
+      metadataManager: this.#metadataManager,
       db,
     };
 
     this.#server.addRequestHandler("recent-items", handleRecentItems.bind(null, handlerContext));
 
     this.#server.addRequestHandler("sync", handleSync.bind(null, handlerContext));
+    this.#server.addRequestHandler("sync-metadata", handleSyncMetadata.bind(null, handlerContext));
     this.#server.addRequestHandler("reset", handleReset.bind(null, handlerContext));
     this.#server.addRequestHandler("test-connection", handleTestConnection.bind(null, handlerContext));
 
@@ -45,5 +50,6 @@ export interface HandlerContext {
   server: WorkerServer;
   indexManager: IndexManager;
   recentContentManager: RecentItemsManager;
+  metadataManager: MetadataManager;
   db: Db;
 }
