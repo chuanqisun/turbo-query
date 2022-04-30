@@ -22,9 +22,17 @@ export async function handleSyncMetadata({ server, metadataManager }: HandlerCon
     const itemTypes = await api.getWorkItemTypes();
 
     server.emit<SyncMetadataUpdate>("sync-metadata-progress", { type: "progress", message: "Fetching icons..." });
-    await metadataManager.updateMetadataDictionary(itemTypes);
+    const summary = await metadataManager.updateMetadataDictionary(itemTypes, (update) =>
+      server.emit<SyncMetadataUpdate>("sync-metadata-progress", {
+        type: "progress",
+        message: `Fetching icons... ${((update.progress / update.total) * 100).toFixed(2)}%`,
+      })
+    );
 
-    server.emit<SyncMetadataUpdate>("sync-metadata-progress", { type: "success", message: "Sync metadata... Success!" });
+    server.emit<SyncMetadataUpdate>("sync-metadata-progress", {
+      type: "success",
+      message: `Sync metadata... Success! (${summary.itemTypeCount} types, ${summary.fetchCount} new icons)`,
+    });
   } catch (error: any) {
     server.emit<SyncMetadataUpdate>("sync-metadata-progress", { type: "error", message: error?.message ?? "Unknown error" });
   }

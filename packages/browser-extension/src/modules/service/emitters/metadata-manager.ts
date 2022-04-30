@@ -39,34 +39,40 @@ export class MetadataManager extends EventTarget {
     (await this.#networkCacheAsync).clear();
   }
 
-  async updateMetadataDictionary(itemTypes: WorkItemType[]) {
+  async updateMetadataDictionary(itemTypes: WorkItemType[], onProgress?: (update: MetadataSyncProgressUpdate) => any): Promise<MetadataSyncSummary> {
     const networkCache = await this.#networkCacheAsync;
 
-    // TODO expose hooks to track icon download progress
-    const dbItemsAsync = itemTypes
-      .filter((itemType) => !itemType.isDisabled)
-      .map(async (itemType) => {
-        let imageAsync = networkCache.get(itemType.icon.url);
-        if (!imageAsync) {
-          imageAsync = fetch(itemType.icon.url).then((result) => result.blob());
-          networkCache.set(itemType.icon.url, imageAsync);
-        }
+    const activeTypes = itemTypes.filter((type) => !type.isDisabled);
+    let progress = 0;
+    let fetchCount = 0;
+    onProgress?.({ progress, total: activeTypes.length });
 
-        const image = await imageAsync;
+    const dbItemsAsync = activeTypes.map(async (itemType) => {
+      let imageAsync = networkCache.get(itemType.icon.url);
+      if (!imageAsync) {
+        fetchCount++;
+        imageAsync = fetch(itemType.icon.url).then((result) => result.blob());
+        networkCache.set(itemType.icon.url, imageAsync);
+      }
 
-        const dbItem: DbWorkItemType = {
-          name: itemType.name,
-          icon: {
-            url: itemType.icon.url,
-            image,
-          },
-          states: itemType.states,
-        };
+      const image = await imageAsync;
 
-        await db.workItemTypes.put(dbItem);
+      const dbItem: DbWorkItemType = {
+        name: itemType.name,
+        icon: {
+          url: itemType.icon.url,
+          image,
+        },
+        states: itemType.states,
+      };
 
-        return dbItem;
-      });
+      await db.workItemTypes.put(dbItem);
+
+      progress++;
+      onProgress?.({ progress, total: activeTypes.length });
+
+      return dbItem;
+    });
 
     const dbItems = await Promise.all(dbItemsAsync);
 
@@ -75,7 +81,10 @@ export class MetadataManager extends EventTarget {
     console.log(`[metadata] Metadata updated`);
     this.dispatchEvent(new CustomEvent<MetadataChangedUpdate>("changed", { detail: { timestamp: Date.now() } }));
 
-    // TODO generate summary on what's changed
+    return {
+      itemTypeCount: activeTypes.length,
+      fetchCount,
+    };
   }
 
   #getMapFromDbWorkItemType(workItemTypes: DbWorkItemType[]) {
@@ -111,4 +120,14 @@ export interface StateMetadata {
 
 export interface MetadataChangedUpdate {
   timestamp: number;
+}
+
+export interface MetadataSyncProgressUpdate {
+  progress: number;
+  total: number;
+}
+
+export interface MetadataSyncSummary {
+  itemTypeCount: number;
+  fetchCount: number;
 }

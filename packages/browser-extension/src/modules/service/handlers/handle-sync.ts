@@ -73,7 +73,7 @@ async function fullSync(server: WorkerServer, api: ApiProxy): Promise<SyncRespon
 
       server.emit<SyncProgressUpdate>("sync-progress", {
         type: "progress",
-        message: `Fetching content: ${((progress / allIds.length) * 100).toFixed(2)}%`,
+        message: `Fetching content... ${((progress / allIds.length) * 100).toFixed(2)}%`,
       });
 
       return page;
