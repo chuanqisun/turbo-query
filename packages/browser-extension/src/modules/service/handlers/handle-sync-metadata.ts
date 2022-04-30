@@ -3,7 +3,6 @@ import { HandlerContext } from "../worker";
 
 export interface SyncMetadataRequest {
   config: Config;
-  clear?: boolean;
 }
 
 export interface SyncMetadataResponse {
@@ -21,8 +20,8 @@ export async function handleSyncMetadata({ server, metadataManager }: HandlerCon
   try {
     server.emit<SyncMetadataUpdate>("sync-metadata-progress", { type: "progress", message: "Fetching metadata..." });
     const itemTypes = await api.getWorkItemTypes();
-    server.emit<SyncMetadataUpdate>("sync-metadata-progress", { type: "progress", message: "Fetching icons..." });
 
+    server.emit<SyncMetadataUpdate>("sync-metadata-progress", { type: "progress", message: "Fetching icons..." });
     await metadataManager.updateMetadataDictionary(itemTypes);
 
     server.emit<SyncMetadataUpdate>("sync-metadata-progress", { type: "success", message: "Sync metadata... Success!" });

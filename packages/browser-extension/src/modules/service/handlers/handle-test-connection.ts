@@ -16,12 +16,12 @@ export async function handleTestConnection(_ctx: HandlerContext, request: TestCo
     const ids = await api.getAllWorkItemIds();
     return {
       status: "success",
-      message: `Connection success! ${ids.length} items found.`,
+      message: `Connecting to Azure DevOps... Success! (${ids.length} items found)`,
     };
   } catch (e) {
     return {
       status: "error",
-      message: `Connection failed! ${(e as any)?.message ?? "Unknown error"}`,
+      message: `Connection to Azure DevOps... Failed! (${(e as any)?.message ?? "Unknown error"})`,
     };
   }
 }

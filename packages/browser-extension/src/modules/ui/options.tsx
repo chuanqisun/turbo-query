@@ -65,13 +65,13 @@ export const SetupForm: React.FC = () => {
   const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>(async (event) => {
     event.preventDefault();
 
+    await clearOutput();
+    await saveForm();
+
     const isOnline = getNetworkStatus();
     if (!isOnline) return;
 
-    await clearOutput();
-
     await clearCache();
-    await saveForm();
 
     const isValidStatus = await getConnectionStatus();
     if (isValidStatus) {
@@ -91,14 +91,14 @@ export const SetupForm: React.FC = () => {
   const getConnectionStatus = useCallback(async () => {
     const config = await getCompleteConfig();
     if (!config) {
-      printStatusMessage("connection-status", `⚠️ Connection failed. Config is incomplete.`);
+      printStatusMessage("connection-status", `⚠️ Connecting to Azure DevOps failed. Config is incomplete.`);
       return;
     }
 
-    printStatusMessage("connection-status", `⌛ Connecting...`);
+    printStatusMessage("connection-status", `⌛ Connecting to Azure DevOps...`);
     const result = await workerClient.post<TestConnectionRequest, TestConnectionResponse>("test-connection", { config });
     if (result.status === "success") {
-      printStatusMessage("connection-status", `✅ Connecting... Success!`);
+      printStatusMessage("connection-status", `✅ ${result.message}`);
       return true;
     } else {
       printStatusMessage("connection-status", `⚠️ ${result.message}`);
@@ -148,7 +148,7 @@ export const SetupForm: React.FC = () => {
 
     await Promise.all([
       workerClient.post<SyncRequest, SyncResponse>("sync", { config, rebuildIndex: true }),
-      workerClient.post<SyncMetadataRequest, SyncMetadataResponse>("sync-metadata", { config, clear: true }),
+      workerClient.post<SyncMetadataRequest, SyncMetadataResponse>("sync-metadata", { config }),
     ]);
 
     workerClient.unsubscribe("sync-progress", syncProgressObserver);

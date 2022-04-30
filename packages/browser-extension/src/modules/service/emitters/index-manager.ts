@@ -91,6 +91,11 @@ export class IndexManager extends EventTarget {
     this.dispatchEvent(new CustomEvent<IndexChangedUpdate>("changed", { detail: { rev: ++this.#indexRev } }));
   }
 
+  async reset() {
+    await db.workItems.clear();
+    await db.indexItems.clear();
+  }
+
   async #exportIndex() {
     await db.indexItems.clear();
     await this.#nativeIndex.export((key, value) => db.indexItems.put({ key: key as string, value: value as any as string | undefined }));

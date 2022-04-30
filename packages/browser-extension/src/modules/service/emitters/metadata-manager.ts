@@ -3,7 +3,8 @@ import { WorkItemType } from "../ado/api-proxy";
 
 export class MetadataManager extends EventTarget {
   #initialData = db.workItemTypes.toArray();
-  metadataDictionary = new Map<string, WorkItemTypeMetadata>();
+  #metadataDictionary = new Map<string, WorkItemTypeMetadata>();
+  #imageRequests = new Map<string, Promise<Blob>>();
 
   constructor() {
     super();
@@ -23,7 +24,12 @@ export class MetadataManager extends EventTarget {
       },
     ]);
 
-    this.metadataDictionary = new Map(metadataEntry);
+    this.#metadataDictionary = new Map(metadataEntry);
+  }
+
+  async reset() {
+    await db.workItemTypes.clear();
+    this.#imageRequests.clear();
   }
 
   async updateMetadataDictionary(itemTypes: WorkItemType[]) {
@@ -31,7 +37,13 @@ export class MetadataManager extends EventTarget {
     const itemTypeSyncTasks = itemTypes
       .filter((itemType) => !itemType.isDisabled)
       .map(async (itemType) => {
-        const image = await fetch(itemTypes[0].icon.url).then((result) => result.blob());
+        let imageAsync = this.#imageRequests.get(itemType.icon.url);
+        if (!imageAsync) {
+          imageAsync = fetch(itemType.icon.url).then((result) => result.blob());
+          this.#imageRequests.set(itemType.icon.url, imageAsync);
+        }
+
+        const image = await imageAsync;
         await db.workItemTypes.put({
           name: itemType.name,
           icon: {
@@ -50,10 +62,10 @@ export class MetadataManager extends EventTarget {
   }
 
   async getTypeIconBlobUrl(workItemType: string): Promise<string | undefined> {
-    return this.metadataDictionary.get(workItemType)?.iconBlobUrl;
+    return this.#metadataDictionary.get(workItemType)?.iconBlobUrl;
   }
   async getStateDisplayConfig(workItemType: string, state: string): Promise<StateMetadata | undefined> {
-    return this.metadataDictionary.get(workItemType)?.states.get(state);
+    return this.#metadataDictionary.get(workItemType)?.states.get(state);
   }
 }
 
