@@ -3,9 +3,9 @@ import ReactDOM from "react-dom";
 import { WorkerClient } from "../ipc/client";
 import { RecentChangedUpdate } from "../service/emitters/recent-manager";
 import { SearchChangedUpdate } from "../service/emitters/search-manager";
-import { SearchRequest } from "../service/handlers/handle-search";
 import { SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
 import { SyncMetadataRequest } from "../service/handlers/handle-sync-metadata";
+import { SearchRequest } from "../service/handlers/handle-watch-search";
 import { DisplayItem } from "../service/utils/get-display-item";
 import { getSummaryMessage } from "../service/utils/get-summary-message";
 import { useConfigGuard } from "./components/hooks/use-config-guard";
@@ -111,14 +111,12 @@ export const PopupWindow: React.FC = () => {
 
   // display items
   useEffect(() => {
-    if (activeQuery.trim().length) {
-      if (searchItems) {
-        setSearchResult(searchItems);
-      }
+    if (activeQuery.trim().length && searchItems) {
+      setSearchResult(searchItems);
+    } else if (recentItems) {
+      setSearchResult(recentItems);
     } else {
-      if (recentItems) {
-        setSearchResult(recentItems);
-      }
+      setSearchResult(undefined);
     }
   }, [recentItems, searchItems, activeQuery]);
 
@@ -155,7 +153,7 @@ export const PopupWindow: React.FC = () => {
       </div>
 
       <ul className="work-item-list">
-        {searchResult === undefined && <li className="work-item">Initializing...</li>}
+        {searchResult === undefined && <li className="work-item">Waiting for data...</li>}
         {searchResult?.length === 0 && <li className="work-item">No result</li>}
         {searchResult?.map((item) => (
           <li className="work-item" key={item.id}>

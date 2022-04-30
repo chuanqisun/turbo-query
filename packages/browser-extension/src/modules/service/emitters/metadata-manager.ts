@@ -1,5 +1,5 @@
-import { db, DbWorkItemType } from "../../db/db";
-import { WorkItemType } from "../ado/api-proxy";
+import { db, DbWorkItemState, DbWorkItemType } from "../../db/db";
+import { WorkItemState, WorkItemType } from "../ado/api-proxy";
 
 export class MetadataManager extends EventTarget {
   #initialData = db.workItemTypes.toArray();
@@ -21,7 +21,7 @@ export class MetadataManager extends EventTarget {
       {
         iconSrcUrl: workItemType.icon.url,
         iconBlobUrl: URL.createObjectURL(workItemType.icon.image),
-        states: new Map(workItemType.states.map((state) => [state.name, { color: state.color, category: state.category }])),
+        states: this.getStateMap(workItemType.states),
       },
     ]);
 
@@ -54,8 +54,14 @@ export class MetadataManager extends EventTarget {
           },
           states: itemType.states,
         });
+
+        this.#metadataDictionary.set(itemType.name, {
+          iconSrcUrl: itemType.icon.url,
+          iconBlobUrl: URL.createObjectURL(image),
+          states: this.getStateMap(itemType.states),
+        });
       });
-    // TODO remove icons that are not in the list
+    // TODO remove icons and states that are not in the list
     await Promise.all(itemTypeSyncTasks);
     console.log(`[metadata] Metadata updated`);
     this.dispatchEvent(new CustomEvent<MetadataChangedUpdate>("changed", { detail: { timestamp: Date.now() } }));
@@ -69,6 +75,10 @@ export class MetadataManager extends EventTarget {
   }
   getStateDisplayConfig(workItemType: string, state: string): StateMetadata | undefined {
     return this.#metadataDictionary.get(workItemType)?.states.get(state);
+  }
+
+  getStateMap(states: DbWorkItemState[] | WorkItemState[]) {
+    return new Map(states.map((state) => [state.name, { color: state.color, category: state.category }]));
   }
 }
 

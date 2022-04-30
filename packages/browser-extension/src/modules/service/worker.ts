@@ -5,11 +5,11 @@ import { MetadataManager } from "./emitters/metadata-manager";
 import { RecentChangedUpdate, RecentManager } from "./emitters/recent-manager";
 import { SearchChangedUpdate, SearchManager } from "./emitters/search-manager";
 import { handleReset } from "./handlers/handle-reset";
-import { handleSearch } from "./handlers/handle-search";
 import { handleSync } from "./handlers/handle-sync";
 import { handleSyncMetadata } from "./handlers/handle-sync-metadata";
 import { handleTestConnection } from "./handlers/handle-test-connection";
 import { handleWatchRecent } from "./handlers/handle-watch-recent";
+import { handleSearch } from "./handlers/handle-watch-search";
 
 class WorkerContainer {
   #server = new WorkerServer(self as any as Worker);
