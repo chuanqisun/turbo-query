@@ -3,19 +3,82 @@ import { WorkItemState, WorkItemType } from "../ado/api-proxy";
 
 export class MetadataManager extends EventTarget {
   #initialData = db.workItemTypes.toArray();
-  #metadataDictionary = new Map<string, WorkItemTypeMetadata>();
-  #imageRequests = new Map<string, Promise<Blob>>();
-  readonly initializedAsync: Promise<void>;
+  #metadataAsync = this.initMetadata();
+  #networkCacheAsync = this.initNetworkCache();
 
   constructor() {
     super();
-    this.initializedAsync = this.initMetadataDictionary(this.#initialData);
+
+    Promise.all([this.#metadataAsync, this.#networkCacheAsync]).then(() =>
+      this.dispatchEvent(new CustomEvent<MetadataChangedUpdate>("changed", { detail: { timestamp: Date.now() } }))
+    );
   }
 
-  async initMetadataDictionary(workItemTypesAsync: Promise<DbWorkItemType[]>) {
-    const workItemTypes = await workItemTypesAsync;
-    if (!workItemTypes.length) return;
+  async getMap(): Promise<MetadataMap> {
+    return this.#metadataAsync;
+  }
 
+  async initMetadata() {
+    return this.#getMapFromDbWorkItemType(await this.#initialData);
+  }
+
+  async initNetworkCache() {
+    const workItemTypes = await this.#initialData;
+
+    // pre-populate network cache with existing items
+    // TODO bust the cache if over max age
+    const imageRequestEntries = workItemTypes.map(
+      (workItemType) => [workItemType.icon.url, Promise.resolve(workItemType.icon.image)] as [string, Promise<Blob>]
+    );
+    console.log(`[metadata-manager] cache restored for ${imageRequestEntries.length} URLs`);
+    return new Map(imageRequestEntries);
+  }
+
+  async reset() {
+    await db.workItemTypes.clear();
+    (await this.#networkCacheAsync).clear();
+  }
+
+  async updateMetadataDictionary(itemTypes: WorkItemType[]) {
+    const networkCache = await this.#networkCacheAsync;
+
+    // TODO expose hooks to track icon download progress
+    const dbItemsAsync = itemTypes
+      .filter((itemType) => !itemType.isDisabled)
+      .map(async (itemType) => {
+        let imageAsync = networkCache.get(itemType.icon.url);
+        if (!imageAsync) {
+          imageAsync = fetch(itemType.icon.url).then((result) => result.blob());
+          networkCache.set(itemType.icon.url, imageAsync);
+        }
+
+        const image = await imageAsync;
+
+        const dbItem: DbWorkItemType = {
+          name: itemType.name,
+          icon: {
+            url: itemType.icon.url,
+            image,
+          },
+          states: itemType.states,
+        };
+
+        await db.workItemTypes.put(dbItem);
+
+        return dbItem;
+      });
+
+    const dbItems = await Promise.all(dbItemsAsync);
+
+    this.#metadataAsync = Promise.resolve(this.#getMapFromDbWorkItemType(dbItems));
+
+    console.log(`[metadata] Metadata updated`);
+    this.dispatchEvent(new CustomEvent<MetadataChangedUpdate>("changed", { detail: { timestamp: Date.now() } }));
+
+    // TODO generate summary on what's changed
+  }
+
+  #getMapFromDbWorkItemType(workItemTypes: DbWorkItemType[]) {
     const metadataEntry: [string, WorkItemTypeMetadata][] = workItemTypes.map((workItemType) => [
       workItemType.name,
       {
@@ -25,62 +88,15 @@ export class MetadataManager extends EventTarget {
       },
     ]);
 
-    this.#metadataDictionary = new Map(metadataEntry);
-    this.dispatchEvent(new CustomEvent<MetadataChangedUpdate>("changed", { detail: { timestamp: Date.now() } }));
-  }
-
-  async reset() {
-    await db.workItemTypes.clear();
-    this.#imageRequests.clear();
-  }
-
-  async updateMetadataDictionary(itemTypes: WorkItemType[]) {
-    // TODO expose hooks to track icon download progress
-    const itemTypeSyncTasks = itemTypes
-      .filter((itemType) => !itemType.isDisabled)
-      .map(async (itemType) => {
-        let imageAsync = this.#imageRequests.get(itemType.icon.url);
-        if (!imageAsync) {
-          imageAsync = fetch(itemType.icon.url).then((result) => result.blob());
-          this.#imageRequests.set(itemType.icon.url, imageAsync);
-        }
-
-        const image = await imageAsync;
-        await db.workItemTypes.put({
-          name: itemType.name,
-          icon: {
-            url: itemType.icon.url,
-            image,
-          },
-          states: itemType.states,
-        });
-
-        this.#metadataDictionary.set(itemType.name, {
-          iconSrcUrl: itemType.icon.url,
-          iconBlobUrl: URL.createObjectURL(image),
-          states: this.getStateMap(itemType.states),
-        });
-      });
-    // TODO remove icons and states that are not in the list
-    await Promise.all(itemTypeSyncTasks);
-    console.log(`[metadata] Metadata updated`);
-    this.dispatchEvent(new CustomEvent<MetadataChangedUpdate>("changed", { detail: { timestamp: Date.now() } }));
-
-    // TODO generate summary on what's changed
-    // TODO emit change event
-  }
-
-  getTypeIconBlobUrl(workItemType: string): string | undefined {
-    return this.#metadataDictionary.get(workItemType)?.iconBlobUrl;
-  }
-  getStateDisplayConfig(workItemType: string, state: string): StateMetadata | undefined {
-    return this.#metadataDictionary.get(workItemType)?.states.get(state);
+    return new Map(metadataEntry);
   }
 
   getStateMap(states: DbWorkItemState[] | WorkItemState[]) {
     return new Map(states.map((state) => [state.name, { color: state.color, category: state.category }]));
   }
 }
+
+export type MetadataMap = Map<string, WorkItemTypeMetadata>;
 
 export interface WorkItemTypeMetadata {
   iconSrcUrl: string;

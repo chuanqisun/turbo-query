@@ -54,12 +54,15 @@ export class SearchManager extends EventTarget {
 
     const matches = await (await this.#indexManager.getIndex()).searchAsync(query, { index: "fuzzyTokens" });
     const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
-
-    const dbItems = await db.workItems.bulkGet(titleMatchIds).then((items) => items.filter(isDefined).sort(sortByState));
     const queryTokens = tokenize(query);
     const tokenMatcher = this.#isTokenMatch.bind(null, queryTokens);
 
-    const matchItems = dbItems.map(getSearchDisplayItem.bind(null, tokenMatcher, this.#metadataManager));
+    const [dbItems, metadataMap] = await Promise.all([
+      db.workItems.bulkGet(titleMatchIds).then((items) => items.filter(isDefined).sort(sortByState)),
+      this.#metadataManager.getMap(),
+    ]);
+
+    const matchItems = dbItems.map(getSearchDisplayItem.bind(null, tokenMatcher, metadataMap));
 
     this.dispatchEvent(
       new CustomEvent<SearchChangedUpdate>("changed", {

@@ -1,5 +1,5 @@
 import { DbWorkItem } from "../../db/db";
-import { MetadataManager } from "../emitters/metadata-manager";
+import { MetadataMap } from "../emitters/metadata-manager";
 import { getShortIteration } from "./iteration";
 
 export interface DisplayItem extends DbWorkItem {
@@ -14,9 +14,9 @@ export interface DisplayItem extends DbWorkItem {
   stateColor: string;
   stateCategory: string;
 }
-export function getSearchDisplayItem(isTokenMatch: (input: string) => boolean, metadataManager: MetadataManager, item: DbWorkItem): DisplayItem {
-  const stateConfig = metadataManager.getStateDisplayConfig(item.workItemType, item.state);
-  const iconUrl = metadataManager.getTypeIconBlobUrl(item.workItemType);
+export function getSearchDisplayItem(isTokenMatch: (input: string) => boolean, metadataMap: MetadataMap, item: DbWorkItem): DisplayItem {
+  const iconUrl = metadataMap.get(item.workItemType)?.iconBlobUrl;
+  const stateConfig = metadataMap.get(item.workItemType)?.states.get(item.state);
 
   return {
     ...item,
@@ -33,9 +33,9 @@ export function getSearchDisplayItem(isTokenMatch: (input: string) => boolean, m
   };
 }
 
-export function getRecentDisplayItem(metadataManager: MetadataManager, item: DbWorkItem): DisplayItem {
-  const stateConfig = metadataManager.getStateDisplayConfig(item.workItemType, item.state);
-  const iconUrl = metadataManager.getTypeIconBlobUrl(item.workItemType);
+export function getRecentDisplayItem(metadataMap: MetadataMap, item: DbWorkItem): DisplayItem {
+  const iconUrl = metadataMap.get(item.workItemType)?.iconBlobUrl;
+  const stateConfig = metadataMap.get(item.workItemType)?.states.get(item.state);
 
   return {
     ...item,

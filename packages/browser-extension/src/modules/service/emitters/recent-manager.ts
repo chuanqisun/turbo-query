@@ -15,10 +15,9 @@ export class RecentManager extends EventTarget {
   }
 
   async start() {
-    this.#liveQuery.subscribe((items) => {
-      this.dispatchEvent(
-        new CustomEvent<RecentChangedUpdate>("changed", { detail: { recentItems: items.map(getRecentDisplayItem.bind(null, this.#metadataManager)) } })
-      );
+    this.#liveQuery.subscribe(async (items) => {
+      const metadataMap = await this.#metadataManager.getMap();
+      this.dispatchEvent(new CustomEvent<RecentChangedUpdate>("changed", { detail: { recentItems: items.map(getRecentDisplayItem.bind(null, metadataMap)) } }));
     });
 
     this.#metadataManager.addEventListener("changed", async () => {
@@ -30,8 +29,9 @@ export class RecentManager extends EventTarget {
   }
 
   async #getRecentItems(): Promise<DisplayItem[]> {
-    const items = await this.#query();
-    return items.map(getRecentDisplayItem.bind(null, this.#metadataManager));
+    const [items, metadataMap] = await Promise.all([this.#query(), this.#metadataManager.getMap()]);
+
+    return items.map(getRecentDisplayItem.bind(null, metadataMap));
   }
 }
 
