@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { WorkerClient } from "../ipc/client";
-import { IndexChangedUpdate } from "../service/emitters/index-manager";
-import { RecentItemsChangedUpdate } from "../service/emitters/recent-content-manager";
-import { RecentItemsResponse } from "../service/handlers/handle-get-recent";
-import { SearchRequest, SearchResponse } from "../service/handlers/handle-search";
+import { RecentChangedUpdate } from "../service/emitters/recent-manager";
+import { SearchChangedUpdate } from "../service/emitters/search-manager";
+import { SearchRequest } from "../service/handlers/handle-search";
 import { SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
 import { SyncMetadataRequest } from "../service/handlers/handle-sync-metadata";
 import { DisplayItem } from "../service/utils/get-display-item";
@@ -23,7 +22,6 @@ export const PopupWindow: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [searchResult, setSearchResult] = useState<DisplayItem[]>();
   const [progressMessage, setProgressMessage] = useState<null | string>(null);
-  const [indexRev, setIndexRev] = useState<number | null>(null);
 
   const initialQuery = useRef(localStorage.getItem("last-query") ?? "");
   const [activeQuery, setActiveQuery] = useState(initialQuery.current);
@@ -57,23 +55,32 @@ export const PopupWindow: React.FC = () => {
   }, [isOffline]);
 
   const [recentItems, setRecentItems] = useState<any[] | null>(null);
+  const [searchItems, setSearchItems] = useState<any[] | null>(null);
 
-  // watch for index updates
-  useEffect(() => workerClient.subscribe<IndexChangedUpdate>("index-changed", (update) => setIndexRev(update.rev)), []);
+  // watch for search updates
+  useEffect(() => workerClient.subscribe<SearchChangedUpdate>("search-changed", (update) => setSearchItems(update.items)), []);
 
-  // watch for recent content
+  // watch for recent updates
+  useEffect(() => workerClient.subscribe<RecentChangedUpdate>("recent-changed", (update) => setRecentItems(update.recentItems)), []);
+
+  // request search on every query change
+  useEffect(() => {
+    if (!activeQuery.trim().length) return;
+
+    workerClient.post<SearchRequest, void>("watch-search", { query: activeQuery, timestamp: Date.now() });
+  }, [activeQuery]);
+
+  // request recent on first blank query
   const [isRecentQueryLive, setIsRecentQueryLive] = useState(false);
-
   useEffect(() => {
     if (isRecentQueryLive) return;
     if (!activeQuery.trim().length) {
-      console.log(`[recent] Start watching...`);
-      workerClient.post<any, RecentItemsResponse>("recent-items", {}).then((response) => setRecentItems(response.items)); // initial query
-      workerClient.subscribe<RecentItemsChangedUpdate>("recent-items-changed", (update) => setRecentItems(update.recentItems)); // updates
+      workerClient.post("watch-recent", {});
       setIsRecentQueryLive(true);
     }
   }, [isRecentQueryLive, activeQuery]);
 
+  // request content sync
   const requestSync = useCallback(
     async (rebuildIndex?: boolean) => {
       if (!config) return;
@@ -84,6 +91,7 @@ export const PopupWindow: React.FC = () => {
     [config]
   );
 
+  // request metadata sync
   const requestSyncMetadata = useCallback(async () => {
     if (!config) return;
     await workerClient.post<SyncMetadataRequest, any>("sync-metadata", { config }).then(() => {
@@ -101,23 +109,18 @@ export const PopupWindow: React.FC = () => {
     requestSyncMetadata();
   }, [config]); // start initial sync now
 
-  // recent
+  // display items
   useEffect(() => {
-    if (!recentItems) return;
-    if (activeQuery.trim().length) return;
-
-    setSearchResult(recentItems);
-  }, [recentItems, activeQuery]);
-
-  // search
-  useEffect(() => {
-    if (!activeQuery.trim().length) return;
-    if (indexRev === null) return;
-
-    workerClient.post<SearchRequest, SearchResponse>("search", { query: activeQuery }).then((response) => {
-      setSearchResult(response.items);
-    });
-  }, [indexRev, activeQuery]);
+    if (activeQuery.trim().length) {
+      if (searchItems) {
+        setSearchResult(searchItems);
+      }
+    } else {
+      if (recentItems) {
+        setSearchResult(recentItems);
+      }
+    }
+  }, [recentItems, searchItems, activeQuery]);
 
   const openConfig = useCallback(() => {
     chrome.runtime.openOptionsPage();

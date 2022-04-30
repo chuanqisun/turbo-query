@@ -24,6 +24,7 @@
 - Added: Support for all item types
 - Fixed: Inaccurate state indicator colors
 - Added: Improved status message on options page
+- Chore: Event-driven refactoring
 
 ## v1.3.0
 
