@@ -13,7 +13,6 @@ import { useConfigGuard } from "./components/hooks/use-config-guard";
 import { useClickToSelect, useHandleEscapeGlobal, useHandleIconClick, useHandleIconCopy, useHandleLinkClick } from "./components/hooks/use-event-handlers";
 import { useIsOffline } from "./components/hooks/use-is-offline";
 import { useRecursiveTimer } from "./components/hooks/use-recursive-timer";
-import { TypeIcon } from "./components/type-icon/type-icon";
 import { selectElementContent } from "./components/utils/dom";
 
 const pollingInterval = 5;
@@ -157,7 +156,12 @@ export const PopupWindow: React.FC = () => {
         {searchResult?.length === 0 && <li className="work-item">No result</li>}
         {searchResult?.map((item) => (
           <li className="work-item" key={item.id}>
-            <span className="work-item__state-bar" title={item.state}></span>
+            <span
+              className="work-item__state-bar"
+              data-state-category={item.stateCategory}
+              style={{ "--state-color": item.stateColor } as React.CSSProperties}
+              title={item.state}
+            ></span>
             <a
               tabIndex={-1}
               className="u-visually-hidden js-copy-target"
@@ -166,7 +170,11 @@ export const PopupWindow: React.FC = () => {
               {item.workItemType} {item.id}: {item.title}
             </a>
             <span className="work-item__icon-interaction js-select-item-start" onClick={handleIconClick} title={item.workItemType}>
-              <TypeIcon type={item.workItemType} />
+              {item.iconUrl ? (
+                <img className="work-item__icon" src={item.iconUrl} alt={item.workItemType} width={16} height={16} />
+              ) : (
+                <div className="work-item__icon" />
+              )}
               <span onCopy={handleIconCopy} className="u-visually-hidden">
                 {item.workItemType}
               </span>

@@ -13,8 +13,8 @@ import { handleTestConnection } from "./handlers/handle-test-connection";
 class WorkerContainer {
   #server = new WorkerServer(self as any as Worker);
   #indexManager = new IndexManager();
-  #recentItemsManager = new RecentItemsManager();
   #metadataManager = new MetadataManager();
+  #recentItemsManager = new RecentItemsManager(this.#metadataManager);
 
   async start() {
     const handlerContext: HandlerContext = {

@@ -57,6 +57,9 @@ body {
 
 .work-item__icon {
   transform: translateY(1px);
+  display: block;
+  width: 16px;
+  height: 16px;
 }
 
 .work-item__id {
@@ -87,16 +90,10 @@ body {
   width: 4px;
   height: 18px;
   border-radius: 2px;
-  background-color: #b2b2b2;
+  background-color: var(--state-color, #b2b2b2);
   cursor: help;
 }
-.work-item__state-bar[title="Completed"] {
-  background-color: #339933;
-}
-.work-item__state-bar:where([title="Started"], [title="Committed"], [title="Resolved"]) {
-  background-color: #007acc;
-}
-.work-item__state-bar:where([title="Cut"]) {
+.work-item__state-bar:where([data-state-category="Removed"]) {
   background-color: transparent;
   border: 1px solid #b2b2b2;
 }

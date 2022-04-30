@@ -61,10 +61,10 @@ export class MetadataManager extends EventTarget {
     // TODO emit change event
   }
 
-  async getTypeIconBlobUrl(workItemType: string): Promise<string | undefined> {
+  getTypeIconBlobUrl(workItemType: string): string | undefined {
     return this.#metadataDictionary.get(workItemType)?.iconBlobUrl;
   }
-  async getStateDisplayConfig(workItemType: string, state: string): Promise<StateMetadata | undefined> {
+  getStateDisplayConfig(workItemType: string, state: string): StateMetadata | undefined {
     return this.#metadataDictionary.get(workItemType)?.states.get(state);
   }
 }

@@ -11,7 +11,7 @@ export interface SearchResponse {
   items: DisplayItem[];
 }
 
-export async function handleSearch({ db, indexManager }: HandlerContext, { query }: SearchRequest): Promise<SearchResponse> {
+export async function handleSearch({ db, indexManager, metadataManager }: HandlerContext, { query }: SearchRequest): Promise<SearchResponse> {
   const matches = await (await indexManager.getIndex()).searchAsync(query.trim(), { index: "fuzzyTokens" });
   const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
 
@@ -21,7 +21,7 @@ export async function handleSearch({ db, indexManager }: HandlerContext, { query
   const queryTokens = tokenize(query);
   const tokenMatcher = isTokenMatch.bind(null, queryTokens);
 
-  const matchItems = dbItems.map(getSearchDisplayItem.bind(null, tokenMatcher));
+  const matchItems = dbItems.map(getSearchDisplayItem.bind(null, tokenMatcher, metadataManager));
 
   return {
     items: matchItems,
