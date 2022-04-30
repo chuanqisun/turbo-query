@@ -10,6 +10,7 @@
 - TODO: Open Sprint task board by clicking on Iteration path
 - TODO: Display progress when during initial loading
 - TODO: Scroll log on options page
+- TODO: Sync error missing in status bar
 
 # Changelog
 
