@@ -26,12 +26,10 @@ class WorkerContainer {
     };
 
     this.#server.addRequestHandler("recent-items", handleRecentItems.bind(null, handlerContext));
-
     this.#server.addRequestHandler("sync", handleSync.bind(null, handlerContext));
     this.#server.addRequestHandler("sync-metadata", handleSyncMetadata.bind(null, handlerContext));
     this.#server.addRequestHandler("reset", handleReset.bind(null, handlerContext));
     this.#server.addRequestHandler("test-connection", handleTestConnection.bind(null, handlerContext));
-
     this.#server.addRequestHandler("search", handleSearch.bind(null, handlerContext));
 
     this.#indexManager.addEventListener("changed", (e) =>

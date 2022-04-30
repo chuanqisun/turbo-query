@@ -5,10 +5,11 @@ export class MetadataManager extends EventTarget {
   #initialData = db.workItemTypes.toArray();
   #metadataDictionary = new Map<string, WorkItemTypeMetadata>();
   #imageRequests = new Map<string, Promise<Blob>>();
+  readonly initializedAsync: Promise<void>;
 
   constructor() {
     super();
-    this.initMetadataDictionary(this.#initialData);
+    this.initializedAsync = this.initMetadataDictionary(this.#initialData);
   }
 
   async initMetadataDictionary(workItemTypesAsync: Promise<DbWorkItemType[]>) {
@@ -25,6 +26,7 @@ export class MetadataManager extends EventTarget {
     ]);
 
     this.#metadataDictionary = new Map(metadataEntry);
+    this.dispatchEvent(new CustomEvent<MetadataChangedUpdate>("changed", { detail: { timestamp: Date.now() } }));
   }
 
   async reset() {
@@ -56,6 +58,7 @@ export class MetadataManager extends EventTarget {
     // TODO remove icons that are not in the list
     await Promise.all(itemTypeSyncTasks);
     console.log(`[metadata] Metadata updated`);
+    this.dispatchEvent(new CustomEvent<MetadataChangedUpdate>("changed", { detail: { timestamp: Date.now() } }));
 
     // TODO generate summary on what's changed
     // TODO emit change event
@@ -78,4 +81,8 @@ export interface WorkItemTypeMetadata {
 export interface StateMetadata {
   color: string;
   category: string;
+}
+
+export interface MetadataChangedUpdate {
+  timestamp: number;
 }
