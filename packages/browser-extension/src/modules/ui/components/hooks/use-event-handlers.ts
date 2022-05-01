@@ -40,10 +40,8 @@ export function useHandleIconCopy() {
   return handleIconCopy;
 }
 
-export interface UseHandleLinkClickProps {
-  isPopup?: boolean;
-}
-export function useHandleLinkClick(props?: UseHandleLinkClickProps) {
+export interface UseHandleLinkClickProps {}
+export function useHandleLinkClick() {
   return useCallback<React.MouseEventHandler>(async (e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault(); // allows alt click to be no-op
 
@@ -55,7 +53,6 @@ export function useHandleLinkClick(props?: UseHandleLinkClickProps) {
       chrome.tabs.create({ url, active: isShift });
     } else {
       chrome.tabs.update({ url });
-      if (props?.isPopup) window.close();
     }
   }, []);
 }

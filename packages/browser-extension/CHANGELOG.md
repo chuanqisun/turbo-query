@@ -22,11 +22,12 @@
 - Added: Progress display during loading
 - Added: Handle Sync error in status bar
 - Added: Tooltips for metadata
+- Added: Improved status message on options page
 - Changed: Items are sorted by State category
+- Changed: Open a link no long closes popup
 - Fixed: Separator could appear at line start
 - Fixed: Inaccurate state indicator colors
 - Fixed: Polling started before initial sync is finished
-- Added: Improved status message on options page
 - Chore: Event-driven refactoring
 
 ## v1.3.0
