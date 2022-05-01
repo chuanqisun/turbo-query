@@ -128,8 +128,10 @@ async function incrementalSync(db: Db, server: WorkerServer, api: ApiProxy): Pro
     const addedItems = remoteItems.filter((item) => syncPlan.addedIds.includes(item.id));
     const dirtyItems = remoteItems.filter((item) => syncPlan.dirtyIds.includes(item.id));
 
-    await putDbItems(addedItems);
-    await putDbItems(dirtyItems);
+    // TODO the entire sync is not atom. If user closes popup during sync, DB could become inconsistent
+    // Consider setting a flag before sync and remove after sync.
+    // Require full sync if the flag exists before sync starts.
+    await putDbItems([...addedItems, ...dirtyItems]);
 
     addedIds.push(...addedItems.map((item) => item.id));
     updatedIds.push(...dirtyItems.map((item) => item.id));
