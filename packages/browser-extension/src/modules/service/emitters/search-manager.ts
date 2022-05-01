@@ -58,16 +58,17 @@ export class SearchManager extends EventTarget {
     const tokenMatcher = this.#isTokenMatch.bind(null, queryTokens);
 
     const [dbItems, metadataMap] = await Promise.all([
-      db.workItems.bulkGet(titleMatchIds).then((items) => items.filter(isDefined).sort(sortByState)),
+      db.workItems.bulkGet(titleMatchIds).then((items) => items.filter(isDefined)),
       this.#metadataManager.getMap(),
     ]);
 
-    const matchItems = dbItems.map(getSearchDisplayItem.bind(null, tokenMatcher, metadataMap));
+    const dbItemsSorted = dbItems.sort(sortByState.bind(null, metadataMap));
+    const displayItems = dbItemsSorted.map(getSearchDisplayItem.bind(null, tokenMatcher, metadataMap));
 
     this.dispatchEvent(
       new CustomEvent<SearchChangedUpdate>("changed", {
         detail: {
-          items: matchItems,
+          items: displayItems,
         },
       })
     );
