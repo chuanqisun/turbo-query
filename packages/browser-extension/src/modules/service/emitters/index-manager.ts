@@ -92,7 +92,6 @@ export class IndexManager extends EventTarget {
   }
 
   async reset() {
-    await db.workItems.clear();
     await db.indexItems.clear();
   }
 
