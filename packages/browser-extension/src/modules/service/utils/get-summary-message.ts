@@ -6,7 +6,5 @@ export function getSummaryMessage(syncResponse: SyncContentResponse): string {
   if (syncResponse.updatedIds.length) summaryMessage += ` ${syncResponse.updatedIds.length} updated`;
   if (syncResponse.deletedIds.length) summaryMessage += ` ${syncResponse.deletedIds.length} deleted`;
 
-  if (!summaryMessage.length) summaryMessage += " No change";
-
-  return `Sync items... Success! (${summaryMessage.trim()})`;
+  return `Sync items... Success!${summaryMessage}`;
 }
