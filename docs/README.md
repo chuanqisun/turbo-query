@@ -1,6 +1,6 @@
 # Branching
 
-- `release/<major>.<minor>.<patch>`: release branch
+- `release/<major>.<minor>.<patch>`: service branch for fixes
 - `master` dev branch
 
 # Release checklist
