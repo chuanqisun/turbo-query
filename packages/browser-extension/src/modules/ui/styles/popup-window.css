@@ -44,6 +44,7 @@ body {
 
 .work-item {
   padding: 4px;
+  content: strict style;
   display: grid;
   grid-template-columns: auto auto 1fr;
   gap: 4px;

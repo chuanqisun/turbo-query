@@ -20,28 +20,42 @@ export class SearchManager extends EventTarget {
   }
 
   #start() {
-    this.#indexManager.addEventListener("changed", () => {
-      this.executeQuery(this.#activeQuery);
+    this.#indexManager.addEventListener("changed", async () => {
+      const items = await this.getQueryResults(this.#activeQuery);
+      this.dispatchEvent(
+        new CustomEvent<SearchChangedUpdate>("changed", {
+          detail: {
+            items,
+          },
+        })
+      );
     });
 
-    this.#metadataManager.addEventListener("changed", () => {
-      this.executeQuery(this.#activeQuery);
+    this.#metadataManager.addEventListener("changed", async () => {
+      const items = await this.getQueryResults(this.#activeQuery);
+      this.dispatchEvent(
+        new CustomEvent<SearchChangedUpdate>("changed", {
+          detail: {
+            items,
+          },
+        })
+      );
     });
 
     this.#isStarted = true;
     console.log(`[search-manager] watching for change`);
   }
 
-  async search(query: string): Promise<void> {
+  async search(query: string): Promise<DisplayItem[]> {
     if (!this.#isStarted) {
       this.#start();
     }
 
     this.#activeQuery = query.trim();
-    await this.executeQuery(this.#activeQuery);
+    return this.getQueryResults(this.#activeQuery);
   }
 
-  async executeQuery(query: string) {
+  async getQueryResults(query: string): Promise<DisplayItem[]> {
     if (!query.length) {
       this.dispatchEvent(
         new CustomEvent<SearchChangedUpdate>("changed", {
@@ -65,13 +79,7 @@ export class SearchManager extends EventTarget {
     const dbItemsSorted = dbItems.sort(sortByState.bind(null, metadataMap));
     const displayItems = dbItemsSorted.map(getSearchDisplayItem.bind(null, tokenMatcher, metadataMap));
 
-    this.dispatchEvent(
-      new CustomEvent<SearchChangedUpdate>("changed", {
-        detail: {
-          items: displayItems,
-        },
-      })
-    );
+    return displayItems;
   }
 
   #isTokenMatch(queryTokens: string[], maybeToken: string) {

@@ -5,7 +5,7 @@ import { RecentChangedUpdate } from "../service/emitters/recent-manager";
 import { SearchChangedUpdate } from "../service/emitters/search-manager";
 import { SyncContentRequest, SyncContentResponse, SyncContentUpdate } from "../service/handlers/handle-sync-content";
 import { SyncMetadataRequest, SyncMetadataResponse, SyncMetadataUpdate } from "../service/handlers/handle-sync-metadata";
-import { SearchRequest } from "../service/handlers/handle-watch-search";
+import { SearchRequest, SearchResponse } from "../service/handlers/handle-watch-search";
 import { DisplayItem } from "../service/utils/get-display-item";
 import { useConfigGuard } from "./components/hooks/use-config-guard";
 import { useDebounce } from "./components/hooks/use-debounce";
@@ -15,7 +15,7 @@ import { useRecursiveTimer } from "./components/hooks/use-recursive-timer";
 import { selectElementContent } from "./components/utils/dom";
 
 const POLLING_INTERVAL = 5;
-const DEBOUNCE_INTERVAL = 100;
+const DEBOUNCE_TIMEOUT = 100; // TODO: debounce + search latency should be less than 100ms for "instant" perception
 const worker = new Worker("./modules/service/worker.js");
 const workerClient = new WorkerClient(worker);
 
@@ -51,7 +51,7 @@ export const PopupWindow: React.FC = () => {
     localStorage.setItem("last-query", e.target.value);
     document.querySelector(".js-scroll")?.scrollTo({ top: 0 });
   }, []);
-  const debouncedQuery = useDebounce(activeQuery, DEBOUNCE_INTERVAL);
+  const debouncedQuery = useDebounce(activeQuery, DEBOUNCE_TIMEOUT);
 
   useEffect(() => {
     setTimestampMessage(isOffline ? "System offline" : "System online");
@@ -76,7 +76,9 @@ export const PopupWindow: React.FC = () => {
   useEffect(() => {
     if (!debouncedQuery.trim().length) return;
 
-    workerClient.post<SearchRequest, void>("watch-search", { query: debouncedQuery });
+    workerClient.post<SearchRequest, SearchResponse>("watch-search", { query: debouncedQuery }).then((result) => {
+      setSearchItems(result.items);
+    });
   }, [debouncedQuery]);
 
   // request recent on first blank query
