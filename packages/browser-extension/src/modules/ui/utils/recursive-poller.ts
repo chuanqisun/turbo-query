@@ -13,6 +13,7 @@ export class RecursiveTimer {
     this.#activeTimer = window.setTimeout(async () => {
       await this.#callback();
 
+      // destroy could be requested during callback
       if (this.#isDestroyed) return;
       this.start();
     }, this.#delay);
