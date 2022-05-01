@@ -275,19 +275,23 @@ export const PopupWindow: React.FC = () => {
                     </span>{" "}
                   </React.Fragment>
                 ))}
-              <span className="work-item__state work-item__matchable" data-matched={item.isStateMatched}>
+              <span className="work-item__state work-item__matchable" title={`State: ${item.state}`} data-matched={item.isStateMatched}>
                 {item.state}
               </span>
               {" · "}
-              <span className="work-item__type work-item__matchable" data-matched={item.isWorkItemTypeMatched}>
+              <span className="work-item__type work-item__matchable" title={`Type: ${item.workItemType}`} data-matched={item.isWorkItemTypeMatched}>
                 {item.workItemType}
               </span>
               {" · "}
-              <span className="work-item__assigned-to work-item__matchable" data-matched={item.isAssignedToUserMatched}>
+              <span
+                className="work-item__assigned-to work-item__matchable"
+                title={`Assigned to: ${item.assignedTo.displayName}`}
+                data-matched={item.isAssignedToUserMatched}
+              >
                 {item.assignedTo.displayName}
               </span>
               {" · "}
-              <span className="work-item__path work-item__matchable" data-matched={item.isShortIterationPathMatched}>
+              <span className="work-item__path work-item__matchable" title={`Iteration: ${item.iterationPath}`} data-matched={item.isShortIterationPathMatched}>
                 {item.shortIterationPath}
               </span>
             </div>

@@ -2,8 +2,6 @@
 
 ## Committed
 
-- TODO: Open Sprint task board by clicking on Iteration path
-- TODO: Tooltips for metadata
 - TODO: Sort items by category, not state
 - TODO: Prevent separator at line start
 - TODO: Bust icon cache after 24h
@@ -25,6 +23,7 @@
 - Added: Support for all item types
 - Added: Progress display during loading
 - Added: Handle Sync error in status bar
+- Added: Tooltips for metadata
 - Fixed: Inaccurate state indicator colors
 - Fixed: Polling started before initial sync is finished
 - Added: Improved status message on options page
