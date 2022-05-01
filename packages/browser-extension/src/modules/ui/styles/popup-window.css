@@ -139,3 +139,11 @@ body {
   background: #eaeaea;
   font-size: 12px;
 }
+
+.status-bar--error {
+  background-color: #fff4ce;
+}
+
+.status-bar__action {
+  margin-left: 4px;
+}

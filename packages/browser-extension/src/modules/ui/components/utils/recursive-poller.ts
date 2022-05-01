@@ -2,6 +2,7 @@ export class RecursiveTimer {
   #activeTimer: number | undefined;
   #delay: number;
   #callback: () => any;
+  #isDestroyed = false;
 
   constructor(callback: () => any, delay: number) {
     this.#delay = delay;
@@ -11,11 +12,14 @@ export class RecursiveTimer {
   start() {
     this.#activeTimer = window.setTimeout(async () => {
       await this.#callback();
+
+      if (this.#isDestroyed) return;
       this.start();
     }, this.#delay);
   }
 
-  stop() {
+  destory() {
     window.clearTimeout(this.#activeTimer);
+    this.#isDestroyed = true;
   }
 }

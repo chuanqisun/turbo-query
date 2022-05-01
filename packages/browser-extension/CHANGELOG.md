@@ -2,14 +2,13 @@
 
 ## Committed
 
-- TODO: Start polling only after initial sync finishes
-- TODO: Display progress when during initial loading
-- TODO: Sync error missing in status bar
 - TODO: Open Sprint task board by clicking on Iteration path
 - TODO: Tooltips for metadata
 - TODO: Sort items by category, not state
 - TODO: Prevent separator at line start
 - TODO: Bust icon cache after 24h
+- TODO: Correctly 401 error as authentication error
+- TODO: Performance bottleneck on search
 
 ## Sometime in the future
 
@@ -24,7 +23,10 @@
 ## v1.4.0
 
 - Added: Support for all item types
+- Added: Progress display during loading
+- Added: Handle Sync error in status bar
 - Fixed: Inaccurate state indicator colors
+- Fixed: Polling started before initial sync is finished
 - Added: Improved status message on options page
 - Chore: Event-driven refactoring
 

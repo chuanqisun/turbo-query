@@ -3,11 +3,10 @@ import ReactDOM from "react-dom";
 import { WorkerClient } from "../ipc/client";
 import { RecentChangedUpdate } from "../service/emitters/recent-manager";
 import { SearchChangedUpdate } from "../service/emitters/search-manager";
-import { SyncContentRequest, SyncContentResponse } from "../service/handlers/handle-sync-content";
-import { SyncMetadataRequest, SyncMetadataResponse } from "../service/handlers/handle-sync-metadata";
+import { SyncContentRequest, SyncContentResponse, SyncContentUpdate } from "../service/handlers/handle-sync-content";
+import { SyncMetadataRequest, SyncMetadataResponse, SyncMetadataUpdate } from "../service/handlers/handle-sync-metadata";
 import { SearchRequest } from "../service/handlers/handle-watch-search";
 import { DisplayItem } from "../service/utils/get-display-item";
-import { getShortSummaryMessage, getSummaryMessage } from "../service/utils/get-summary-message";
 import { useConfigGuard } from "./components/hooks/use-config-guard";
 import { useClickToSelect, useHandleEscapeGlobal, useHandleIconClick, useHandleIconCopy, useHandleLinkClick } from "./components/hooks/use-event-handlers";
 import { useIsOffline } from "./components/hooks/use-is-offline";
@@ -22,6 +21,7 @@ export const PopupWindow: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [searchResult, setSearchResult] = useState<DisplayItem[]>();
   const [progressMessage, setProgressMessage] = useState<null | string>(null);
+  const [errors, setErrors] = useState<string[]>([]);
 
   const initialQuery = useRef(localStorage.getItem("last-query") ?? "");
   const [activeQuery, setActiveQuery] = useState(initialQuery.current);
@@ -80,51 +80,85 @@ export const PopupWindow: React.FC = () => {
     }
   }, [isRecentQueryLive, activeQuery]);
 
-  // request content sync
-  const requestSync = useCallback(
-    async (rebuildIndex?: boolean) => {
-      if (!config) return;
-      await workerClient.post<SyncContentRequest, SyncContentResponse>("sync-content", { config, rebuildIndex }).then((summary) => {
-        setTimestampMessage(getSummaryMessage(summary));
-      });
-    },
-    [config]
-  );
-
-  // request metadata sync
-  const requestSyncMetadata = useCallback(async () => {
-    if (!config) return;
-    await workerClient.post<SyncMetadataRequest, any>("sync-metadata", { config }).then(() => {
-      setTimestampMessage("Metadata updated");
-    });
-  }, [config]);
-
   const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
   const requestSyncV2 = useCallback(async () => {
     if (!config) return;
+    if (!navigator.onLine) return;
+
+    let initialSyncPendingTasks = 2;
 
     if (!isInitialSyncDone) {
+      function onInitialSyncTaskSuccess() {
+        initialSyncPendingTasks--;
+        if (initialSyncPendingTasks === 0) {
+          setIsInitialSyncDone(true);
+          setErrors([]);
+        }
+      }
+
+      function contentProgressObserver(update: SyncContentUpdate) {
+        switch (update.type) {
+          case "progress":
+            if (errors.length) return; // don't override existing errors
+            setTimestampMessage(update.message);
+            break;
+          case "success":
+            setTimestampMessage(update.message);
+            onInitialSyncTaskSuccess();
+            break;
+          case "error":
+            setTimestampMessage(update.message);
+            setErrors((prev) => [...prev, `Sync content failed: ${update.message}`]);
+            break;
+        }
+      }
+
+      function metadataProgressObserver(update: SyncMetadataUpdate) {
+        switch (update.type) {
+          case "progress":
+            if (errors.length) return; // don't override existing errors
+            setTimestampMessage(update.message);
+            break;
+          case "success":
+            setTimestampMessage(update.message);
+            onInitialSyncTaskSuccess();
+            break;
+          case "error":
+            setTimestampMessage(update.message);
+            setErrors((prev) => [...prev, `Sync metadata failed: ${update.message}`]);
+            break;
+        }
+      }
+      workerClient.subscribe<SyncContentUpdate>("sync-progress", contentProgressObserver);
+      workerClient.subscribe<SyncMetadataUpdate>("sync-metadata-progress", metadataProgressObserver);
+
       // full sync
-      const settledTasks = await Promise.allSettled([
+      await Promise.all([
         workerClient.post<SyncContentRequest, SyncContentResponse>("sync-content", { config, rebuildIndex: true }),
         workerClient.post<SyncMetadataRequest, SyncMetadataResponse>("sync-metadata", { config }),
       ]);
 
-      const rejectedTask = settledTasks.find((task) => task.status === "rejected");
-      if (rejectedTask) {
-        setTimestampMessage(`Sync failed... ${(rejectedTask as PromiseRejectedResult).reason ?? "Unknown error"}`);
-      } else {
-        const [contentTask, metadataTask] = settledTasks as [PromiseFulfilledResult<SyncContentResponse>, PromiseFulfilledResult<SyncMetadataResponse>];
-        setTimestampMessage(`${getShortSummaryMessage(contentTask.value, metadataTask.value)}`);
-        setIsInitialSyncDone(true);
-      }
+      workerClient.unsubscribe("sync-progress", contentProgressObserver);
+      workerClient.unsubscribe("sync-metadata-progress", metadataProgressObserver);
     } else {
       // incremental sync
-      await workerClient.post<SyncContentRequest, SyncContentResponse>("sync-content", { config }).then((summary) => {
-        setTimestampMessage(getShortSummaryMessage(summary));
-      });
+      function contentProgressObserver(update: SyncContentUpdate) {
+        switch (update.type) {
+          case "success":
+            setTimestampMessage(update.message);
+            break;
+          case "error":
+            setTimestampMessage(update.message);
+            break;
+        }
+      }
+      workerClient.subscribe<SyncContentUpdate>("sync-progress", contentProgressObserver);
+
+      await workerClient.post<SyncContentRequest, SyncContentResponse>("sync-content", { config });
+
+      workerClient.unsubscribe("sync-progress", contentProgressObserver);
     }
-  }, [config, isInitialSyncDone]);
+  }, [config, isInitialSyncDone, errors]);
 
   // polling sync
   // TODO perform full sync when network goes online the first time
@@ -255,7 +289,16 @@ export const PopupWindow: React.FC = () => {
         ))}
       </ul>
 
-      <output className="status-bar">{progressMessage}</output>
+      {errors.length ? (
+        <output className="status-bar status-bar--error">
+          {progressMessage}{" "}
+          <a href="#" className="status-bar__action" onClick={openConfig}>
+            Fix problems in options page
+          </a>
+        </output>
+      ) : (
+        <output className="status-bar">{progressMessage}</output>
+      )}
     </div>
   ) : null;
 };

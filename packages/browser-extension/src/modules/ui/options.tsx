@@ -120,7 +120,7 @@ export const SetupForm: React.FC = () => {
     const config = await getCompleteConfig();
     if (!config) return;
 
-    function syncProgressObserver(update: SyncContentUpdate) {
+    function contentProgressObserver(update: SyncContentUpdate) {
       switch (update.type) {
         case "progress":
           printStatusMessage("sync", `⌛ ${update.message}`);
@@ -135,7 +135,7 @@ export const SetupForm: React.FC = () => {
       }
     }
 
-    function syncMeatadataProgressObserver(update: SyncMetadataUpdate) {
+    function metadataProgressObserver(update: SyncMetadataUpdate) {
       switch (update.type) {
         case "progress":
           printStatusMessage("sync-metadata", `⌛ ${update.message}`);
@@ -150,16 +150,16 @@ export const SetupForm: React.FC = () => {
       }
     }
 
-    workerClient.subscribe<SyncContentUpdate>("sync-progress", syncProgressObserver);
-    workerClient.subscribe<SyncMetadataUpdate>("sync-metadata-progress", syncMeatadataProgressObserver);
+    workerClient.subscribe<SyncContentUpdate>("sync-progress", contentProgressObserver);
+    workerClient.subscribe<SyncMetadataUpdate>("sync-metadata-progress", metadataProgressObserver);
 
     await Promise.all([
       workerClient.post<SyncContentRequest, SyncContentResponse>("sync-content", { config, rebuildIndex: true }),
       workerClient.post<SyncMetadataRequest, SyncMetadataResponse>("sync-metadata", { config }),
     ]);
 
-    workerClient.unsubscribe("sync-progress", syncProgressObserver);
-    workerClient.unsubscribe("sync-metadata-progress", syncMeatadataProgressObserver);
+    workerClient.unsubscribe("sync-progress", contentProgressObserver);
+    workerClient.unsubscribe("sync-metadata-progress", metadataProgressObserver);
   }, []);
 
   const handleLinkClick = useHandleLinkClick();
@@ -223,7 +223,7 @@ export const SetupForm: React.FC = () => {
             <tr>
               <td>Launch</td>
               <td>
-                Click the <img className="launch-icon" src="./Logo.svg" height={19} /> button in the tray area.
+                Click the <img className="launch-icon" src="./Logo.svg" height={19} /> button in the tray area
               </td>
             </tr>
             <tr>
