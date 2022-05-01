@@ -13,7 +13,7 @@
 - Added: Support all item types
 - Added: Progress display during loading
 - Added: Handle Sync error in status bar
-- Added: Tooltips for metadata
+- Added: Tool-tips for metadata
 - Added: Improved status message on options page
 - Changed: Items are sorted by State category
 - Changed: Open a link no long closes popup
