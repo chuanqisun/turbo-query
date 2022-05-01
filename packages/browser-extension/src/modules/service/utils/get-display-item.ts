@@ -2,6 +2,8 @@ import { DbWorkItem } from "../../db/db";
 import { MetadataMap } from "../emitters/metadata-manager";
 import { getShortIteration } from "./iteration";
 
+const FALLBACK_INDICATOR_HEX = "b2b2b2";
+
 export interface DisplayItem extends DbWorkItem {
   iconUrl?: string;
   isIdMatched?: boolean;
@@ -27,7 +29,7 @@ export function getSearchDisplayItem(isTokenMatch: (input: string) => boolean, m
     isStateMatched: isTokenMatch(item.state),
     isShortIterationPathMatched: isTokenMatch(getShortIteration(item.iterationPath)),
     isTagMatched: item.tags.map((tag) => isTokenMatch(tag)),
-    stateColor: `#${stateConfig?.color ?? "b2b2b2"}`,
+    stateColor: `#${stateConfig?.color ?? FALLBACK_INDICATOR_HEX}`,
     stateCategory: stateConfig?.category ?? "Unknown",
     shortIterationPath: getShortIteration(item.iterationPath),
   };
@@ -40,7 +42,7 @@ export function getRecentDisplayItem(metadataMap: MetadataMap, item: DbWorkItem)
   return {
     ...item,
     iconUrl,
-    stateColor: `#${stateConfig?.color ?? "b2b2b2"}`,
+    stateColor: `#${stateConfig?.color ?? FALLBACK_INDICATOR_HEX}`,
     stateCategory: stateConfig?.category ?? "Unknown",
     shortIterationPath: getShortIteration(item.iterationPath),
   };
