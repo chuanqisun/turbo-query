@@ -1,10 +1,9 @@
 # Branching
 
-- `vnext`: dev branch
-  - `CHANGELOG.md` contains roadmap
 - `dev/<major>.<minor>.<patch>`: release branch
-  - `CHANGELOG.md` contains release note
-- `master` current release branch
+  - `CHANGELOG.md` should be cleaned up
+- `master` dev branch
+  - `CHANGELOG.md` contains roadmap
 
 # Release checklist
 
