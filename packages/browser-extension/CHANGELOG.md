@@ -1,11 +1,5 @@
 # Roadmap
 
-## Committed
-
-- TODO: Refactor sync logic
-
-## Sometime in the future
-
 - TODO: Support custom include/exclude of item types
 - TODO: Improve keyboard navigation, escape to close, row level movement
 - TODO: Click filter to toggle corresponding string in query
