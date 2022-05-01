@@ -76,7 +76,6 @@ export const PopupWindow: React.FC = () => {
   useEffect(() => {
     if (!debouncedQuery.trim().length) return;
 
-    const timestamp = Date.now();
     workerClient.post<SearchRequest, void>("watch-search", { query: debouncedQuery });
   }, [debouncedQuery]);
 
