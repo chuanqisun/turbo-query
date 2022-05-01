@@ -51,11 +51,11 @@ export const SetupForm: React.FC = () => {
       console.log(`[options]`, { ...configDict });
       Object.entries(configDict).forEach(([key, value]) => (formRef.current!.querySelector<HTMLInputElement>(`[name="${key}"]`)!.value = value));
 
-      const isOnline = getNetworkStatus();
-      if (!isOnline) return;
-
       const isFormValid = formRef.current?.checkValidity();
       if (!isFormValid) return;
+
+      const isOnline = getNetworkStatus();
+      if (!isOnline) return;
 
       const isConnectionValid = await getConnectionStatus();
       if (!isConnectionValid) return;
