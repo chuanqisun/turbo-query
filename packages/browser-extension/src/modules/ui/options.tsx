@@ -69,6 +69,8 @@ export const SetupForm: React.FC = () => {
 
     setIsItemDataReady(false);
     setIsMetadataReady(false);
+    workerClient.unsubscribe("sync-progress", handleContentProgress);
+    workerClient.unsubscribe("sync-metadata-progress", handleMetadataProgress);
 
     await clearOutput();
     await saveForm();
@@ -120,46 +122,46 @@ export const SetupForm: React.FC = () => {
     const config = await getCompleteConfig();
     if (!config) return;
 
-    function contentProgressObserver(update: SyncContentUpdate) {
-      switch (update.type) {
-        case "progress":
-          printStatusMessage("sync", `⌛ ${update.message}`);
-          break;
-        case "success":
-          printStatusMessage("sync", `✅ ${update.message}`);
-          setIsItemDataReady(true);
-          break;
-        case "error":
-          printStatusMessage("sync", `⚠️ ${update.message}`);
-          break;
-      }
-    }
-
-    function metadataProgressObserver(update: SyncMetadataUpdate) {
-      switch (update.type) {
-        case "progress":
-          printStatusMessage("sync-metadata", `⌛ ${update.message}`);
-          break;
-        case "success":
-          printStatusMessage("sync-metadata", `✅ ${update.message}`);
-          setIsMetadataReady(true);
-          break;
-        case "error":
-          printStatusMessage("sync-metadata", `⚠️ ${update.message}`);
-          break;
-      }
-    }
-
-    workerClient.subscribe<SyncContentUpdate>("sync-progress", contentProgressObserver);
-    workerClient.subscribe<SyncMetadataUpdate>("sync-metadata-progress", metadataProgressObserver);
+    workerClient.subscribe<SyncContentUpdate>("sync-progress", handleContentProgress);
+    workerClient.subscribe<SyncMetadataUpdate>("sync-metadata-progress", handleMetadataProgress);
 
     await Promise.all([
       workerClient.post<SyncContentRequest, SyncContentResponse>("sync-content", { config, rebuildIndex: true }),
       workerClient.post<SyncMetadataRequest, SyncMetadataResponse>("sync-metadata", { config }),
     ]);
 
-    workerClient.unsubscribe("sync-progress", contentProgressObserver);
-    workerClient.unsubscribe("sync-metadata-progress", metadataProgressObserver);
+    workerClient.unsubscribe("sync-progress", handleContentProgress);
+    workerClient.unsubscribe("sync-metadata-progress", handleMetadataProgress);
+  }, []);
+
+  const handleContentProgress = useCallback((update: SyncContentUpdate) => {
+    switch (update.type) {
+      case "progress":
+        printStatusMessage("sync", `⌛ ${update.message}`);
+        break;
+      case "success":
+        printStatusMessage("sync", `✅ ${update.message}`);
+        setIsItemDataReady(true);
+        break;
+      case "error":
+        printStatusMessage("sync", `⚠️ ${update.message}`);
+        break;
+    }
+  }, []);
+
+  const handleMetadataProgress = useCallback((update: SyncMetadataUpdate) => {
+    switch (update.type) {
+      case "progress":
+        printStatusMessage("sync-metadata", `⌛ ${update.message}`);
+        break;
+      case "success":
+        printStatusMessage("sync-metadata", `✅ ${update.message}`);
+        setIsMetadataReady(true);
+        break;
+      case "error":
+        printStatusMessage("sync-metadata", `⚠️ ${update.message}`);
+        break;
+    }
   }, []);
 
   const handleLinkClick = useHandleLinkClick();
