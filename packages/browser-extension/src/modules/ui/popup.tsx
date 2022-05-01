@@ -8,12 +8,14 @@ import { SyncMetadataRequest, SyncMetadataResponse, SyncMetadataUpdate } from ".
 import { SearchRequest } from "../service/handlers/handle-watch-search";
 import { DisplayItem } from "../service/utils/get-display-item";
 import { useConfigGuard } from "./components/hooks/use-config-guard";
+import { useDebounce } from "./components/hooks/use-debounce";
 import { useClickToSelect, useHandleEscapeGlobal, useHandleIconClick, useHandleIconCopy, useHandleLinkClick } from "./components/hooks/use-event-handlers";
 import { useIsOffline } from "./components/hooks/use-is-offline";
 import { useRecursiveTimer } from "./components/hooks/use-recursive-timer";
 import { selectElementContent } from "./components/utils/dom";
 
-const pollingInterval = 5;
+const POLLING_INTERVAL = 5;
+const DEBOUNCE_INTERVAL = 80;
 const worker = new Worker("./modules/service/worker.js");
 const workerClient = new WorkerClient(worker);
 
@@ -49,6 +51,7 @@ export const PopupWindow: React.FC = () => {
     localStorage.setItem("last-query", e.target.value);
     document.querySelector(".js-scroll")?.scrollTo({ top: 0 });
   }, []);
+  const debouncedQuery = useDebounce(activeQuery, DEBOUNCE_INTERVAL);
 
   useEffect(() => {
     setTimestampMessage(isOffline ? "System offline" : "System online");
@@ -58,30 +61,37 @@ export const PopupWindow: React.FC = () => {
   const [searchItems, setSearchItems] = useState<any[] | null>(null);
 
   // watch for search updates
-  useEffect(() => workerClient.subscribe<SearchChangedUpdate>("search-changed", (update) => setSearchItems(update.items)), []);
+  useEffect(
+    () =>
+      workerClient.subscribe<SearchChangedUpdate>("search-changed", (update) => {
+        setSearchItems(update.items);
+      }),
+    []
+  );
 
   // watch for recent updates
   useEffect(() => workerClient.subscribe<RecentChangedUpdate>("recent-changed", (update) => setRecentItems(update.recentItems)), []);
 
   // request search on every query change
   useEffect(() => {
-    if (!activeQuery.trim().length) return;
+    if (!debouncedQuery.trim().length) return;
 
-    workerClient.post<SearchRequest, void>("watch-search", { query: activeQuery, timestamp: Date.now() });
-  }, [activeQuery]);
+    const timestamp = Date.now();
+    workerClient.post<SearchRequest, void>("watch-search", { query: debouncedQuery });
+  }, [debouncedQuery]);
 
   // request recent on first blank query
   const [isRecentQueryLive, setIsRecentQueryLive] = useState(false);
   useEffect(() => {
     if (isRecentQueryLive) return;
-    if (!activeQuery.trim().length) {
+    if (!debouncedQuery.trim().length) {
       workerClient.post("watch-recent", {});
       setIsRecentQueryLive(true);
     }
-  }, [isRecentQueryLive, activeQuery]);
+  }, [isRecentQueryLive, debouncedQuery]);
 
   const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
-  const requestSyncV2 = useCallback(async () => {
+  const requestSync = useCallback(async () => {
     if (!config) return;
     if (!navigator.onLine) return;
 
@@ -161,24 +171,21 @@ export const PopupWindow: React.FC = () => {
   }, [config, isInitialSyncDone, errors]);
 
   // polling sync
-  // TODO perform full sync when network goes online the first time
-  useRecursiveTimer(requestSyncV2, isOffline || !config ? null : pollingInterval * 1000);
+  useRecursiveTimer(requestSync, isOffline || !config ? null : POLLING_INTERVAL * 1000);
   useEffect(() => {
     if (!config) return;
 
-    requestSyncV2();
+    requestSync();
   }, [config]);
 
   // display items
   useEffect(() => {
-    if (activeQuery.trim().length && searchItems) {
+    if (debouncedQuery.trim().length && searchItems) {
       setSearchResult(searchItems);
     } else if (recentItems) {
       setSearchResult(recentItems);
-    } else {
-      setSearchResult(undefined);
     }
-  }, [recentItems, searchItems, activeQuery]);
+  }, [recentItems, searchItems, debouncedQuery]);
 
   const openConfig = useCallback(() => {
     chrome.runtime.openOptionsPage();

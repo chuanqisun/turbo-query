@@ -8,7 +8,7 @@
 - TODO: Prevent separator at line start
 - TODO: Bust icon cache after 24h
 - TODO: Correctly 401 error as authentication error
-- TODO: Performance bottleneck on search
+- TODO: Refactor sync logic
 
 ## Sometime in the future
 
