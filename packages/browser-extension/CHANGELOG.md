@@ -1,16 +1,15 @@
 # Roadmap
 
-- TODO: Support custom include/exclude of item types
-- TODO: Improve keyboard navigation, escape to close, row level movement
-- TODO: Click filter to toggle corresponding string in query
-- TODO: adjust polling rate based on network quality
-- TODO: Support dark theme and handle `color-scheme: light dark;`
+- Planned: Improve keyboard navigation, row level movement
+- Planned: Support dark theme and handle `color-scheme: light dark;`
+- Maybe: Support custom include/exclude of item types
+- Maybe: Click filter to toggle corresponding string in query
 
 # Changelog
 
 ## v1.4.0
 
-- Added: Support for all item types
+- Added: Support all item types
 - Added: Progress display during loading
 - Added: Handle Sync error in status bar
 - Added: Tooltips for metadata
