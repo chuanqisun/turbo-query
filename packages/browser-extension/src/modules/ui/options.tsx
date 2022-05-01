@@ -18,6 +18,8 @@ interface OutputThread {
 export const SetupForm: React.FC = () => {
   const formRef = useRef<HTMLFormElement | null>(null);
   const [outputMessages, setOutputMessages] = useState<OutputThread[]>([]);
+  const [isItemDataReady, setIsItemDataReady] = useState(false);
+  const [isMetadataReady, setIsMetadataReady] = useState(false);
 
   const printStatusMessage = useCallback((threadName: string, message: string) => {
     setOutputMessages((previousMessages) => {
@@ -64,6 +66,9 @@ export const SetupForm: React.FC = () => {
 
   const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>(async (event) => {
     event.preventDefault();
+
+    setIsItemDataReady(false);
+    setIsMetadataReady(false);
 
     await clearOutput();
     await saveForm();
@@ -122,6 +127,7 @@ export const SetupForm: React.FC = () => {
           break;
         case "success":
           printStatusMessage("sync", `✅ ${update.message}`);
+          setIsItemDataReady(true);
           break;
         case "error":
           printStatusMessage("sync", `⚠️ ${update.message}`);
@@ -136,6 +142,7 @@ export const SetupForm: React.FC = () => {
           break;
         case "success":
           printStatusMessage("sync-metadata", `✅ ${update.message}`);
+          setIsMetadataReady(true);
           break;
         case "error":
           printStatusMessage("sync-metadata", `⚠️ ${update.message}`);
@@ -204,16 +211,23 @@ export const SetupForm: React.FC = () => {
             {outputMessages.map((message) => (
               <div key={message.name}>{message.message}</div>
             ))}
+            {isItemDataReady && isMetadataReady && <div>🚀 The extension is ready to launch</div>}
           </output>
         </section>
       )}
 
       <section className="shortcuts-section">
-        <h2>Shortcuts</h2>
+        <h2>User guide</h2>
         <table className="shortcuts-table">
           <tbody>
             <tr>
-              <td>Open popup</td>
+              <td>Launch</td>
+              <td>
+                Click the <img className="launch-icon" src="./Logo.svg" height={19} /> button in the tray area.
+              </td>
+            </tr>
+            <tr>
+              <td>Launch with keyboard</td>
               <td>
                 <kbd className="key-name">Alt</kbd> + <kbd className="key-name">A</kbd>, or customize at{" "}
                 <a href="chrome://extensions/shortcuts" onClick={handleLinkClick}>
