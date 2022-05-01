@@ -3,18 +3,14 @@ import ReactDOM from "react-dom";
 import { WorkerClient } from "../ipc/client";
 import { RecentChangedUpdate } from "../service/emitters/recent-manager";
 import { SearchChangedUpdate } from "../service/emitters/search-manager";
-import { SyncContentRequest, SyncContentResponse, SyncContentUpdate } from "../service/handlers/handle-sync-content";
-import { SyncMetadataRequest, SyncMetadataResponse, SyncMetadataUpdate } from "../service/handlers/handle-sync-metadata";
 import { SearchRequest, SearchResponse } from "../service/handlers/handle-watch-search";
 import { DisplayItem } from "../service/utils/get-display-item";
 import { useConfigGuard } from "./components/hooks/use-config-guard";
 import { useDebounce } from "./components/hooks/use-debounce";
 import { useClickToSelect, useHandleEscapeGlobal, useHandleIconClick, useHandleIconCopy, useHandleLinkClick } from "./components/hooks/use-event-handlers";
-import { useIsOffline } from "./components/hooks/use-is-offline";
-import { useRecursiveTimer } from "./components/hooks/use-recursive-timer";
+import { useSync } from "./components/hooks/use-sync";
 import { selectElementContent } from "./components/utils/dom";
 
-const POLLING_INTERVAL = 10;
 const DEBOUNCE_TIMEOUT = 50; // TODO: debounce + search latency should be less than 100ms for "instant" perception
 const worker = new Worker("./modules/service/worker.js");
 const workerClient = new WorkerClient(worker);
@@ -23,12 +19,9 @@ export const PopupWindow: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [searchResult, setSearchResult] = useState<DisplayItem[]>();
   const [progressMessage, setProgressMessage] = useState<null | string>(null);
-  const [errors, setErrors] = useState<string[]>([]);
 
   const initialQuery = useRef(localStorage.getItem("last-query") ?? "");
   const [activeQuery, setActiveQuery] = useState(initialQuery.current);
-
-  const isOffline = useIsOffline();
 
   const setTimestampMessage = useCallback((message: string) => setProgressMessage(`${new Date().toLocaleTimeString()} ${message}`), []);
 
@@ -53,10 +46,6 @@ export const PopupWindow: React.FC = () => {
   }, []);
 
   const debouncedQuery = useDebounce(activeQuery, DEBOUNCE_TIMEOUT);
-
-  useEffect(() => {
-    setTimestampMessage(isOffline ? "System offline" : "System online");
-  }, [isOffline]);
 
   const [recentItems, setRecentItems] = useState<DisplayItem[] | null>(null);
 
@@ -109,93 +98,12 @@ export const PopupWindow: React.FC = () => {
     }
   }, [isRecentQueryLive, debouncedQuery]);
 
-  const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
-  const requestSync = useCallback(async () => {
-    if (!config) return;
-    if (!navigator.onLine) return;
-
-    let initialSyncPendingTasks = 2;
-
-    if (!isInitialSyncDone) {
-      function onInitialSyncTaskSuccess() {
-        initialSyncPendingTasks--;
-        if (initialSyncPendingTasks === 0) {
-          setIsInitialSyncDone(true);
-          setErrors([]);
-        }
-      }
-
-      function contentProgressObserver(update: SyncContentUpdate) {
-        switch (update.type) {
-          case "progress":
-            if (errors.length) return; // don't override existing errors
-            setTimestampMessage(update.message);
-            break;
-          case "success":
-            setTimestampMessage(update.message);
-            onInitialSyncTaskSuccess();
-            break;
-          case "error":
-            setTimestampMessage(update.message);
-            setErrors((prev) => [...prev, `Sync content failed: ${update.message}`]);
-            break;
-        }
-      }
-
-      function metadataProgressObserver(update: SyncMetadataUpdate) {
-        switch (update.type) {
-          case "progress":
-            if (errors.length) return; // don't override existing errors
-            setTimestampMessage(update.message);
-            break;
-          case "success":
-            setTimestampMessage(update.message);
-            onInitialSyncTaskSuccess();
-            break;
-          case "error":
-            setTimestampMessage(update.message);
-            setErrors((prev) => [...prev, `Sync metadata failed: ${update.message}`]);
-            break;
-        }
-      }
-      workerClient.subscribe<SyncContentUpdate>("sync-progress", contentProgressObserver);
-      workerClient.subscribe<SyncMetadataUpdate>("sync-metadata-progress", metadataProgressObserver);
-
-      // full sync
-      await Promise.all([
-        workerClient.post<SyncContentRequest, SyncContentResponse>("sync-content", { config, rebuildIndex: true }),
-        workerClient.post<SyncMetadataRequest, SyncMetadataResponse>("sync-metadata", { config }),
-      ]);
-
-      workerClient.unsubscribe("sync-progress", contentProgressObserver);
-      workerClient.unsubscribe("sync-metadata-progress", metadataProgressObserver);
-    } else {
-      // incremental sync
-      function contentProgressObserver(update: SyncContentUpdate) {
-        switch (update.type) {
-          case "success":
-            setTimestampMessage(update.message);
-            break;
-          case "error":
-            setTimestampMessage(update.message);
-            break;
-        }
-      }
-      workerClient.subscribe<SyncContentUpdate>("sync-progress", contentProgressObserver);
-
-      await workerClient.post<SyncContentRequest, SyncContentResponse>("sync-content", { config });
-
-      workerClient.unsubscribe("sync-progress", contentProgressObserver);
-    }
-  }, [config, isInitialSyncDone, errors]);
-
-  // polling sync
-  useRecursiveTimer(requestSync, isOffline || !config ? null : POLLING_INTERVAL * 1000);
-  useEffect(() => {
-    if (!config) return;
-
-    requestSync();
-  }, [config]);
+  // start polling sync
+  const { errors } = useSync({
+    config,
+    setMessage: setTimestampMessage,
+    workerClient,
+  });
 
   const openConfig = useCallback(() => {
     chrome.runtime.openOptionsPage();
