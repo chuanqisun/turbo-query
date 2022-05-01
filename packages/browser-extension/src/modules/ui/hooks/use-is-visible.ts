@@ -1,6 +1,6 @@
 import React, { MutableRefObject, useEffect, useRef, useState } from "react";
 
-export function useFullyVisible(ref: React.RefObject<HTMLElement>, options?: IntersectionObserverInit) {
+export function useIsVisible(ref: React.RefObject<HTMLElement>, options?: IntersectionObserverInit) {
   const observerRef: MutableRefObject<IntersectionObserver | null> = useRef(null);
   const [isFullyVisible, setIsFullyVisible] = useState<boolean>();
 

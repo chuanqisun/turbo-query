@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useFullyVisible } from "../hooks/use-fully-visible";
+import { useIsVisible } from "../hooks/use-is-visible";
 
 export interface VirtualizedComponentProps {
   rootElement?: HTMLElement;
@@ -11,7 +11,7 @@ export function Virtualize<WrappedComponentProps>(WrappedComponent: React.FC<Wra
   const VirtualizedComponent: React.FC<WrappedComponentProps & VirtualizedComponentProps> = (props) => {
     const [isRevealed, setIsRevealed] = useState(props.forceVisible);
     const sentinel = useRef<HTMLLIElement>(null);
-    const isSentinelVisible = useFullyVisible(sentinel, {
+    const isSentinelVisible = useIsVisible(sentinel, {
       root: props.rootElement,
       rootMargin: "100px 0px",
       threshold: 0.01,
