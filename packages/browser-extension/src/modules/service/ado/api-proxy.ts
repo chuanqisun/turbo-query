@@ -19,7 +19,7 @@ export class ApiProxy {
       headers: { ...patHeader, "Content-Type": "application/json" },
       body,
     })
-      .then(this.#safeToJson)
+      .then(this.#safeParseJson)
       .then((result) => {
         return (result.workItems as { id: number }[]).map((item) => item.id);
       });
@@ -36,10 +36,7 @@ export class ApiProxy {
       headers: { ...patHeader, "Content-Type": "application/json" },
       body,
     })
-      .then(this.#safeToJson)
-      .then(async (json) => {
-        return json;
-      })
+      .then(this.#safeParseJson)
       .then((result) => {
         return (result.workItems as { id: number }[]).map((item) => item.id);
       });
@@ -51,7 +48,7 @@ export class ApiProxy {
     return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/workitemtypes?api-version=6.0`, {
       headers: { ...patHeader },
     })
-      .then(this.#safeToJson)
+      .then(this.#safeParseJson)
       .then((result: CollectionResponse<WorkItemType>) => result.value);
   }
 
@@ -66,13 +63,13 @@ export class ApiProxy {
         fields,
       }),
     })
-      .then(this.#safeToJson)
+      .then(this.#safeParseJson)
       .then((result: CollectionResponse<WorkItem>) => {
         return result.value;
       });
   }
 
-  async #safeToJson(response: Response) {
+  async #safeParseJson(response: Response) {
     if (response.status === 401) throw new Error("Authentication error");
     if (!response.ok) throw new Error(`Status code: ${response.status}`);
     return response.json();
