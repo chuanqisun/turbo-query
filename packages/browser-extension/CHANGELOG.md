@@ -1,5 +1,6 @@
 # Roadmap
 
+- Planned: Derive Project from Area path
 - Planned: Improve keyboard navigation: separate column and row movement
 - Planned: Support dark theme and handle `color-scheme: light dark;`
 - Planned: Increase hit target for state indicator
