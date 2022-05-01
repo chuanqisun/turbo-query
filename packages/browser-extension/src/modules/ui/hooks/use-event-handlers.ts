@@ -86,3 +86,11 @@ export function useHandleEscapeGlobal(inputRef: React.RefObject<HTMLInputElement
     return () => window.removeEventListener("keydown", handleKeydown);
   }, []);
 }
+
+export function useHandleTextFocus() {
+  return useCallback<React.FocusEventHandler>((e: React.FocusEvent<HTMLSpanElement>) => selectElementContent(e.target as HTMLSpanElement), []);
+}
+
+export function useHandleTextBlur() {
+  return useCallback<React.FocusEventHandler>((_e: React.FocusEvent<HTMLSpanElement>) => window.getSelection()?.removeAllRanges(), []);
+}

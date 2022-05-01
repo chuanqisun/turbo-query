@@ -44,7 +44,7 @@ body {
 
 .work-item {
   padding: 4px;
-  content: strict style;
+  contain: layout style paint;
   display: grid;
   grid-template-columns: auto auto 1fr;
   gap: 4px;
@@ -84,6 +84,10 @@ body {
 }
 .work-item__link:where(:hover) {
   text-decoration: underline;
+}
+
+.work-item__placeholder {
+  height: 40px;
 }
 
 .work-item__state-bar {

@@ -5,14 +5,21 @@ import { RecentChangedUpdate } from "../service/emitters/recent-manager";
 import { SearchChangedUpdate } from "../service/emitters/search-manager";
 import { SearchRequest, SearchResponse } from "../service/handlers/handle-watch-search";
 import { DisplayItem } from "../service/utils/get-display-item";
-import { WorkItem } from "./components/work-item";
+import { VirutalWorkItem } from "./components/work-item";
 import { useConfigGuard } from "./hooks/use-config-guard";
 import { useDebounce } from "./hooks/use-debounce";
-import { useClickToSelect, useHandleEscapeGlobal, useHandleIconClick, useHandleIconCopy, useHandleLinkClick } from "./hooks/use-event-handlers";
+import {
+  useClickToSelect,
+  useHandleEscapeGlobal,
+  useHandleIconClick,
+  useHandleIconCopy,
+  useHandleLinkClick,
+  useHandleTextBlur,
+  useHandleTextFocus,
+} from "./hooks/use-event-handlers";
 import { useSync } from "./hooks/use-sync";
-import { selectElementContent } from "./utils/dom";
 
-const DEBOUNCE_TIMEOUT = 50; // TODO: debounce + search latency should be less than 100ms for "instant" perception
+const DEBOUNCE_TIMEOUT = 25; // TODO: debounce + search latency should be less than 100ms for "instant" perception
 const worker = new Worker("./modules/service/worker.js");
 const workerClient = new WorkerClient(worker);
 
@@ -46,6 +53,7 @@ export const PopupWindow: React.FC = () => {
     document.querySelector(".js-scroll")?.scrollTo({ top: 0 });
   }, []);
 
+  // const debouncedQuery = activeQuery;
   const debouncedQuery = useDebounce(activeQuery, DEBOUNCE_TIMEOUT);
 
   const [recentItems, setRecentItems] = useState<DisplayItem[] | null>(null);
@@ -110,14 +118,14 @@ export const PopupWindow: React.FC = () => {
     chrome.runtime.openOptionsPage();
   }, []);
 
-  const handleTextFocus = useCallback<React.FocusEventHandler>((e: React.FocusEvent<HTMLSpanElement>) => selectElementContent(e.target as HTMLSpanElement), []);
-  const handleTextBlur = useCallback<React.FocusEventHandler>((_e: React.FocusEvent<HTMLSpanElement>) => window.getSelection()?.removeAllRanges(), []);
-
+  const handleTextFocus = useHandleTextFocus();
+  const handleTextBlur = useHandleTextBlur();
   const handleClickToSelect = useClickToSelect();
-
   const handleLinkClick = useHandleLinkClick();
   const handleIconClick = useHandleIconClick();
   const handleIconCopy = useHandleIconCopy();
+
+  const virutalizationRoot = useRef(document.querySelector<HTMLElement>(".js-scroll"));
 
   useHandleEscapeGlobal(inputRef);
 
@@ -141,10 +149,14 @@ export const PopupWindow: React.FC = () => {
       <ul className="work-item-list">
         {searchResult === undefined && <li className="work-item">Waiting for data...</li>}
         {searchResult?.length === 0 && <li className="work-item">No result</li>}
-        {searchResult?.map((item) => (
-          <WorkItem
+        {searchResult?.map((item, index) => (
+          <VirutalWorkItem
+            key={item.id}
+            forceVisible={index < 15}
+            rootElement={virutalizationRoot.current!}
             config={config}
             item={item}
+            placeholderClassName="work-item__placeholder"
             handleClickToSelect={handleClickToSelect}
             handleIconClick={handleIconClick}
             handleIconCopy={handleIconCopy}
