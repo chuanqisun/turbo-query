@@ -25,6 +25,7 @@ const workerClient = new WorkerClient(worker);
 
 export const PopupWindow: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const scrollContainerRef = useRef<HTMLUListElement>(null);
   const [searchResult, setSearchResult] = useState<DisplayItem[]>();
   const [progressMessage, setProgressMessage] = useState<null | string>(null);
 
@@ -50,7 +51,7 @@ export const PopupWindow: React.FC = () => {
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setActiveQuery(e.target.value);
     localStorage.setItem("last-query", e.target.value);
-    document.querySelector(".js-scroll")?.scrollTo({ top: 0 });
+    scrollContainerRef.current?.scrollTo({ top: 0 });
   }, []);
 
   // const debouncedQuery = activeQuery;
@@ -125,8 +126,6 @@ export const PopupWindow: React.FC = () => {
   const handleIconClick = useHandleIconClick();
   const handleIconCopy = useHandleIconCopy();
 
-  const virutalizationRoot = useRef(document.querySelector<HTMLElement>(".js-scroll"));
-
   useHandleEscapeGlobal(inputRef);
 
   return config ? (
@@ -146,14 +145,14 @@ export const PopupWindow: React.FC = () => {
         </div>
       </div>
 
-      <ul className="work-item-list">
+      <ul className="work-item-list" ref={scrollContainerRef}>
         {searchResult === undefined && <li className="work-item">Waiting for data...</li>}
         {searchResult?.length === 0 && <li className="work-item">No result</li>}
         {searchResult?.map((item, index) => (
           <VirutalWorkItem
             key={item.id}
-            forceVisible={index < 15}
-            rootElement={virutalizationRoot.current!}
+            forceVisible={index < 15 || index === searchResult?.length - 1} // support backward tabbing
+            rootElement={scrollContainerRef.current!}
             config={config}
             item={item}
             placeholderClassName="work-item__placeholder"

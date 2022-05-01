@@ -1,6 +1,5 @@
 #root {
   height: 400px;
-  overflow-y: scroll;
 }
 
 body {
@@ -8,10 +7,7 @@ body {
 }
 
 .query-bar {
-  position: sticky;
-  top: 0;
   background: white;
-  z-index: 10;
 }
 
 .query-bar__input-group {
@@ -29,7 +25,7 @@ body {
 
 .stack-layout {
   display: grid;
-  min-height: 100vh;
+  height: 100vh;
   grid-template-rows: auto 1fr auto;
 }
 
@@ -40,6 +36,7 @@ body {
 
 .work-item-list {
   list-style: none;
+  overflow-y: scroll;
 }
 
 .work-item {
@@ -138,8 +135,6 @@ body {
 }
 
 .status-bar {
-  position: sticky;
-  bottom: 0;
   padding: 4px;
   background: #eaeaea;
   font-size: 12px;
