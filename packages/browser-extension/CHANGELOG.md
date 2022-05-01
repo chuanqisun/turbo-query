@@ -2,6 +2,7 @@
 
 - Planned: Improve keyboard navigation: separate column and row movement
 - Planned: Support dark theme and handle `color-scheme: light dark;`
+- Planned: Increase hit target for state indicator
 - Maybe: Multiple areas paths
 - Maybe: Support custom include/exclude of item types
 - Maybe: Click filter to toggle corresponding string in query
