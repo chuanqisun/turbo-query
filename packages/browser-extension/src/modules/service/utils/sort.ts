@@ -10,10 +10,11 @@ export function sortByState(metadata: MetadataMap, a: DbWorkItem, b: DbWorkItem)
 // Ref: https://docs.microsoft.com/en-us/azure/devops/boards/work-items/workflow-and-state-categories
 function getCategoryPriority(category?: string): number {
   switch (category) {
-    case "Proposed":
-      return 0;
     case "InProgress":
+      return 0;
+    case "Proposed":
       return 1;
+
     case "Resolved":
       return 8;
     case "Completed":
