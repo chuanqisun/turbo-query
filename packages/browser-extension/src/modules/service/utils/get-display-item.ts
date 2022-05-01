@@ -19,6 +19,7 @@ export interface DisplayItem extends DbWorkItem {
 export function getSearchDisplayItem(isTokenMatch: (input: string) => boolean, metadataMap: MetadataMap, item: DbWorkItem): DisplayItem {
   const iconUrl = metadataMap.get(item.workItemType)?.iconBlobUrl;
   const stateConfig = metadataMap.get(item.workItemType)?.states.get(item.state);
+  const shortIterationPath = getShortIteration(item.iterationPath);
 
   return {
     ...item,
@@ -27,11 +28,11 @@ export function getSearchDisplayItem(isTokenMatch: (input: string) => boolean, m
     isWorkItemTypeMatched: isTokenMatch(item.workItemType),
     isAssignedToUserMatched: isTokenMatch(item.assignedTo.displayName),
     isStateMatched: isTokenMatch(item.state),
-    isShortIterationPathMatched: isTokenMatch(getShortIteration(item.iterationPath)),
+    isShortIterationPathMatched: isTokenMatch(shortIterationPath),
     isTagMatched: item.tags.map((tag) => isTokenMatch(tag)),
     stateColor: `#${stateConfig?.color ?? FALLBACK_INDICATOR_HEX}`,
     stateCategory: stateConfig?.category ?? "Unknown",
-    shortIterationPath: getShortIteration(item.iterationPath),
+    shortIterationPath: shortIterationPath,
   };
 }
 
