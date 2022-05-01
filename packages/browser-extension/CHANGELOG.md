@@ -11,8 +11,8 @@
 
 ## v1.4.0
 
-- New: Support all Work Item Types
-- New: Support all Work Item State colors
+- New: Support all Work Item types
+- New: Support all Work Item state colors
 - New: Tool-tips for metadata
 - Improved: Progress and status display
 - Improved: Error messaging and handling in status bar
