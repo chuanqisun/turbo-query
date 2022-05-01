@@ -10,7 +10,7 @@ export interface VirtualizedComponentProps {
 export function Virtualize<WrappedComponentProps>(WrappedComponent: React.FC<WrappedComponentProps>) {
   const VirtualizedComponent: React.FC<WrappedComponentProps & VirtualizedComponentProps> = (props) => {
     const [isRevealed, setIsRevealed] = useState(props.forceVisible);
-    const sentinel = useRef<HTMLDivElement>(null);
+    const sentinel = useRef<HTMLLIElement>(null);
     const isSentinelVisible = useFullyVisible(sentinel, {
       root: props.rootElement,
       rootMargin: "100px 0px",
@@ -23,7 +23,7 @@ export function Virtualize<WrappedComponentProps>(WrappedComponent: React.FC<Wra
       setIsRevealed(!!isSentinelVisible);
     }, [isRevealed, isSentinelVisible]);
 
-    return <>{isRevealed ? <WrappedComponent {...props} /> : <div className={props.placeholderClassName} ref={sentinel}></div>}</>;
+    return <>{isRevealed ? <WrappedComponent {...props} /> : <li className={props.placeholderClassName} ref={sentinel}></li>}</>;
   };
 
   return VirtualizedComponent;
