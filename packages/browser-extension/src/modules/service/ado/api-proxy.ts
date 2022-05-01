@@ -19,7 +19,7 @@ export class ApiProxy {
       headers: { ...patHeader, "Content-Type": "application/json" },
       body,
     })
-      .then((result) => result.json())
+      .then(this.#safeToJson)
       .then((result) => {
         return (result.workItems as { id: number }[]).map((item) => item.id);
       });
@@ -36,9 +36,8 @@ export class ApiProxy {
       headers: { ...patHeader, "Content-Type": "application/json" },
       body,
     })
-      .then(async (result) => {
-        const json = await result.json();
-        if (!result.ok) throw new Error((json as any)?.message ?? "Error getting work items");
+      .then(this.#safeToJson)
+      .then(async (json) => {
         return json;
       })
       .then((result) => {
@@ -52,7 +51,7 @@ export class ApiProxy {
     return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/workitemtypes?api-version=6.0`, {
       headers: { ...patHeader },
     })
-      .then((result) => result.json())
+      .then(this.#safeToJson)
       .then((result: CollectionResponse<WorkItemType>) => result.value);
   }
 
@@ -67,10 +66,16 @@ export class ApiProxy {
         fields,
       }),
     })
-      .then((result) => result.json())
+      .then(this.#safeToJson)
       .then((result: CollectionResponse<WorkItem>) => {
         return result.value;
       });
+  }
+
+  async #safeToJson(response: Response) {
+    if (response.status === 401) throw new Error("Authentication error");
+    if (!response.ok) throw new Error(`Status code: ${response.status}`);
+    return response.json();
   }
 }
 
