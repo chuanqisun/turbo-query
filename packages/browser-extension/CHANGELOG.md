@@ -26,6 +26,7 @@
 - Fixed: Separator could appear at line start
 - Fixed: Inaccurate state indicator colors
 - Fixed: Polling started before initial sync is finished
+- Fixed: Token error mis-reported as JSON error
 - Chore: Event-driven refactoring
 
 ## v1.3.0
