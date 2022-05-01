@@ -13,7 +13,7 @@ export function Virtualize<WrappedComponentProps>(WrappedComponent: React.FC<Wra
     const sentinel = useRef<HTMLLIElement>(null);
     const isSentinelVisible = useIsVisible(sentinel, {
       root: props.rootElement,
-      rootMargin: "100px 0px",
+      rootMargin: "50% 0px", // load 50% above and below
       threshold: 0.01,
     });
 
