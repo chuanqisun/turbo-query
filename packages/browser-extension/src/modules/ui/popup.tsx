@@ -15,7 +15,7 @@ import { useRecursiveTimer } from "./components/hooks/use-recursive-timer";
 import { selectElementContent } from "./components/utils/dom";
 
 const POLLING_INTERVAL = 5;
-const DEBOUNCE_TIMEOUT = 100; // TODO: debounce + search latency should be less than 100ms for "instant" perception
+const DEBOUNCE_TIMEOUT = 50; // TODO: debounce + search latency should be less than 100ms for "instant" perception
 const worker = new Worker("./modules/service/worker.js");
 const workerClient = new WorkerClient(worker);
 
@@ -51,33 +51,51 @@ export const PopupWindow: React.FC = () => {
     localStorage.setItem("last-query", e.target.value);
     document.querySelector(".js-scroll")?.scrollTo({ top: 0 });
   }, []);
+
   const debouncedQuery = useDebounce(activeQuery, DEBOUNCE_TIMEOUT);
 
   useEffect(() => {
     setTimestampMessage(isOffline ? "System offline" : "System online");
   }, [isOffline]);
 
-  const [recentItems, setRecentItems] = useState<any[] | null>(null);
-  const [searchItems, setSearchItems] = useState<any[] | null>(null);
+  const [recentItems, setRecentItems] = useState<DisplayItem[] | null>(null);
 
   // watch for search updates
   useEffect(
     () =>
       workerClient.subscribe<SearchChangedUpdate>("search-changed", (update) => {
-        setSearchItems(update.items);
+        // accept update only when search box has content
+        if (inputRef.current?.value?.trim().length) {
+          setSearchResult(update.items);
+        }
       }),
     []
   );
 
   // watch for recent updates
-  useEffect(() => workerClient.subscribe<RecentChangedUpdate>("recent-changed", (update) => setRecentItems(update.recentItems)), []);
+  useEffect(
+    () =>
+      workerClient.subscribe<RecentChangedUpdate>("recent-changed", (update) => {
+        // accept update only when search box is empty
+        if (!inputRef.current?.value?.trim().length) {
+          setRecentItems(update.recentItems);
+        }
+      }),
+    []
+  );
+  // display recent as search results when search box is empty
+  useEffect(() => {
+    if (!activeQuery.trim().length && recentItems) {
+      setSearchResult(recentItems);
+    }
+  }, [recentItems, activeQuery]);
 
   // request search on every query change
   useEffect(() => {
     if (!debouncedQuery.trim().length) return;
 
     workerClient.post<SearchRequest, SearchResponse>("watch-search", { query: debouncedQuery }).then((result) => {
-      setSearchItems(result.items);
+      setSearchResult(result.items);
     });
   }, [debouncedQuery]);
 
@@ -178,15 +196,6 @@ export const PopupWindow: React.FC = () => {
 
     requestSync();
   }, [config]);
-
-  // display items
-  useEffect(() => {
-    if (debouncedQuery.trim().length && searchItems) {
-      setSearchResult(searchItems);
-    } else if (recentItems) {
-      setSearchResult(recentItems);
-    }
-  }, [recentItems, searchItems, debouncedQuery]);
 
   const openConfig = useCallback(() => {
     chrome.runtime.openOptionsPage();

@@ -1,5 +1,5 @@
 import { liveQuery } from "dexie";
-import { db, DbWorkItem } from "../../db/db";
+import { db } from "../../db/db";
 import { DisplayItem, getRecentDisplayItem } from "../utils/get-display-item";
 import { MetadataManager } from "./metadata-manager";
 
@@ -36,5 +36,5 @@ export class RecentManager extends EventTarget {
 }
 
 export interface RecentChangedUpdate {
-  recentItems: DbWorkItem[];
+  recentItems: DisplayItem[];
 }
