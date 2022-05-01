@@ -1,6 +1,6 @@
 # Roadmap
 
-- Planned: Improve keyboard navigation, row level movement
+- Planned: Improve keyboard navigation: separate column and row movement
 - Planned: Support dark theme and handle `color-scheme: light dark;`
 - Maybe: Multiple areas paths
 - Maybe: Support custom include/exclude of item types
@@ -10,18 +10,15 @@
 
 ## v1.4.0
 
-- Added: Support all item types
-- Added: Progress display during loading
-- Added: Handle Sync error in status bar
-- Added: Tool-tips for metadata
-- Added: Improved status message on options page
-- Changed: Items are sorted by State category
-- Changed: Open a link no long closes popup
+- New: Support all Work Item Types
+- New: Support all Work Item State colors
+- New: Tool-tips for metadata
+- Improved: Progress and status display
+- Improved: Error messaging and handling in status bar
+- Improved: Items sorting algorithm
+- Changed: Clicking title will no long closes popup
 - Fixed: Separator could appear at line start
-- Fixed: Inaccurate state indicator colors
 - Fixed: Polling started before initial sync is finished
-- Fixed: Token error mis-reported as JSON error
-- Chore: Event-driven refactoring
 
 ## v1.3.0
 
