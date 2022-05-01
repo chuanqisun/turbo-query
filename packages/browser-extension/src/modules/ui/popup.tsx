@@ -15,7 +15,7 @@ import { useRecursiveTimer } from "./components/hooks/use-recursive-timer";
 import { selectElementContent } from "./components/utils/dom";
 
 const POLLING_INTERVAL = 5;
-const DEBOUNCE_INTERVAL = 80;
+const DEBOUNCE_INTERVAL = 100;
 const worker = new Worker("./modules/service/worker.js");
 const workerClient = new WorkerClient(worker);
 
