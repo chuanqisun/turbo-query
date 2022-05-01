@@ -1,6 +1,6 @@
 # Branching
 
-- `dev/<major>.<minor>.<patch>`: release branch
+- `release/<major>.<minor>.<patch>`: release branch
   - `CHANGELOG.md` should be cleaned up
 - `master` dev branch
   - `CHANGELOG.md` contains roadmap
