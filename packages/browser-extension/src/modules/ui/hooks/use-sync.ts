@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { WorkerClient } from "../../../ipc/client";
-import { Config } from "../../../service/ado/api-proxy";
-import { SyncContentRequest, SyncContentResponse, SyncContentUpdate } from "../../../service/handlers/handle-sync-content";
-import { SyncMetadataRequest, SyncMetadataResponse, SyncMetadataUpdate } from "../../../service/handlers/handle-sync-metadata";
+import { WorkerClient } from "../../ipc/client";
+import { Config } from "../../service/ado/api-proxy";
+import { SyncContentRequest, SyncContentResponse, SyncContentUpdate } from "../../service/handlers/handle-sync-content";
+import { SyncMetadataRequest, SyncMetadataResponse, SyncMetadataUpdate } from "../../service/handlers/handle-sync-metadata";
 import { useIsOffline } from "./use-is-offline";
 import { useRecursiveTimer } from "./use-recursive-timer";
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Config } from "../../../service/ado/api-proxy";
-import { getConfig } from "../../../service/ado/config";
+import { Config } from "../../service/ado/api-proxy";
+import { getConfig } from "../../service/ado/config";
 
 export function useConfigGuard(onMissingConfig: () => any) {
   const [config, setConfig] = useState<Config>();

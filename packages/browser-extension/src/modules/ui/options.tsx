@@ -5,7 +5,7 @@ import { getCompleteConfig } from "../service/ado/config";
 import { SyncContentRequest, SyncContentResponse, SyncContentUpdate } from "../service/handlers/handle-sync-content";
 import { SyncMetadataRequest, SyncMetadataResponse, SyncMetadataUpdate } from "../service/handlers/handle-sync-metadata";
 import { TestConnectionRequest, TestConnectionResponse } from "../service/handlers/handle-test-connection";
-import { useHandleLinkClick } from "./components/hooks/use-event-handlers";
+import { useHandleLinkClick } from "./hooks/use-event-handlers";
 
 const worker = new Worker("./modules/service/worker.js");
 const workerClient = new WorkerClient(worker);
