@@ -6,7 +6,8 @@ export interface SyncMetadataRequest {
 }
 
 export interface SyncMetadataResponse {
-  // TBD
+  itemTypeCount: number;
+  fetchCount: number;
 }
 
 export interface SyncMetadataUpdate {
@@ -14,7 +15,7 @@ export interface SyncMetadataUpdate {
   message: string;
 }
 
-export async function handleSyncMetadata({ server, metadataManager }: HandlerContext, request: SyncMetadataRequest): Promise<void> {
+export async function handleSyncMetadata({ server, metadataManager }: HandlerContext, request: SyncMetadataRequest): Promise<SyncMetadataResponse> {
   const api = new ApiProxy(request.config);
 
   try {
@@ -33,7 +34,14 @@ export async function handleSyncMetadata({ server, metadataManager }: HandlerCon
       type: "success",
       message: `Sync metadata... Success! (${summary.itemTypeCount} types, ${summary.fetchCount} new icons)`,
     });
+
+    return summary;
   } catch (error: any) {
     server.emit<SyncMetadataUpdate>("sync-metadata-progress", { type: "error", message: error?.message ?? "Unknown error" });
+
+    return {
+      itemTypeCount: 0,
+      fetchCount: 0,
+    };
   }
 }

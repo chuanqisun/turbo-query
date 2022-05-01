@@ -1,5 +1,6 @@
 import { db, DbWorkItemState, DbWorkItemType } from "../../db/db";
 import { WorkItemState, WorkItemType } from "../ado/api-proxy";
+import { SyncMetadataResponse } from "../handlers/handle-sync-metadata";
 
 export class MetadataManager extends EventTarget {
   #initialData = db.workItemTypes.toArray();
@@ -39,7 +40,7 @@ export class MetadataManager extends EventTarget {
     (await this.#networkCacheAsync).clear();
   }
 
-  async updateMetadataDictionary(itemTypes: WorkItemType[], onProgress?: (update: MetadataSyncProgressUpdate) => any): Promise<MetadataSyncSummary> {
+  async updateMetadataDictionary(itemTypes: WorkItemType[], onProgress?: (update: MetadataSyncProgressUpdate) => any): Promise<SyncMetadataResponse> {
     const networkCache = await this.#networkCacheAsync;
 
     const activeTypes = itemTypes.filter((type) => !type.isDisabled);
@@ -125,9 +126,4 @@ export interface MetadataChangedUpdate {
 export interface MetadataSyncProgressUpdate {
   progress: number;
   total: number;
-}
-
-export interface MetadataSyncSummary {
-  itemTypeCount: number;
-  fetchCount: number;
 }

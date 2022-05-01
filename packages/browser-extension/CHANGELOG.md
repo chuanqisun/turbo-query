@@ -7,7 +7,9 @@
 - TODO: Sync error missing in status bar
 - TODO: Open Sprint task board by clicking on Iteration path
 - TODO: Tooltips for metadata
+- TODO: Sort items by category, not state
 - TODO: Prevent separator at line start
+- TODO: Bust icon cache after 24h
 
 ## Sometime in the future
 

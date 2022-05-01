@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { WorkerClient } from "../ipc/client";
 import { getCompleteConfig } from "../service/ado/config";
-import { SyncProgressUpdate, SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
+import { SyncContentRequest, SyncContentResponse, SyncContentUpdate } from "../service/handlers/handle-sync-content";
 import { SyncMetadataRequest, SyncMetadataResponse, SyncMetadataUpdate } from "../service/handlers/handle-sync-metadata";
 import { TestConnectionRequest, TestConnectionResponse } from "../service/handlers/handle-test-connection";
 import { useHandleLinkClick } from "./components/hooks/use-event-handlers";
@@ -120,7 +120,7 @@ export const SetupForm: React.FC = () => {
     const config = await getCompleteConfig();
     if (!config) return;
 
-    function syncProgressObserver(update: SyncProgressUpdate) {
+    function syncProgressObserver(update: SyncContentUpdate) {
       switch (update.type) {
         case "progress":
           printStatusMessage("sync", `⌛ ${update.message}`);
@@ -150,11 +150,11 @@ export const SetupForm: React.FC = () => {
       }
     }
 
-    workerClient.subscribe<SyncProgressUpdate>("sync-progress", syncProgressObserver);
+    workerClient.subscribe<SyncContentUpdate>("sync-progress", syncProgressObserver);
     workerClient.subscribe<SyncMetadataUpdate>("sync-metadata-progress", syncMeatadataProgressObserver);
 
     await Promise.all([
-      workerClient.post<SyncRequest, SyncResponse>("sync", { config, rebuildIndex: true }),
+      workerClient.post<SyncContentRequest, SyncContentResponse>("sync-content", { config, rebuildIndex: true }),
       workerClient.post<SyncMetadataRequest, SyncMetadataResponse>("sync-metadata", { config }),
     ]);
 

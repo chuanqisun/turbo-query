@@ -5,7 +5,7 @@ import { MetadataManager } from "./emitters/metadata-manager";
 import { RecentChangedUpdate, RecentManager } from "./emitters/recent-manager";
 import { SearchChangedUpdate, SearchManager } from "./emitters/search-manager";
 import { handleReset } from "./handlers/handle-reset";
-import { handleSync } from "./handlers/handle-sync";
+import { handleSyncContent } from "./handlers/handle-sync-content";
 import { handleSyncMetadata } from "./handlers/handle-sync-metadata";
 import { handleTestConnection } from "./handlers/handle-test-connection";
 import { handleWatchRecent } from "./handlers/handle-watch-recent";
@@ -28,7 +28,7 @@ class WorkerContainer {
       db,
     };
 
-    this.#server.addRequestHandler("sync", handleSync.bind(null, handlerContext));
+    this.#server.addRequestHandler("sync-content", handleSyncContent.bind(null, handlerContext));
     this.#server.addRequestHandler("sync-metadata", handleSyncMetadata.bind(null, handlerContext));
     this.#server.addRequestHandler("reset", handleReset.bind(null, handlerContext));
     this.#server.addRequestHandler("test-connection", handleTestConnection.bind(null, handlerContext));

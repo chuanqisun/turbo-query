@@ -1,6 +1,6 @@
 import FlexSearch, { IndexOptionsForDocumentSearch } from "flexsearch";
 import { db } from "../../db/db";
-import { SyncResponse } from "../handlers/handle-sync";
+import { SyncContentResponse } from "../handlers/handle-sync-content";
 import { getFuzzyTitle } from "../utils/get-fuzzy-title";
 import { isDefined } from "../utils/guard";
 
@@ -66,7 +66,7 @@ export class IndexManager extends EventTarget {
     return this.#importedIndex;
   }
 
-  async updateIndex(summary: SyncResponse) {
+  async updateIndex(summary: SyncContentResponse) {
     await this.#nativeIndexPopulatedAsync;
 
     const addedItems = (await db.workItems.bulkGet(summary.addedIds)).filter(isDefined);

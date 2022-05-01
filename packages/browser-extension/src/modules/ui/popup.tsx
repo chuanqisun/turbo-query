@@ -3,11 +3,11 @@ import ReactDOM from "react-dom";
 import { WorkerClient } from "../ipc/client";
 import { RecentChangedUpdate } from "../service/emitters/recent-manager";
 import { SearchChangedUpdate } from "../service/emitters/search-manager";
-import { SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
-import { SyncMetadataRequest } from "../service/handlers/handle-sync-metadata";
+import { SyncContentRequest, SyncContentResponse } from "../service/handlers/handle-sync-content";
+import { SyncMetadataRequest, SyncMetadataResponse } from "../service/handlers/handle-sync-metadata";
 import { SearchRequest } from "../service/handlers/handle-watch-search";
 import { DisplayItem } from "../service/utils/get-display-item";
-import { getSummaryMessage } from "../service/utils/get-summary-message";
+import { getShortSummaryMessage, getSummaryMessage } from "../service/utils/get-summary-message";
 import { useConfigGuard } from "./components/hooks/use-config-guard";
 import { useClickToSelect, useHandleEscapeGlobal, useHandleIconClick, useHandleIconCopy, useHandleLinkClick } from "./components/hooks/use-event-handlers";
 import { useIsOffline } from "./components/hooks/use-is-offline";
@@ -84,7 +84,7 @@ export const PopupWindow: React.FC = () => {
   const requestSync = useCallback(
     async (rebuildIndex?: boolean) => {
       if (!config) return;
-      await workerClient.post<SyncRequest, SyncResponse>("sync", { config, rebuildIndex }).then((summary) => {
+      await workerClient.post<SyncContentRequest, SyncContentResponse>("sync-content", { config, rebuildIndex }).then((summary) => {
         setTimestampMessage(getSummaryMessage(summary));
       });
     },
@@ -99,15 +99,41 @@ export const PopupWindow: React.FC = () => {
     });
   }, [config]);
 
+  const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
+  const requestSyncV2 = useCallback(async () => {
+    if (!config) return;
+
+    if (!isInitialSyncDone) {
+      // full sync
+      const settledTasks = await Promise.allSettled([
+        workerClient.post<SyncContentRequest, SyncContentResponse>("sync-content", { config, rebuildIndex: true }),
+        workerClient.post<SyncMetadataRequest, SyncMetadataResponse>("sync-metadata", { config }),
+      ]);
+
+      const rejectedTask = settledTasks.find((task) => task.status === "rejected");
+      if (rejectedTask) {
+        setTimestampMessage(`Sync failed... ${(rejectedTask as PromiseRejectedResult).reason ?? "Unknown error"}`);
+      } else {
+        const [contentTask, metadataTask] = settledTasks as [PromiseFulfilledResult<SyncContentResponse>, PromiseFulfilledResult<SyncMetadataResponse>];
+        setTimestampMessage(`${getShortSummaryMessage(contentTask.value, metadataTask.value)}`);
+        setIsInitialSyncDone(true);
+      }
+    } else {
+      // incremental sync
+      await workerClient.post<SyncContentRequest, SyncContentResponse>("sync-content", { config }).then((summary) => {
+        setTimestampMessage(getShortSummaryMessage(summary));
+      });
+    }
+  }, [config, isInitialSyncDone]);
+
   // polling sync
   // TODO perform full sync when network goes online the first time
-  useRecursiveTimer(requestSync, isOffline || !config ? null : pollingInterval * 1000);
+  useRecursiveTimer(requestSyncV2, isOffline || !config ? null : pollingInterval * 1000);
   useEffect(() => {
     if (!config) return;
 
-    requestSync(true);
-    requestSyncMetadata();
-  }, [config]); // start initial sync now
+    requestSyncV2();
+  }, [config]);
 
   // display items
   useEffect(() => {
