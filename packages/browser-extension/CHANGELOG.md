@@ -3,7 +3,6 @@
 ## Committed
 
 - TODO: Sort items by category, not state
-- TODO: Prevent separator at line start
 - TODO: Bust icon cache after 24h
 - TODO: Correctly 401 error as authentication error
 - TODO: Refactor sync logic
@@ -24,6 +23,7 @@
 - Added: Progress display during loading
 - Added: Handle Sync error in status bar
 - Added: Tooltips for metadata
+- Fixed: Separator could appear at line start
 - Fixed: Inaccurate state indicator colors
 - Fixed: Polling started before initial sync is finished
 - Added: Improved status message on options page

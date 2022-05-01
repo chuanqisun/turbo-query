@@ -278,11 +278,11 @@ export const PopupWindow: React.FC = () => {
               <span className="work-item__state work-item__matchable" title={`State: ${item.state}`} data-matched={item.isStateMatched}>
                 {item.state}
               </span>
-              {" · "}
+              &nbsp;{"· "}
               <span className="work-item__type work-item__matchable" title={`Type: ${item.workItemType}`} data-matched={item.isWorkItemTypeMatched}>
                 {item.workItemType}
               </span>
-              {" · "}
+              &nbsp;{"· "}
               <span
                 className="work-item__assigned-to work-item__matchable"
                 title={`Assigned to: ${item.assignedTo.displayName}`}
@@ -290,7 +290,7 @@ export const PopupWindow: React.FC = () => {
               >
                 {item.assignedTo.displayName}
               </span>
-              {" · "}
+              &nbsp;{"· "}
               <span className="work-item__path work-item__matchable" title={`Iteration: ${item.iterationPath}`} data-matched={item.isShortIterationPathMatched}>
                 {item.shortIterationPath}
               </span>
