@@ -3,6 +3,7 @@ import { WorkerServer } from "../../ipc/server";
 import { ALL_FIELDS, ApiProxy, Config } from "../ado/api-proxy";
 import { deleteDbItems, initializeDb, putDbItems } from "../utils/db-writer";
 import { getPageDiff } from "../utils/diff";
+import { toPercent } from "../utils/format";
 import { isSummaryDirty } from "../utils/get-is-summary-dirty";
 import { getSummaryMessage } from "../utils/get-summary-message";
 import { getPages } from "../utils/page";
@@ -76,7 +77,7 @@ async function fullSync(server: WorkerServer, api: ApiProxy): Promise<SyncConten
 
       server.emit<SyncContentUpdate>("sync-progress", {
         type: "progress",
-        message: `Fetching content... ${((progress / allIds.length) * 100).toFixed(2)}%`,
+        message: `Fetching content... ${toPercent(progress, allIds.length)}`,
       });
 
       return page;

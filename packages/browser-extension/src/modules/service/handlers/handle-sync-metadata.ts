@@ -1,4 +1,5 @@
 import { ApiProxy, Config } from "../ado/api-proxy";
+import { toPercent } from "../utils/format";
 import { HandlerContext } from "../worker";
 
 export interface SyncMetadataRequest {
@@ -26,7 +27,7 @@ export async function handleSyncMetadata({ server, metadataManager }: HandlerCon
     const summary = await metadataManager.updateMetadataDictionary(itemTypes, (update) =>
       server.emit<SyncMetadataUpdate>("sync-metadata-progress", {
         type: "progress",
-        message: `Fetching icons... ${((update.progress / update.total) * 100).toFixed(2)}%`,
+        message: `Fetching icons... ${toPercent(update.progress, update.total)}`,
       })
     );
 
