@@ -9,6 +9,10 @@
 
 # Changelog
 
+## v1.4.1
+
+- Fixed: Premature network validation during setup
+
 ## v1.4.0
 
 - New: Support all Work Item types
