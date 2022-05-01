@@ -2,7 +2,6 @@ import { db } from "../../db/db";
 import { DisplayItem, getSearchDisplayItem } from "../utils/get-display-item";
 import { isDefined } from "../utils/guard";
 import { sortByState } from "../utils/sort";
-import { tokenize } from "../utils/token";
 import { IndexManager } from "./index-manager";
 import { MetadataManager } from "./metadata-manager";
 
@@ -68,7 +67,7 @@ export class SearchManager extends EventTarget {
 
     const matches = await (await this.#indexManager.getIndex()).searchAsync(query, { index: "fuzzyTokens" });
     const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
-    const queryTokens = tokenize(query);
+    const queryTokens = this.#tokenize(query);
     const tokenMatcher = this.#isTokenMatch.bind(null, queryTokens);
 
     const [dbItems, metadataMap] = await Promise.all([
@@ -86,10 +85,21 @@ export class SearchManager extends EventTarget {
     return queryTokens.some((token) =>
       maybeToken
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\p{Diacritic}/gu, "") // remove accent step 2
         .toLocaleLowerCase()
         .includes(token)
     );
+  }
+
+  #tokenize(input: string): string[] {
+    // Ref and credit: https://stackoverflow.com/questions/990904/remove-accents-diacritics-in-a-string-in-javascript
+    return input
+      .normalize("NFD") // remove accent step 1
+      .replace(/\p{Diacritic}/gu, "") // remove accent step 2
+      .replace(/\s+/g, " ")
+      .split(" ")
+      .map((token) => token.toLocaleLowerCase().trim())
+      .filter((token) => token.length);
   }
 }
 
