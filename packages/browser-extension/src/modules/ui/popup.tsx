@@ -32,7 +32,7 @@ export const PopupWindow: React.FC = () => {
   const initialQuery = useRef(localStorage.getItem("last-query") ?? "");
   const [activeQuery, setActiveQuery] = useState(initialQuery.current);
 
-  const setTimestampMessage = useCallback((message: string) => setProgressMessage(`${new Date().toLocaleTimeString()} ${message}`), []);
+  const setTimestampMessage = useCallback((message: string) => setProgressMessage(`${new Date().toLocaleTimeString()} | ${message}`), []);
 
   const config = useConfigGuard(() => {
     chrome.runtime.openOptionsPage();

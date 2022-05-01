@@ -18,7 +18,7 @@ export function useSync({ config, setMessage, workerClient }: UseSyncProps) {
   const isOffline = useIsOffline();
 
   useEffect(() => {
-    setMessage(isOffline ? "System offline" : "System online");
+    setMessage(isOffline ? "System offline. Pausing sync..." : "System online. Starting sync...");
   }, [isOffline]);
 
   const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
