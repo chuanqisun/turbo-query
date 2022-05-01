@@ -19,7 +19,7 @@ export class ApiProxy {
       headers: { ...patHeader, "Content-Type": "application/json" },
       body,
     })
-      .then((result) => result.json())
+      .then(this.#safeParseJson)
       .then((result) => {
         return (result.workItems as { id: number }[]).map((item) => item.id);
       });
@@ -36,14 +36,20 @@ export class ApiProxy {
       headers: { ...patHeader, "Content-Type": "application/json" },
       body,
     })
-      .then(async (result) => {
-        const json = await result.json();
-        if (!result.ok) throw new Error((json as any)?.message ?? "Error getting work items");
-        return json;
-      })
+      .then(this.#safeParseJson)
       .then((result) => {
         return (result.workItems as { id: number }[]).map((item) => item.id);
       });
+  }
+
+  async getWorkItemTypes(): Promise<WorkItemType[]> {
+    const patHeader = getPatHeader(this.#config);
+
+    return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/workitemtypes?api-version=6.0`, {
+      headers: { ...patHeader },
+    })
+      .then(this.#safeParseJson)
+      .then((result: CollectionResponse<WorkItemType>) => result.value);
   }
 
   async getWorkItems(fields: string[], ids: number[]): Promise<WorkItem[]> {
@@ -57,10 +63,16 @@ export class ApiProxy {
         fields,
       }),
     })
-      .then((result) => result.json())
-      .then((result: BatchSummary) => {
+      .then(this.#safeParseJson)
+      .then((result: CollectionResponse<WorkItem>) => {
         return result.value;
       });
+  }
+
+  async #safeParseJson(response: Response) {
+    if (response.status === 401) throw new Error("Authentication error");
+    if (!response.ok) throw new Error(`Status code: ${response.status}`);
+    return response.json();
   }
 }
 
@@ -72,9 +84,9 @@ export interface Config {
   pat: string;
 }
 
-export interface BatchSummary {
+export interface CollectionResponse<T> {
   count: number;
-  value: WorkItem[];
+  value: T[];
 }
 
 export interface WorkItem {
@@ -82,6 +94,24 @@ export interface WorkItem {
   rev: number;
   fields: BasicFields;
   url: string;
+}
+
+export interface WorkItemType {
+  icon: WorkItemIcon;
+  name: string;
+  isDisabled: boolean;
+  states: WorkItemState[];
+}
+
+export interface WorkItemIcon {
+  id: string;
+  url: string;
+}
+
+export interface WorkItemState {
+  name: string;
+  color: string;
+  category: string;
 }
 
 export interface QueryParams {

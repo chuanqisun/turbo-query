@@ -40,10 +40,8 @@ export function useHandleIconCopy() {
   return handleIconCopy;
 }
 
-export interface UseHandleLinkClickProps {
-  isPopup?: boolean;
-}
-export function useHandleLinkClick(props?: UseHandleLinkClickProps) {
+export interface UseHandleLinkClickProps {}
+export function useHandleLinkClick() {
   return useCallback<React.MouseEventHandler>(async (e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault(); // allows alt click to be no-op
 
@@ -55,7 +53,6 @@ export function useHandleLinkClick(props?: UseHandleLinkClickProps) {
       chrome.tabs.create({ url, active: isShift });
     } else {
       chrome.tabs.update({ url });
-      if (props?.isPopup) window.close();
     }
   }, []);
 }
@@ -88,4 +85,12 @@ export function useHandleEscapeGlobal(inputRef: React.RefObject<HTMLInputElement
     window.addEventListener("keydown", handleKeydown);
     return () => window.removeEventListener("keydown", handleKeydown);
   }, []);
+}
+
+export function useHandleTextFocus() {
+  return useCallback<React.FocusEventHandler>((e: React.FocusEvent<HTMLSpanElement>) => selectElementContent(e.target as HTMLSpanElement), []);
+}
+
+export function useHandleTextBlur() {
+  return useCallback<React.FocusEventHandler>((_e: React.FocusEvent<HTMLSpanElement>) => window.getSelection()?.removeAllRanges(), []);
 }

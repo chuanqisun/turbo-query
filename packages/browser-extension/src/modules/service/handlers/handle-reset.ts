@@ -1,6 +1,7 @@
-import { db } from "../../db/db";
+import { HandlerContext } from "../worker";
 
-export async function handleReset(): Promise<void> {
+export async function handleReset({ indexManager, metadataManager, db }: HandlerContext): Promise<void> {
+  await indexManager.reset();
+  await metadataManager.reset();
   await db.workItems.clear();
-  await db.indexItems.clear();
 }

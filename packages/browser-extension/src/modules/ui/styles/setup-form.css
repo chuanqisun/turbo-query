@@ -57,7 +57,14 @@ body {
   color: inherit;
 }
 
+.launch-icon {
+  vertical-align: bottom;
+  padding-inline: 4px;
+}
+
 .status-output {
+  display: grid;
+  gap: 4px;
   padding: 4px 8px;
   font-size: 16px;
   border-radius: 4px;
@@ -95,7 +102,7 @@ body {
   border: 1px solid #999;
 }
 .shortcuts-table :where(th, td) {
-  padding: 4px 8px;
+  padding: 8px;
 }
 
 .url-tooltip {

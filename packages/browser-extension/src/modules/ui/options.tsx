@@ -2,19 +2,41 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { WorkerClient } from "../ipc/client";
 import { getCompleteConfig } from "../service/ado/config";
-import { SyncProgressUpdate, SyncRequest, SyncResponse } from "../service/handlers/handle-sync";
+import { SyncContentRequest, SyncContentResponse, SyncContentUpdate } from "../service/handlers/handle-sync-content";
+import { SyncMetadataRequest, SyncMetadataResponse, SyncMetadataUpdate } from "../service/handlers/handle-sync-metadata";
 import { TestConnectionRequest, TestConnectionResponse } from "../service/handlers/handle-test-connection";
-import { useHandleLinkClick } from "./components/hooks/use-event-handlers";
+import { useHandleLinkClick } from "./hooks/use-event-handlers";
 
 const worker = new Worker("./modules/service/worker.js");
 const workerClient = new WorkerClient(worker);
 
+interface OutputThread {
+  name: string;
+  message: string;
+}
+
 export const SetupForm: React.FC = () => {
   const formRef = useRef<HTMLFormElement | null>(null);
+  const [outputMessages, setOutputMessages] = useState<OutputThread[]>([]);
+  const [isItemDataReady, setIsItemDataReady] = useState(false);
+  const [isMetadataReady, setIsMetadataReady] = useState(false);
 
-  useEffect(() => {}, []);
+  const printStatusMessage = useCallback((threadName: string, message: string) => {
+    setOutputMessages((previousMessages) => {
+      const matchedIndex = previousMessages.findIndex((m) => m.name === threadName);
+      if (matchedIndex < 0) {
+        return [...previousMessages, { name: threadName, message }];
+      } else {
+        const mutableMessages = [...previousMessages];
+        mutableMessages.splice(matchedIndex, 1, { name: threadName, message });
+        return mutableMessages;
+      }
+    });
+  }, []);
 
-  const [statusMessage, setStatusMessage] = useState("");
+  const clearOutput = useCallback(() => {
+    setOutputMessages([]);
+  }, []);
 
   const saveForm = useCallback(async () => {
     const formData = new FormData(formRef.current!);
@@ -29,20 +51,34 @@ export const SetupForm: React.FC = () => {
       console.log(`[options]`, { ...configDict });
       Object.entries(configDict).forEach(([key, value]) => (formRef.current!.querySelector<HTMLInputElement>(`[name="${key}"]`)!.value = value));
 
+      const isOnline = getNetworkStatus();
+      if (!isOnline) return;
+
       const isFormValid = formRef.current?.checkValidity();
-      if (isFormValid) {
-        const isConnectionValid = await getConnectionStatus();
-        if (isConnectionValid) {
-          manualSync();
-        }
-      }
+      if (!isFormValid) return;
+
+      const isConnectionValid = await getConnectionStatus();
+      if (!isConnectionValid) return;
+
+      manualSync();
     });
   }, []);
 
   const handleSubmit = useCallback<React.FormEventHandler<HTMLFormElement>>(async (event) => {
     event.preventDefault();
-    await clearCache();
+
+    setIsItemDataReady(false);
+    setIsMetadataReady(false);
+    workerClient.unsubscribe("sync-progress", handleContentProgress);
+    workerClient.unsubscribe("sync-metadata-progress", handleMetadataProgress);
+
+    await clearOutput();
     await saveForm();
+
+    const isOnline = getNetworkStatus();
+    if (!isOnline) return;
+
+    await clearCache();
 
     const isValidStatus = await getConnectionStatus();
     if (isValidStatus) {
@@ -50,50 +86,82 @@ export const SetupForm: React.FC = () => {
     }
   }, []);
 
+  const getNetworkStatus = useCallback(() => {
+    if (!navigator.onLine) {
+      printStatusMessage("network-status", `⚠️ Network is offline`);
+      return false;
+    }
+    printStatusMessage("network-status", `✅ Network is online`);
+    return true;
+  }, []);
+
   const getConnectionStatus = useCallback(async () => {
     const config = await getCompleteConfig();
     if (!config) {
-      setStatusMessage(`⚠️ Connection failed! Missing config.`);
+      printStatusMessage("connection-status", `⚠️ Connecting to Azure DevOps failed. Config is incomplete.`);
       return;
     }
 
-    setStatusMessage(`⌛ Connecting...`);
+    printStatusMessage("connection-status", `⌛ Connecting to Azure DevOps...`);
     const result = await workerClient.post<TestConnectionRequest, TestConnectionResponse>("test-connection", { config });
     if (result.status === "success") {
-      setStatusMessage(`✅ Connecting... Success!`);
+      printStatusMessage("connection-status", `✅ ${result.message}`);
       return true;
     } else {
-      setStatusMessage(`⚠️ ${result.message}`);
+      printStatusMessage("connection-status", `⚠️ ${result.message}`);
       return false;
     }
   }, []);
 
   const clearCache = useCallback(async () => {
     await workerClient.post("reset", {});
-    setStatusMessage(`✅ Clearing cache... Success!`);
+    printStatusMessage("reset", `✅ Clearing cache... Success!`);
   }, []);
 
   const manualSync = useCallback(async () => {
     const config = await getCompleteConfig();
     if (!config) return;
 
-    function syncProgressObserver(update: SyncProgressUpdate) {
-      switch (update.type) {
-        case "progress":
-          setStatusMessage(`⌛ ${update.message}`);
-          break;
-        case "success":
-          setStatusMessage(`✅ ${update.message}`);
-          break;
-        case "error":
-          setStatusMessage(`⚠️ ${update.message}`);
-          break;
-      }
-    }
+    workerClient.subscribe<SyncContentUpdate>("sync-progress", handleContentProgress);
+    workerClient.subscribe<SyncMetadataUpdate>("sync-metadata-progress", handleMetadataProgress);
 
-    workerClient.subscribe<SyncProgressUpdate>("sync-progress", syncProgressObserver);
-    await workerClient.post<SyncRequest, SyncResponse>("sync", { config, rebuildIndex: true });
-    workerClient.unsubscribe("sync-progress", syncProgressObserver);
+    await Promise.all([
+      workerClient.post<SyncContentRequest, SyncContentResponse>("sync-content", { config, rebuildIndex: true }),
+      workerClient.post<SyncMetadataRequest, SyncMetadataResponse>("sync-metadata", { config }),
+    ]);
+
+    workerClient.unsubscribe("sync-progress", handleContentProgress);
+    workerClient.unsubscribe("sync-metadata-progress", handleMetadataProgress);
+  }, []);
+
+  const handleContentProgress = useCallback((update: SyncContentUpdate) => {
+    switch (update.type) {
+      case "progress":
+        printStatusMessage("sync", `⌛ ${update.message}`);
+        break;
+      case "success":
+        printStatusMessage("sync", `✅ ${update.message}`);
+        setIsItemDataReady(true);
+        break;
+      case "error":
+        printStatusMessage("sync", `⚠️ ${update.message}`);
+        break;
+    }
+  }, []);
+
+  const handleMetadataProgress = useCallback((update: SyncMetadataUpdate) => {
+    switch (update.type) {
+      case "progress":
+        printStatusMessage("sync-metadata", `⌛ ${update.message}`);
+        break;
+      case "success":
+        printStatusMessage("sync-metadata", `✅ ${update.message}`);
+        setIsMetadataReady(true);
+        break;
+      case "error":
+        printStatusMessage("sync-metadata", `⚠️ ${update.message}`);
+        break;
+    }
   }, []);
 
   const handleLinkClick = useHandleLinkClick();
@@ -132,24 +200,36 @@ export const SetupForm: React.FC = () => {
           </div>
         </section>
       </form>
+
       <section className="form-actions">
         <button type="submit" form="setup-form">
           Save and connect
         </button>
       </section>
 
-      {statusMessage.length > 0 && (
+      {outputMessages.length > 0 && (
         <section className="form-section">
-          <output className="status-output">{statusMessage}</output>
+          <output className="status-output">
+            {outputMessages.map((message) => (
+              <div key={message.name}>{message.message}</div>
+            ))}
+            {isItemDataReady && isMetadataReady && <div>🚀 The extension is ready to launch</div>}
+          </output>
         </section>
       )}
 
       <section className="shortcuts-section">
-        <h2>Shortcuts</h2>
+        <h2>User guide</h2>
         <table className="shortcuts-table">
           <tbody>
             <tr>
-              <td>Open popup</td>
+              <td>Launch</td>
+              <td>
+                Click the <img className="launch-icon" src="./Logo.svg" height={19} /> button in the tray area
+              </td>
+            </tr>
+            <tr>
+              <td>Launch with keyboard</td>
               <td>
                 <kbd className="key-name">Alt</kbd> + <kbd className="key-name">A</kbd>, or customize at{" "}
                 <a href="chrome://extensions/shortcuts" onClick={handleLinkClick}>

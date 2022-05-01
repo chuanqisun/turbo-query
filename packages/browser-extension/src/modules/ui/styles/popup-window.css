@@ -1,6 +1,5 @@
 #root {
   height: 400px;
-  overflow-y: scroll;
 }
 
 body {
@@ -8,10 +7,7 @@ body {
 }
 
 .query-bar {
-  position: sticky;
-  top: 0;
   background: white;
-  z-index: 10;
 }
 
 .query-bar__input-group {
@@ -29,7 +25,7 @@ body {
 
 .stack-layout {
   display: grid;
-  min-height: 100vh;
+  height: 100vh;
   grid-template-rows: auto 1fr auto;
 }
 
@@ -40,10 +36,12 @@ body {
 
 .work-item-list {
   list-style: none;
+  overflow-y: scroll;
 }
 
 .work-item {
   padding: 4px;
+  contain: layout style paint;
   display: grid;
   grid-template-columns: auto auto 1fr;
   gap: 4px;
@@ -57,6 +55,9 @@ body {
 
 .work-item__icon {
   transform: translateY(1px);
+  display: block;
+  width: 16px;
+  height: 16px;
 }
 
 .work-item__id {
@@ -82,21 +83,19 @@ body {
   text-decoration: underline;
 }
 
+.work-item__placeholder {
+  height: 40px;
+}
+
 .work-item__state-bar {
   display: inline-block;
   width: 4px;
   height: 18px;
   border-radius: 2px;
-  background-color: #b2b2b2;
+  background-color: var(--state-color, #b2b2b2);
   cursor: help;
 }
-.work-item__state-bar[title="Completed"] {
-  background-color: #339933;
-}
-.work-item__state-bar:where([title="Started"], [title="Committed"], [title="Resolved"]) {
-  background-color: #007acc;
-}
-.work-item__state-bar:where([title="Cut"]) {
+.work-item__state-bar:where([data-state-category="Removed"]) {
   background-color: transparent;
   border: 1px solid #b2b2b2;
 }
@@ -136,9 +135,15 @@ body {
 }
 
 .status-bar {
-  position: sticky;
-  bottom: 0;
   padding: 4px;
   background: #eaeaea;
   font-size: 12px;
+}
+
+.status-bar--error {
+  background-color: #fff4ce;
+}
+
+.status-bar__action {
+  margin-left: 4px;
 }

@@ -7,7 +7,7 @@ export function useRecursiveTimer(callback: () => any, delay: number | null) {
       const timer = new RecursiveTimer(callback, delay);
       timer.start();
 
-      return () => timer.stop();
+      return () => timer.destory();
     }
   }, [callback, delay]);
 }

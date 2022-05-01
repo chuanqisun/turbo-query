@@ -1,4 +1,25 @@
+# Roadmap
+
+- Planned: Improve keyboard navigation: separate column and row movement
+- Planned: Support dark theme and handle `color-scheme: light dark;`
+- Planned: Increase hit target for state indicator
+- Maybe: Multiple areas paths
+- Maybe: Support custom include/exclude of item types
+- Maybe: Click filter to toggle corresponding string in query
+
 # Changelog
+
+## v1.4.0
+
+- New: Support all Work Item types
+- New: Support all Work Item state colors
+- New: Tool-tips for metadata
+- Improved: Progress and status display
+- Improved: Error messaging and handling in status bar
+- Improved: Items sorting algorithm
+- Changed: Clicking title will no long closes popup
+- Fixed: Separator could appear at line start
+- Fixed: Polling started before initial sync is finished
 
 ## v1.3.0
 

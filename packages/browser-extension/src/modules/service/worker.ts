@@ -1,40 +1,46 @@
 import { db, Db } from "../db/db";
 import { WorkerServer } from "../ipc/server";
-import { IndexChangedUpdate, IndexManager } from "./emitters/index-manager";
-import { RecentItemsChangedUpdate, RecentItemsManager } from "./emitters/recent-content-manager";
-import { handleRecentItems } from "./handlers/handle-get-recent";
+import { IndexManager } from "./emitters/index-manager";
+import { MetadataManager } from "./emitters/metadata-manager";
+import { RecentChangedUpdate, RecentManager } from "./emitters/recent-manager";
+import { SearchChangedUpdate, SearchManager } from "./emitters/search-manager";
 import { handleReset } from "./handlers/handle-reset";
-import { handleSearch } from "./handlers/handle-search";
-import { handleSync } from "./handlers/handle-sync";
+import { handleSyncContent } from "./handlers/handle-sync-content";
+import { handleSyncMetadata } from "./handlers/handle-sync-metadata";
 import { handleTestConnection } from "./handlers/handle-test-connection";
+import { handleWatchRecent } from "./handlers/handle-watch-recent";
+import { handleSearch } from "./handlers/handle-watch-search";
 
 class WorkerContainer {
   #server = new WorkerServer(self as any as Worker);
   #indexManager = new IndexManager();
-  #recentItemsManager = new RecentItemsManager();
+  #metadataManager = new MetadataManager();
+  #recentManager = new RecentManager(this.#metadataManager);
+  #searchManager = new SearchManager(this.#metadataManager, this.#indexManager);
 
   async start() {
     const handlerContext: HandlerContext = {
       server: this.#server,
       indexManager: this.#indexManager,
-      recentContentManager: this.#recentItemsManager,
+      recentContentManager: this.#recentManager,
+      metadataManager: this.#metadataManager,
+      searchManager: this.#searchManager,
       db,
     };
 
-    this.#server.addRequestHandler("recent-items", handleRecentItems.bind(null, handlerContext));
-
-    this.#server.addRequestHandler("sync", handleSync.bind(null, handlerContext));
+    this.#server.addRequestHandler("sync-content", handleSyncContent.bind(null, handlerContext));
+    this.#server.addRequestHandler("sync-metadata", handleSyncMetadata.bind(null, handlerContext));
     this.#server.addRequestHandler("reset", handleReset.bind(null, handlerContext));
     this.#server.addRequestHandler("test-connection", handleTestConnection.bind(null, handlerContext));
+    this.#server.addRequestHandler("watch-search", handleSearch.bind(null, handlerContext));
+    this.#server.addRequestHandler("watch-recent", handleWatchRecent.bind(null, handlerContext));
 
-    this.#server.addRequestHandler("search", handleSearch.bind(null, handlerContext));
+    this.#searchManager.addEventListener("changed", (e) => {
+      this.#server.emit<SearchChangedUpdate>("search-changed", (e as CustomEvent<SearchChangedUpdate>).detail);
+    });
 
-    this.#indexManager.addEventListener("changed", (e) =>
-      this.#server.emit<IndexChangedUpdate>("index-changed", (e as CustomEvent<IndexChangedUpdate>).detail)
-    );
-
-    this.#recentItemsManager.addEventListener("changed", (e) => {
-      this.#server.emit<RecentItemsChangedUpdate>("recent-items-changed", (e as CustomEvent<RecentItemsChangedUpdate>).detail);
+    this.#recentManager.addEventListener("changed", (e) => {
+      this.#server.emit<RecentChangedUpdate>("recent-changed", (e as CustomEvent<RecentChangedUpdate>).detail);
     });
   }
 }
@@ -44,6 +50,8 @@ new WorkerContainer().start();
 export interface HandlerContext {
   server: WorkerServer;
   indexManager: IndexManager;
-  recentContentManager: RecentItemsManager;
+  recentContentManager: RecentManager;
+  metadataManager: MetadataManager;
+  searchManager: SearchManager;
   db: Db;
 }
