@@ -54,7 +54,6 @@ export const PopupWindow: React.FC = () => {
     scrollContainerRef.current?.scrollTo({ top: 0 });
   }, []);
 
-  // const debouncedQuery = activeQuery;
   const debouncedQuery = useDebounce(activeQuery, DEBOUNCE_TIMEOUT);
 
   const [recentItems, setRecentItems] = useState<DisplayItem[] | null>(null);
@@ -99,14 +98,14 @@ export const PopupWindow: React.FC = () => {
   }, [debouncedQuery]);
 
   // request recent on first blank query
-  const [isRecentQueryLive, setIsRecentQueryLive] = useState(false);
+  const [isWatchingRecent, setIsWatchingRecent] = useState(false);
   useEffect(() => {
-    if (isRecentQueryLive) return;
+    if (isWatchingRecent) return;
     if (!debouncedQuery.trim().length) {
       workerClient.post("watch-recent", {});
-      setIsRecentQueryLive(true);
+      setIsWatchingRecent(true);
     }
-  }, [isRecentQueryLive, debouncedQuery]);
+  }, [isWatchingRecent, debouncedQuery]);
 
   // start polling sync
   const { errors } = useSync({
