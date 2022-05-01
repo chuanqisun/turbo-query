@@ -14,7 +14,7 @@ import { useIsOffline } from "./components/hooks/use-is-offline";
 import { useRecursiveTimer } from "./components/hooks/use-recursive-timer";
 import { selectElementContent } from "./components/utils/dom";
 
-const POLLING_INTERVAL = 5;
+const POLLING_INTERVAL = 10;
 const DEBOUNCE_TIMEOUT = 50; // TODO: debounce + search latency should be less than 100ms for "instant" perception
 const worker = new Worker("./modules/service/worker.js");
 const workerClient = new WorkerClient(worker);
