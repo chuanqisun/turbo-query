@@ -5,7 +5,7 @@ import { RecentChangedUpdate } from "../service/emitters/recent-manager";
 import { SearchChangedUpdate } from "../service/emitters/search-manager";
 import { SearchRequest, SearchResponse } from "../service/handlers/handle-watch-search";
 import { DisplayItem } from "../service/utils/get-display-item";
-import { VirutalWorkItem } from "./components/work-item";
+import { VirtualWorkItem } from "./components/work-item";
 import { useConfigGuard } from "./hooks/use-config-guard";
 import { useDebounce } from "./hooks/use-debounce";
 import {
@@ -149,7 +149,7 @@ export const PopupWindow: React.FC = () => {
         {searchResult === undefined && <li className="work-item">Waiting for data...</li>}
         {searchResult?.length === 0 && <li className="work-item">No result</li>}
         {searchResult?.map((item, index) => (
-          <VirutalWorkItem
+          <VirtualWorkItem
             key={item.id}
             forceVisible={index < 15 || index === searchResult?.length - 1} // support backward tabbing
             rootElement={scrollContainerRef.current!}

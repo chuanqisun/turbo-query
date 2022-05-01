@@ -95,4 +95,4 @@ export const WorkItem: React.FC<WorkItemProps> = ({
   </li>
 );
 
-export const VirutalWorkItem = Virtualize(WorkItem);
+export const VirtualWorkItem = Virtualize(WorkItem);
