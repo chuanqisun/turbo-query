@@ -2,6 +2,7 @@
 
 ## v1.5.1
 
+- Improved: Search algorithm tweaks
 - Fixed: Closing popup during index export caused data loss
 
 ## v1.5.0
