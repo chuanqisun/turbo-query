@@ -10,19 +10,16 @@ export function sortByState(metadata: MetadataMap, a: DbWorkItem, b: DbWorkItem)
 // Ref: https://docs.microsoft.com/en-us/azure/devops/boards/work-items/workflow-and-state-categories
 function getCategoryPriority(category?: string): number {
   switch (category) {
-    case "InProgress":
-      return 0;
-    case "Proposed":
-      return 1;
-
-    case "Resolved":
-      return 8;
-    case "Completed":
-      return 9;
+    // deprioritize removed category
     case "Removed":
       return 10;
 
+    // preserve order for other categories
+    case "InProgress":
+    case "Proposed":
+    case "Resolved":
+    case "Completed":
     default:
-      return 5;
+      return 0;
   }
 }

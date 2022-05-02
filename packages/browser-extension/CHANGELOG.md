@@ -4,6 +4,7 @@
 - Improved: Derive Project from Area path
 - Improved: Easier to hover on state indicator
 - Changed: Clicking on tag no longer selects it
+- Changed: Items are ranked by relevance, except for the Removed category
 - Fixed: ID + title copy format issue
 
 # Changelog
