@@ -1,5 +1,6 @@
 ## Unreleased
 
+- New: Highlight keywords in title
 - Improved: Derive Project from Area path
 
 # Changelog

@@ -4,6 +4,7 @@
 - Support dark theme and handle `color-scheme: light dark;`
 - Increase hit target for state indicator
 - Remove network watcher. Handle offline during request
+- Title + ID copy issue
 
 # Maybe
 

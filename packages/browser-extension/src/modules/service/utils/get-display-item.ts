@@ -15,8 +15,14 @@ export interface DisplayItem extends DbWorkItem {
   shortIterationPath: string;
   stateColor: string;
   stateCategory: string;
+  titleHtml: string;
 }
-export function getSearchDisplayItem(isTokenMatch: (input: string) => boolean, metadataMap: MetadataMap, item: DbWorkItem): DisplayItem {
+export function getSearchDisplayItem(
+  titleHtml: (title: string) => string,
+  isTokenMatch: (input: string) => boolean,
+  metadataMap: MetadataMap,
+  item: DbWorkItem
+): DisplayItem {
   const iconUrl = metadataMap.get(item.workItemType)?.iconBlobUrl;
   const stateConfig = metadataMap.get(item.workItemType)?.states.get(item.state);
   const shortIterationPath = getShortIteration(item.iterationPath);
@@ -33,6 +39,7 @@ export function getSearchDisplayItem(isTokenMatch: (input: string) => boolean, m
     stateColor: `#${stateConfig?.color ?? FALLBACK_INDICATOR_HEX}`,
     stateCategory: stateConfig?.category ?? "Unknown",
     shortIterationPath: shortIterationPath,
+    titleHtml: titleHtml(item.title),
   };
 }
 
@@ -46,5 +53,6 @@ export function getRecentDisplayItem(metadataMap: MetadataMap, item: DbWorkItem)
     stateColor: `#${stateConfig?.color ?? FALLBACK_INDICATOR_HEX}`,
     stateCategory: stateConfig?.category ?? "Unknown",
     shortIterationPath: getShortIteration(item.iterationPath),
+    titleHtml: item.title,
   };
 }

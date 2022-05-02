@@ -61,9 +61,8 @@ export const WorkItem: React.FC<WorkItemProps> = ({
         onFocus={handleTextFocus}
         onBlur={handleTextBlur}
         href={`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}
-      >
-        {item.title}
-      </a>{" "}
+        dangerouslySetInnerHTML={{ __html: item.titleHtml }}
+      />{" "}
       {item.tags.length > 0 &&
         item.tags.map((tag, i) => (
           <React.Fragment key={i}>

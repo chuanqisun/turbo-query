@@ -68,7 +68,11 @@ export class SearchManager extends EventTarget {
     const matches = await (await this.#indexManager.getIndex()).searchAsync(query, { index: "fuzzyTokens" });
     const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
     const queryTokens = this.#tokenize(query);
+    const queryTokensExact = this.#tokenizeExact(query);
+    const pattern = new RegExp(`(${queryTokensExact.join("|")})`, "gi");
+
     const tokenMatcher = this.#isTokenMatch.bind(null, queryTokens);
+    const titleHighlighter = this.#highlightFullText.bind(null, pattern);
 
     const [dbItems, metadataMap] = await Promise.all([
       db.workItems.bulkGet(titleMatchIds).then((items) => items.filter(isDefined)),
@@ -76,8 +80,9 @@ export class SearchManager extends EventTarget {
     ]);
 
     const dbItemsSorted = dbItems.sort(sortByState.bind(null, metadataMap));
-    const displayItems = dbItemsSorted.map(getSearchDisplayItem.bind(null, tokenMatcher, metadataMap));
+    const displayItems = dbItemsSorted.map(getSearchDisplayItem.bind(null, titleHighlighter, tokenMatcher, metadataMap));
 
+    console.log(displayItems);
     return displayItems;
   }
 
@@ -91,6 +96,10 @@ export class SearchManager extends EventTarget {
     );
   }
 
+  #highlightFullText(pattern: RegExp, title: string) {
+    return title.replace(pattern, (match) => `<mark>${match}</mark>`);
+  }
+
   #tokenize(input: string): string[] {
     // Ref and credit: https://stackoverflow.com/questions/990904/remove-accents-diacritics-in-a-string-in-javascript
     return input
@@ -99,6 +108,13 @@ export class SearchManager extends EventTarget {
       .replace(/\s+/g, " ")
       .split(" ")
       .map((token) => token.toLocaleLowerCase().trim())
+      .filter((token) => token.length);
+  }
+
+  #tokenizeExact(input: string): string[] {
+    return input
+      .replace(/\s+/g, " ")
+      .split(" ")
       .filter((token) => token.length);
   }
 }
