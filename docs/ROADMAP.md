@@ -8,6 +8,7 @@
 
 # Maybe
 
+- Explore "fastupdate" on flexsearch to avoid swapping index
 - Multiple areas paths
 - Support custom include/exclude of item types
 - Click filter to toggle corresponding string in query
