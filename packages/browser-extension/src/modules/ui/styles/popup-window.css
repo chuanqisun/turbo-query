@@ -1,3 +1,8 @@
+:root {
+  --primary-highlight: rgb(75.45% 92.12% 91.99%);
+  --secondary-highlight: rgb(91.45% 87.01% 98.39%);
+}
+
 #root {
   height: 400px;
 }
@@ -79,6 +84,11 @@ body {
   overflow-wrap: break-word; /* not supported in Safari */
   word-break: break-word; /* deprecated in Chrome, but needed in Safari */
 }
+
+.work-item__link mark {
+  background-color: var(--primary-highlight);
+}
+
 .work-item__link:where(:hover) {
   text-decoration: underline;
 }
@@ -132,7 +142,7 @@ body {
 }
 
 .work-item__matchable[data-matched="true"] {
-  background-color: yellow;
+  background-color: var(--secondary-highlight);
   color: black;
   border-color: black;
 }

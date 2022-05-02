@@ -3,6 +3,7 @@
 - New: Highlight keywords in title
 - Improved: Derive Project from Area path
 - Improved: Easier to hover on state indicator
+- Improved: Comfortable highlight color
 - Changed: Clicking on tag no longer selects it
 - Changed: Items are ranked by relevance, except for the Removed category
 - Fixed: ID + title copy format issue
