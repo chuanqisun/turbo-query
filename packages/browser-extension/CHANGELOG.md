@@ -1,14 +1,15 @@
-## Unreleased
+# Changelog
+
+## v1.5.0
 
 - New: Highlight keywords in title
 - Improved: Derive Project from Area path
 - Improved: Easier to hover on state indicator
 - Improved: Comfortable highlight color
+- Improved: Search algorithm tweaks
 - Changed: Clicking on tag no longer selects it
 - Changed: Items are ranked by relevance, except for the Resolved and Removed category
 - Fixed: ID + title copy format issue
-
-# Changelog
 
 ## v1.4.1
 
