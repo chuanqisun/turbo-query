@@ -4,6 +4,7 @@
 - Support dark theme and handle `color-scheme: light dark;`
 - Remove network watcher. Handle offline during request
 - Use a single intersection observer for all list items
+- Investigate Performance impact due to Edge efficient mode
 
 # Maybe
 
