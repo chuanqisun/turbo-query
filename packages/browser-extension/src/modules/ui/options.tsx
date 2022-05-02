@@ -192,12 +192,13 @@ export const SetupForm: React.FC = () => {
             <label htmlFor="org">Organization</label>
             <input id="org" name="org" type="text" placeholder="My organization" required />
             <div className="label-hint">
-              *The organization name is part of the URL{" "}
+              *Can be found in the URL{" "}
               <samp>
                 https://dev.azure.com/<em>&lt;OrganizationName&gt;</em>
-              </samp>{" "}
+              </samp>
+              .{" "}
               <a href="https://dev.azure.com" target="_blank">
-                View my organization
+                Find organization
               </a>
             </div>
           </div>
@@ -214,7 +215,7 @@ export const SetupForm: React.FC = () => {
             <label htmlFor="pat">Personal access token</label>
             <input id="pat" name="pat" type="password" required />
             <div className="label-hint">
-              *Must be created for the desired organization, with <em>Read</em> permission on the <em>Work Items</em> scope.{" "}
+              *Must be created for the organization entered above, with <em>Read</em> permission on the <em>Work Items</em> scope.{" "}
               <a href="https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate" target="_blank">
                 Get help
               </a>
