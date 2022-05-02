@@ -24,16 +24,18 @@ export const WorkItem: React.FC<WorkItemProps> = ({
   handleIconCopy,
 }) => (
   <li className="work-item" key={item.id}>
-    <span
-      className="work-item__state-bar"
-      data-state-category={item.stateCategory}
-      style={{ "--state-color": item.stateColor } as React.CSSProperties}
-      title={item.state}
-    ></span>
+    <span className="work-item__state-interaction" title={`State: ${item.state}`}>
+      <span className="work-item__state-bar" data-state-category={item.stateCategory} style={{ "--state-color": item.stateColor } as React.CSSProperties} />
+    </span>
     <a tabIndex={-1} className="u-visually-hidden js-copy-target" href={`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}>
       {item.workItemType} {item.id}: {item.title}
     </a>
-    <span onCopy={handleIconCopy} className="work-item__icon-interaction js-select-item-start" onClick={handleIconClick} title={item.workItemType}>
+    <span
+      onCopy={handleIconCopy}
+      className="work-item__icon-interaction js-select-item-start"
+      onClick={handleIconClick}
+      title={`Type: ${item.workItemType} (Click to select the entire item for copying)`}
+    >
       {item.iconUrl ? (
         <img className="work-item__icon" src={item.iconUrl} alt={item.workItemType} width={16} height={16} />
       ) : (
@@ -45,6 +47,7 @@ export const WorkItem: React.FC<WorkItemProps> = ({
         className="work-item__id work-item__matchable"
         data-matched={item.isIdMatched}
         tabIndex={0}
+        title={`ID: ${item.id} (Click to select ID)`}
         onFocus={handleTextFocus}
         onBlur={handleTextBlur}
         onClick={handleClickToSelect}
@@ -57,13 +60,14 @@ export const WorkItem: React.FC<WorkItemProps> = ({
         onClick={handleLinkClick}
         onFocus={handleTextFocus}
         onBlur={handleTextBlur}
+        title={`Title: ${item.title} (Click to open)`}
         href={`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}
         dangerouslySetInnerHTML={{ __html: item.titleHtml }}
       />{" "}
       {item.tags.length > 0 &&
         item.tags.map((tag, i) => (
           <React.Fragment key={i}>
-            <span onClick={handleClickToSelect} className="work-item__tag work-item__matchable" title={tag} data-matched={item.isTagMatched?.[i]}>
+            <span className="work-item__tag work-item__matchable" title={`Tag: ${tag}`} data-matched={item.isTagMatched?.[i]}>
               <span className="work-item__tag-overflow-guard">{tag}</span>
             </span>{" "}
           </React.Fragment>

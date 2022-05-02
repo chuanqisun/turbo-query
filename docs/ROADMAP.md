@@ -4,7 +4,6 @@
 - Support dark theme and handle `color-scheme: light dark;`
 - Remove network watcher. Handle offline during request
 - Explore different highlight colors
-- Increase hit target for state indicator
 - Relevance sorting for non-removed items
 
 # Maybe

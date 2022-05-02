@@ -2,6 +2,8 @@
 
 - New: Highlight keywords in title
 - Improved: Derive Project from Area path
+- Improved: Easier to hover on state indicator
+- Changed: Clicking on tag no longer selects it
 - Fixed: ID + title copy format issue
 
 # Changelog

@@ -40,17 +40,17 @@ body {
 }
 
 .work-item {
-  padding: 4px;
+  padding-block: 4px;
   contain: layout style paint;
   display: grid;
   grid-template-columns: auto auto 1fr;
-  gap: 4px;
   font-size: 14px;
   line-height: 18px;
 }
 
 .work-item__icon-interaction {
   cursor: cell;
+  padding-inline-end: 4px; /* increase hit target */
 }
 
 .work-item__icon {
@@ -93,11 +93,15 @@ body {
   height: 18px;
   border-radius: 2px;
   background-color: var(--state-color, #b2b2b2);
-  cursor: help;
 }
 .work-item__state-bar:where([data-state-category="Removed"]) {
   background-color: transparent;
   border: 1px solid #b2b2b2;
+}
+.work-item__state-interaction {
+  display: inline-block;
+  padding-inline: 4px;
+  cursor: help;
 }
 
 .work-item__tag {
@@ -111,7 +115,6 @@ body {
   display: inline-flex;
   align-items: center;
   max-width: 32ch;
-  cursor: default;
 }
 
 .work-item__tag-overflow-guard {
