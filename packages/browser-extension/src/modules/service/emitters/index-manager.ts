@@ -7,7 +7,7 @@ import { isDefined } from "../utils/guard";
 const indexConfig: IndexOptionsForDocumentSearch<IndexedItem> = {
   preset: "match",
   charset: "latin:advanced",
-  tokenize: "forward",
+  tokenize: "full",
   document: {
     id: "id",
     index: ["fuzzyTokens"],
