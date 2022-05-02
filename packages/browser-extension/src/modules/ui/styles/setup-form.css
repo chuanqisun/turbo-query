@@ -39,7 +39,7 @@ body {
 }
 .form-section {
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 
 .key-name {
@@ -75,7 +75,7 @@ body {
 .setup-window {
   padding: 16px;
   display: grid;
-  gap: 12px;
+  gap: 16px;
   align-content: start;
 
   max-width: 800px;

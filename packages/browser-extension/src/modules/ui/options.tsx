@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { WorkerClient } from "../ipc/client";
-import { getCompleteConfig } from "../service/ado/config";
+import { getCompleteConfig, normalizeAreaPath } from "../service/ado/config";
 import { SyncContentRequest, SyncContentResponse, SyncContentUpdate } from "../service/handlers/handle-sync-content";
 import { SyncMetadataRequest, SyncMetadataResponse, SyncMetadataUpdate } from "../service/handlers/handle-sync-metadata";
 import { TestConnectionRequest, TestConnectionResponse } from "../service/handlers/handle-test-connection";
@@ -16,7 +16,8 @@ interface OutputThread {
 }
 
 export const SetupForm: React.FC = () => {
-  const formRef = useRef<HTMLFormElement | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const areaPathInputRef = useRef<HTMLInputElement>(null);
   const [outputMessages, setOutputMessages] = useState<OutputThread[]>([]);
   const [isItemDataReady, setIsItemDataReady] = useState(false);
   const [isMetadataReady, setIsMetadataReady] = useState(false);
@@ -36,6 +37,16 @@ export const SetupForm: React.FC = () => {
 
   const clearOutput = useCallback(() => {
     setOutputMessages([]);
+  }, []);
+
+  const formatInput = useCallback(() => {
+    if (areaPathInputRef.current!.value.length) {
+      areaPathInputRef.current!.value = normalizeAreaPath(areaPathInputRef.current!.value);
+    }
+
+    [...formRef.current!.querySelectorAll("input")].forEach((input) => {
+      input.value = input.value.trim();
+    });
   }, []);
 
   const saveForm = useCallback(async () => {
@@ -73,6 +84,7 @@ export const SetupForm: React.FC = () => {
     workerClient.unsubscribe("sync-metadata-progress", handleMetadataProgress);
 
     await clearOutput();
+    formatInput();
     await saveForm();
 
     const isOnline = getNetworkStatus();
@@ -175,28 +187,38 @@ export const SetupForm: React.FC = () => {
             <label htmlFor="email">Work email</label>
             <input id="email" autoFocus name="email" type="email" placeholder="john@example.com" required />
           </div>
-          <div className="form-field">
-            <label htmlFor="pat">Personal access token</label>
-            <input id="pat" name="pat" type="password" required />
-            <div className="label-hint">
-              *Requires <em>Read</em> permission on the <em>Work Items</em> scope.{" "}
-              <a href="https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate">Get help</a>
-            </div>
-          </div>
 
           <div className="form-field">
             <label htmlFor="org">Organization</label>
             <input id="org" name="org" type="text" placeholder="My organization" required />
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="project">Project</label>
-            <input id="project" name="project" type="text" placeholder="My project" required />
+            <div className="label-hint">
+              *The organization name is part of the URL{" "}
+              <samp>
+                https://dev.azure.com/<em>&lt;OrganizationName&gt;</em>
+              </samp>{" "}
+              <a href="https://dev.azure.com" target="_blank">
+                View my organization
+              </a>
+            </div>
           </div>
 
           <div className="form-field">
             <label htmlFor="area-path">Area path</label>
-            <input id="area-path" name="areaPath" type="text" placeholder="My\Area\Path" required />
+            <input id="area-path" ref={areaPathInputRef} name="areaPath" type="text" placeholder="My\Area\Path" required />
+            <div className="label-hint">
+              *Same as the <em>Area</em> field in work items.
+            </div>
+          </div>
+
+          <div className="form-field">
+            <label htmlFor="pat">Personal access token</label>
+            <input id="pat" name="pat" type="password" required />
+            <div className="label-hint">
+              *Must be created for the desired organization, with <em>Read</em> permission on the <em>Work Items</em> scope.{" "}
+              <a href="https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate" target="_blank">
+                Get help
+              </a>
+            </div>
           </div>
         </section>
       </form>

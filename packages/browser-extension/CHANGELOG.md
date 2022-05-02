@@ -1,3 +1,7 @@
+## Unreleased
+
+- Improved: Derive Project from Area path
+
 # Changelog
 
 ## v1.4.1
