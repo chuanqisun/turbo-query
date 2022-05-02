@@ -5,7 +5,7 @@ import { getFuzzyTitle } from "../utils/get-fuzzy-title";
 import { isDefined } from "../utils/guard";
 
 const indexConfig: IndexOptionsForDocumentSearch<IndexedItem> = {
-  preset: "match",
+  preset: "default",
   charset: "latin:advanced",
   tokenize: "full",
   document: {
@@ -45,6 +45,8 @@ export class IndexManager extends EventTarget {
     this.#activeIndex = this.#importedIndex;
     this.dispatchEvent(new CustomEvent<IndexChangedUpdate>("changed", { detail: { rev: ++this.#indexRev } }));
 
+    console.log(`[index-manager] imported index`);
+
     return this.#importedIndex;
   }
 
@@ -62,6 +64,8 @@ export class IndexManager extends EventTarget {
     this.#resolveNativeIndexPopulated();
 
     this.dispatchEvent(new CustomEvent<IndexChangedUpdate>("changed", { detail: { rev: ++this.#indexRev } }));
+
+    console.log(`[index-manager] built new index`);
 
     return this.#importedIndex;
   }
@@ -96,6 +100,7 @@ export class IndexManager extends EventTarget {
   }
 
   async #exportIndex() {
+    // FIXME: this transaction is not atomic. May lead to corrupted index if killed in the middle
     await db.indexItems.clear();
     await this.#nativeIndex.export((key, value) => db.indexItems.put({ key: key as string, value: value as any as string | undefined }));
   }

@@ -41,6 +41,7 @@ export class MetadataManager extends EventTarget {
   }
 
   async updateMetadataDictionary(itemTypes: WorkItemType[], onProgress?: (update: MetadataSyncProgressUpdate) => any): Promise<SyncMetadataResponse> {
+    // TODO this update could be skipped if all the icons and states are the same
     const networkCache = await this.#networkCacheAsync;
 
     const activeTypes = itemTypes.filter((type) => !type.isDisabled);
@@ -79,7 +80,7 @@ export class MetadataManager extends EventTarget {
 
     this.#metadataAsync = Promise.resolve(this.#getMapFromDbWorkItemType(dbItems));
 
-    console.log(`[metadata] Metadata updated`);
+    console.log(`[metadata-manager] metadata syned with remote`);
     this.dispatchEvent(new CustomEvent<MetadataChangedUpdate>("changed", { detail: { timestamp: Date.now() } }));
 
     return {
