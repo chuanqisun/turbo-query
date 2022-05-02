@@ -69,10 +69,15 @@ export class SearchManager extends EventTarget {
     const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
     const queryTokens = this.#tokenize(query);
     const queryTokensExact = this.#tokenizeExact(query);
-    const pattern = new RegExp(`(${queryTokensExact.join("|")})`, "gi");
+    let pattern: RegExp | undefined;
+    try {
+      pattern = new RegExp(`(${queryTokensExact.join("|")})`, "gi");
+    } catch (e) {
+      console.log(`[search-manager], RegExp error, skip title highlighting`, e);
+    }
 
     const tokenMatcher = this.#isTokenMatch.bind(null, queryTokens);
-    const titleHighlighter = this.#highlightFullText.bind(null, pattern);
+    const titleHighlighter = pattern ? this.#highlightFullText.bind(null, pattern) : (title: string) => title;
 
     const [dbItems, metadataMap] = await Promise.all([
       db.workItems.bulkGet(titleMatchIds).then((items) => items.filter(isDefined)),
@@ -113,6 +118,7 @@ export class SearchManager extends EventTarget {
   #tokenizeExact(input: string): string[] {
     return input
       .replace(/\s+/g, " ")
+      .replace(/[#-.]|[[-^]|[?|{}]/g, "\\$&") // regex escapes, ref: https://stackoverflow.com/questions/6300183/sanitize-string-of-regex-characters-before-regexp-build
       .split(" ")
       .filter((token) => token.length);
   }
