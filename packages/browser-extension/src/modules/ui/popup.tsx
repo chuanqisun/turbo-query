@@ -145,8 +145,8 @@ export const PopupWindow: React.FC = () => {
       </div>
 
       <ul className="work-item-list" ref={scrollContainerRef}>
-        {searchResult === undefined && <li className="work-item">Waiting for data...</li>}
-        {searchResult?.length === 0 && <li className="work-item">No result found</li>}
+        {searchResult === undefined && <li className="work-item work-item--message">Waiting for data...</li>}
+        {searchResult?.length === 0 && <li className="work-item work-item--message">No result found</li>}
         {searchResult?.map((item, index) => (
           <VirtualWorkItem
             key={item.id}

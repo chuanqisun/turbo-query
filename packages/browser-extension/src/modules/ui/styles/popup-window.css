@@ -93,6 +93,10 @@ body {
   text-decoration: underline;
 }
 
+.work-item--message {
+  padding-inline: 4px;
+}
+
 .work-item__placeholder {
   height: 40px;
 }
