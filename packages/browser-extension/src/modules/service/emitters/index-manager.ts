@@ -45,7 +45,7 @@ export class IndexManager extends EventTarget {
     this.#activeIndex = this.#importedIndex;
     this.dispatchEvent(new CustomEvent<IndexChangedUpdate>("changed", { detail: { rev: ++this.#indexRev } }));
 
-    console.log(`[index-manager] imported index`);
+    console.log(`[index-manager] imported index from ${importTasks.length} cache keys`);
 
     return this.#importedIndex;
   }
@@ -100,9 +100,31 @@ export class IndexManager extends EventTarget {
   }
 
   async #exportIndex() {
-    // FIXME: this transaction is not atomic. May lead to corrupted index if killed in the middle
-    await db.indexItems.clear();
-    await this.#nativeIndex.export((key, value) => db.indexItems.put({ key: key as string, value: value as any as string | undefined }));
+    // This transaction must be atomic or closing popup may lead to data loss
+    console.log("[index-manager] exporting index...");
+    const exportedEntries: { key: string; value: any }[] = [];
+    await this.#nativeIndex.export((key, value) => exportedEntries.push({ key: key as string, value })); // HACK: key interface says it can be a number but it is actually always string
+    // HACK due to https://github.com/nextapps-de/flexsearch/issues/274
+    // Because Flexsearch export promise resolves prematurely,
+    // We poll to ensure the largest chunk (fuzzyTokens.map) exists and then
+    // give it another 1000ms to ensure everything else is saved
+    await new Promise((resolve) => {
+      const polling = setInterval(() => {
+        if (exportedEntries.some((entry) => entry.key === "fuzzyTokens.map")) {
+          // largest entry
+          setTimeout(resolve, 1000); // extra delay for other entries
+          clearInterval(polling);
+        } else {
+          // log to console for future debugging
+          console.error(`[index-manager] fuzzyTokens.map missing in imported index. Will retry...`);
+        }
+      }, 1000);
+    });
+    await db.transaction("rw", db.indexItems, async () => {
+      await db.indexItems.clear();
+      await db.indexItems.bulkPut(exportedEntries);
+    });
+    console.log(`[index-manager] exported ${exportedEntries.length} cache keys`);
   }
 }
 

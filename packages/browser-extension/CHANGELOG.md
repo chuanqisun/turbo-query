@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.5.1
+
+- Fixed: Closing popup during index export caused data loss
+
 ## v1.5.0
 
 - New: Highlight keywords in title
