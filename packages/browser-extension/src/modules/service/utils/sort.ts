@@ -14,11 +14,14 @@ function getCategoryPriority(category?: string): number {
     case "Removed":
       return 10;
 
+    // slightly deprioritize completed categories
+    case "Resolved":
+    case "Completed":
+      return 5;
+
     // preserve order for other categories
     case "InProgress":
     case "Proposed":
-    case "Resolved":
-    case "Completed":
     default:
       return 0;
   }
