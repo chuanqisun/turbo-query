@@ -82,7 +82,6 @@ export class SearchManager extends EventTarget {
     const dbItemsSorted = dbItems.sort(sortByState.bind(null, metadataMap));
     const displayItems = dbItemsSorted.map(getSearchDisplayItem.bind(null, titleHighlighter, tokenMatcher, metadataMap));
 
-    console.log(displayItems);
     return displayItems;
   }
 
