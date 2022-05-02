@@ -5,7 +5,7 @@
 - Improved: Easier to hover on state indicator
 - Improved: Comfortable highlight color
 - Changed: Clicking on tag no longer selects it
-- Changed: Items are ranked by relevance, except for the Removed category
+- Changed: Items are ranked by relevance, except for the Resolved and Removed category
 - Fixed: ID + title copy format issue
 
 # Changelog
