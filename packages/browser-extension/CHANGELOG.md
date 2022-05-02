@@ -2,6 +2,7 @@
 
 - New: Highlight keywords in title
 - Improved: Derive Project from Area path
+- Fixed: ID + title copy format issue
 
 # Changelog
 

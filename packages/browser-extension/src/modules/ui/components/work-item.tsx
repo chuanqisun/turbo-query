@@ -33,15 +33,12 @@ export const WorkItem: React.FC<WorkItemProps> = ({
     <a tabIndex={-1} className="u-visually-hidden js-copy-target" href={`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}>
       {item.workItemType} {item.id}: {item.title}
     </a>
-    <span className="work-item__icon-interaction js-select-item-start" onClick={handleIconClick} title={item.workItemType}>
+    <span onCopy={handleIconCopy} className="work-item__icon-interaction js-select-item-start" onClick={handleIconClick} title={item.workItemType}>
       {item.iconUrl ? (
         <img className="work-item__icon" src={item.iconUrl} alt={item.workItemType} width={16} height={16} />
       ) : (
         <div className="work-item__icon" />
       )}
-      <span onCopy={handleIconCopy} className="u-visually-hidden">
-        {item.workItemType}
-      </span>
     </span>
     <div className="work-item__label-list">
       <span

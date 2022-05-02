@@ -3,7 +3,7 @@ import { selectElementContent } from "../utils/dom";
 
 export function useHandleIconClick() {
   const handleIconClick: React.MouseEventHandler<HTMLElement> = useCallback((e) => {
-    const li = (e.target as SVGElement).closest("li");
+    const li = (e.target as HTMLElement).closest("li");
     const start = li?.querySelector<HTMLElement>(".js-select-item-start");
     const end = li?.querySelector<HTMLElement>(".js-select-item-end");
     if (start && end) {
@@ -16,7 +16,7 @@ export function useHandleIconClick() {
 
 export function useHandleIconCopy() {
   const handleIconCopy: React.ClipboardEventHandler<HTMLElement> = useCallback((e) => {
-    const li = (e.target as SVGElement).closest("li");
+    const li = (e.target as HTMLElement).closest("li");
     const copyElement = li?.querySelector<HTMLElement>(".js-copy-target");
     if (copyElement) {
       // reveal content during copying
@@ -27,7 +27,7 @@ export function useHandleIconCopy() {
       setTimeout(() => {
         copyElement.classList.remove("u-visually-hidden--copying");
         // restore selection after
-        const li = (e.target as SVGElement).closest("li");
+        const li = (e.target as HTMLElement).closest("li");
         const start = li?.querySelector<HTMLElement>(".js-select-item-start");
         const end = li?.querySelector<HTMLElement>(".js-select-item-end");
         if (start && end) {
