@@ -6,6 +6,8 @@
 - Use a single intersection observer for all list items
 - Investigate Performance impact due to Edge efficient mode
 - Style-free html copy
+- Add links to GitHub on options page
+- Show release notes on options page
 
 # Maybe
 
