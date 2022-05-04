@@ -5,6 +5,7 @@
 - Remove network watcher. Handle offline during request
 - Use a single intersection observer for all list items
 - Investigate Performance impact due to Edge efficient mode
+- Update user guide regarding tag clicking behavior
 
 # Maybe
 
