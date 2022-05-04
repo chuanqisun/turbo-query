@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.5.2
+
+- Improved: Hover tool-tips
+- Fixed: Errors in User Guide
+
 ## v1.5.1
 
 - Improved: Search algorithm tweaks

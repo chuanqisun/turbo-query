@@ -5,7 +5,7 @@
 - Remove network watcher. Handle offline during request
 - Use a single intersection observer for all list items
 - Investigate Performance impact due to Edge efficient mode
-- Update user guide regarding tag clicking behavior
+- Style-free html copy
 
 # Maybe
 
@@ -14,4 +14,3 @@
 - Support custom include/exclude of item types
 - Click filter to toggle corresponding string in query
 - Refactor ipc to support subscription with initial response (request + listener)
-- Style-free html copy

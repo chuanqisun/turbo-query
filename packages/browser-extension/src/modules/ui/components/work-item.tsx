@@ -34,7 +34,7 @@ export const WorkItem: React.FC<WorkItemProps> = ({
       onCopy={handleIconCopy}
       className="work-item__icon-interaction js-select-item-start"
       onClick={handleIconClick}
-      title={`Type: ${item.workItemType} (Click to select the entire item for copying)`}
+      title={`Type: ${item.workItemType} (Click to select type + ID + title)`}
     >
       {item.iconUrl ? (
         <img className="work-item__icon" src={item.iconUrl} alt={item.workItemType} width={16} height={16} />
@@ -47,7 +47,7 @@ export const WorkItem: React.FC<WorkItemProps> = ({
         className="work-item__id work-item__matchable"
         data-matched={item.isIdMatched}
         tabIndex={0}
-        title={`ID: ${item.id} (Click to select ID)`}
+        title={`ID: ${item.id} (Click to select)`}
         onFocus={handleTextFocus}
         onBlur={handleTextBlur}
         onClick={handleClickToSelect}
@@ -60,7 +60,7 @@ export const WorkItem: React.FC<WorkItemProps> = ({
         onClick={handleLinkClick}
         onFocus={handleTextFocus}
         onBlur={handleTextBlur}
-        title={`Title: ${item.title} (Click to open)`}
+        title={`Title: ${item.title} (Click to open, Alt + click to select)`}
         href={`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}
         dangerouslySetInnerHTML={{ __html: item.titleHtml }}
       />{" "}

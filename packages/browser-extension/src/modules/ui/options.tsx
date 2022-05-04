@@ -194,11 +194,11 @@ export const SetupForm: React.FC = () => {
             <div className="label-hint">
               *Can be found in the URL{" "}
               <samp>
-                https://dev.azure.com/<em>&lt;OrganizationName&gt;</em>
+                https://dev.azure.com/<em>&lt;MyOrganization&gt;</em>
               </samp>
               .{" "}
               <a href="https://dev.azure.com" target="_blank">
-                Find organization
+                Find my organization
               </a>
             </div>
           </div>
@@ -242,13 +242,13 @@ export const SetupForm: React.FC = () => {
       )}
 
       <section className="shortcuts-section">
-        <h2>User guide</h2>
+        <h2>Shortcuts</h2>
         <table className="shortcuts-table">
           <tbody>
             <tr>
               <td>Launch</td>
               <td>
-                Click the <img className="launch-icon" src="./Logo.svg" height={19} /> button in the tray area
+                Click on the <img className="launch-icon" src="./Logo.svg" height={19} /> button in the extension tray area
               </td>
             </tr>
             <tr>
@@ -296,10 +296,6 @@ export const SetupForm: React.FC = () => {
               <td>
                 <kbd className="key-name">Alt</kbd> + click on the title
               </td>
-            </tr>
-            <tr>
-              <td>Select tag</td>
-              <td>Click on tag</td>
             </tr>
           </tbody>
         </table>
