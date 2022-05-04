@@ -275,24 +275,24 @@ export const SetupForm: React.FC = () => {
               </td>
             </tr>
             <tr>
-              <td>Open in current tab</td>
+              <td>Open item in the current tab</td>
               <td>Click on item title</td>
             </tr>
             <tr>
-              <td>Open in new tab</td>
+              <td>Open item in a new tab</td>
               <td>
                 <kbd className="key-name">Ctrl</kbd> + click or <kbd className="key-name">⌘</kbd> + click on item title
               </td>
             </tr>
             <tr>
-              <td>Open in new tab and navigate to it</td>
+              <td>Open item in a new tab and navigate to it</td>
               <td>
                 <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">Shift</kbd> + click or <kbd className="key-name">⌘</kbd> +{" "}
                 <kbd className="key-name">Shift</kbd> + click on item title
               </td>
             </tr>
             <tr>
-              <td>Select title</td>
+              <td>Select item title</td>
               <td>
                 <kbd className="key-name">Alt</kbd> + click on the title
               </td>
