@@ -261,7 +261,7 @@ export const SetupForm: React.FC = () => {
               </td>
             </tr>
             <tr>
-              <td>Copy item ID + title</td>
+              <td>Copy item type + ID + title</td>
               <td>
                 Click on item icon, then <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">C</kbd> or <kbd className="key-name">⌘</kbd> +{" "}
                 <kbd className="key-name">C</kbd>
