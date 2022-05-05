@@ -5,7 +5,7 @@ import { RecentChangedUpdate } from "../service/emitters/recent-manager";
 import { SearchChangedUpdate } from "../service/emitters/search-manager";
 import { SearchRequest, SearchResponse } from "../service/handlers/handle-watch-search";
 import { DisplayItem } from "../service/utils/get-display-item";
-import { VirtualWorkItem } from "./components/work-item";
+import { WorkItem } from "./components/work-item";
 import { useConfigGuard } from "./hooks/use-config-guard";
 import { useDebounce } from "./hooks/use-debounce";
 import {
@@ -15,9 +15,10 @@ import {
   useHandleIconCopy,
   useHandleLinkClick,
   useHandleTextBlur,
-  useHandleTextFocus,
+  useHandleTextFocus
 } from "./hooks/use-event-handlers";
 import { useSync } from "./hooks/use-sync";
+import { useVirtualList } from "./hooks/use-virtual-list";
 
 const DEBOUNCE_TIMEOUT = 25; // TODO: debounce + search latency should be less than 100ms for "instant" perception
 const worker = new Worker("./modules/service/worker.js");
@@ -25,7 +26,6 @@ const workerClient = new WorkerClient(worker);
 
 export const PopupWindow: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const scrollContainerRef = useRef<HTMLUListElement>(null);
   const [searchResult, setSearchResult] = useState<DisplayItem[]>();
   const [progressMessage, setProgressMessage] = useState<null | string>(null);
 
@@ -51,7 +51,7 @@ export const PopupWindow: React.FC = () => {
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setActiveQuery(e.target.value);
     localStorage.setItem("last-query", e.target.value);
-    scrollContainerRef.current?.scrollTo({ top: 0 });
+    virtualListRef.current?.scrollTo({ top: 0 });
   }, []);
 
   const debouncedQuery = useDebounce(activeQuery, DEBOUNCE_TIMEOUT);
@@ -127,6 +127,8 @@ export const PopupWindow: React.FC = () => {
 
   useHandleEscapeGlobal(inputRef);
 
+  const { VirtualListItem, setVirtualListRef, virtualListRef } = useVirtualList();
+
   return config ? (
     <div className="stack-layout">
       <div className="query-bar">
@@ -144,24 +146,22 @@ export const PopupWindow: React.FC = () => {
         </div>
       </div>
 
-      <ul className="work-item-list" ref={scrollContainerRef}>
+      <ul className="work-item-list" ref={setVirtualListRef}>
         {searchResult === undefined && <li className="work-item work-item--message">Waiting for data...</li>}
         {searchResult?.length === 0 && <li className="work-item work-item--message">No result found</li>}
         {searchResult?.map((item, index) => (
-          <VirtualWorkItem
-            key={item.id}
-            forceVisible={index < 15 || index === searchResult?.length - 1} // support backward tabbing
-            rootElement={scrollContainerRef.current!}
-            config={config}
-            item={item}
-            placeholderClassName="work-item__placeholder"
-            handleClickToSelect={handleClickToSelect}
-            handleIconClick={handleIconClick}
-            handleIconCopy={handleIconCopy}
-            handleLinkClick={handleLinkClick}
-            handleTextBlur={handleTextBlur}
-            handleTextFocus={handleTextFocus}
-          />
+          <VirtualListItem key={item.id} forceVisible={index < 15 || index === searchResult?.length - 1} placeholderClassName="work-item__placeholder">
+            <WorkItem
+              config={config}
+              item={item}
+              handleClickToSelect={handleClickToSelect}
+              handleIconClick={handleIconClick}
+              handleIconCopy={handleIconCopy}
+              handleLinkClick={handleLinkClick}
+              handleTextBlur={handleTextBlur}
+              handleTextFocus={handleTextFocus}
+            />
+          </VirtualListItem>
         ))}
       </ul>
 

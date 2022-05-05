@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.5.3
+
+- Improved: List scrolling performance
+
 ## v1.5.2
 
 - Improved: Hover tool-tips

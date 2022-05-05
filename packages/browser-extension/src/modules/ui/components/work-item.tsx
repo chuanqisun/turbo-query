@@ -1,7 +1,6 @@
 import React from "react";
 import { Config } from "../../service/ado/api-proxy";
 import { DisplayItem } from "../../service/utils/get-display-item";
-import { Virtualize } from "./virtualize";
 
 export interface WorkItemProps {
   config: Config;
@@ -94,5 +93,3 @@ export const WorkItem: React.FC<WorkItemProps> = ({
     </div>
   </li>
 );
-
-export const VirtualWorkItem = Virtualize(WorkItem);
