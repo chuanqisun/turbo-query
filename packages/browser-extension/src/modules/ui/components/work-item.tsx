@@ -56,7 +56,7 @@ export const WorkItem: React.FC<WorkItemProps> = ({ config, item, handleClickToS
           onCopy={copyDataHtml}
           data-copy-html={`<a href="${itemUrl}">${item.title}</a>`}
           title={`Title: ${item.title} (Click to open, Alt + click to select)`}
-          href={`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}
+          href={itemUrl}
           dangerouslySetInnerHTML={{ __html: item.titleHtml }}
         />{" "}
         {item.tags.length > 0 &&
