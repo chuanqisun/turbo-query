@@ -8,6 +8,7 @@
 - Show release notes on options page
 - Handle query limit error: 20k+ items
 - Status display `|` alignment for Windows system font
+- Need fix: holding backspace cannot clear search query result
 
 # Maybe
 
