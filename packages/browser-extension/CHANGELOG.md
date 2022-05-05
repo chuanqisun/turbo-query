@@ -2,6 +2,7 @@
 
 ## v1.5.3
 
+- Improved: Consistent visual feedback after successful copy
 - Improved: List scrolling performance
 
 ## v1.5.2

@@ -1,38 +1,29 @@
 import React from "react";
 import { Config } from "../../service/ado/api-proxy";
 import { DisplayItem } from "../../service/utils/get-display-item";
+import { copyDataHtml } from "../utils/clipboard";
 
 export interface WorkItemProps {
   config: Config;
   item: DisplayItem;
   handleIconClick: React.MouseEventHandler;
-  handleIconCopy: React.ClipboardEventHandler;
   handleTextFocus: React.FocusEventHandler;
   handleLinkClick: React.MouseEventHandler;
   handleTextBlur: React.FocusEventHandler;
   handleClickToSelect: React.MouseEventHandler;
 }
-export const WorkItem: React.FC<WorkItemProps> = ({
-  config,
-  item,
-  handleClickToSelect,
-  handleIconClick,
-  handleTextBlur,
-  handleLinkClick,
-  handleTextFocus,
-  handleIconCopy,
-}) => (
+export const WorkItem: React.FC<WorkItemProps> = ({ config, item, handleClickToSelect, handleIconClick, handleTextBlur, handleLinkClick, handleTextFocus }) => (
   <li className="work-item" key={item.id}>
     <span className="work-item__state-interaction" title={`State: ${item.state}`}>
       <span className="work-item__state-bar" data-state-category={item.stateCategory} style={{ "--state-color": item.stateColor } as React.CSSProperties} />
     </span>
-    <a tabIndex={-1} className="u-visually-hidden js-copy-target" href={`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}>
-      {item.workItemType} {item.id}: {item.title}
-    </a>
     <span
-      onCopy={handleIconCopy}
+      onCopy={copyDataHtml}
       className="work-item__icon-interaction js-select-item-start"
       onClick={handleIconClick}
+      data-copy-html={`<a href="${`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}">${item.workItemType} ${item.id}: ${
+        item.title
+      }</a>`}
       title={`Type: ${item.workItemType} (Click to select type + ID + title)`}
     >
       {item.iconUrl ? (
@@ -47,8 +38,10 @@ export const WorkItem: React.FC<WorkItemProps> = ({
         data-matched={item.isIdMatched}
         tabIndex={0}
         title={`ID: ${item.id} (Click to select)`}
+        data-copy-html={item.id}
         onFocus={handleTextFocus}
         onBlur={handleTextBlur}
+        onCopy={copyDataHtml}
         onClick={handleClickToSelect}
       >
         {item.id}
@@ -59,6 +52,8 @@ export const WorkItem: React.FC<WorkItemProps> = ({
         onClick={handleLinkClick}
         onFocus={handleTextFocus}
         onBlur={handleTextBlur}
+        onCopy={copyDataHtml}
+        data-copy-html={`<a href="${`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}">${item.title}</a>`}
         title={`Title: ${item.title} (Click to open, Alt + click to select)`}
         href={`https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`}
         dangerouslySetInnerHTML={{ __html: item.titleHtml }}

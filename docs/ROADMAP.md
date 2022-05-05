@@ -4,7 +4,6 @@
 - Support dark theme and handle `color-scheme: light dark;`
 - Remove network watcher. Handle offline during request
 - Investigate Performance impact due to Edge efficient mode
-- Style-free html copy
 - Add links to GitHub on options page
 - Show release notes on options page
 

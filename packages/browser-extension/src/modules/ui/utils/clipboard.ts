@@ -1,12 +1,29 @@
-export async function copyRichText(html: string, plaintext: string) {
-  function listener(e: ClipboardEvent) {
-    e.clipboardData?.setData("text/html", html);
-    e.clipboardData?.setData("text/plain", plaintext);
-    e.preventDefault();
-  }
-  document.addEventListener("copy", listener);
-  document.execCommand("copy");
-  document.removeEventListener("copy", listener);
-  console.log("oc");
-  // }
-}
+import React from "react";
+import { selectElementContent } from "./dom";
+
+export const copyDataHtml: React.ClipboardEventHandler<HTMLElement> = (e) => {
+  // execute copy
+  const html = (e.target as HTMLElement)?.closest("[data-copy-html]")?.getAttribute("data-copy-html") ?? "";
+  console.log(`[clipboard] copying html`, html);
+
+  const copyContainer = document.createElement("div");
+  copyContainer.innerHTML = html;
+
+  copyContainer.style.position = "absolute";
+  copyContainer.style.left = "-10000px";
+  copyContainer.style.overflow = "hidden";
+
+  document.body.append(copyContainer);
+  const { savedRange } = selectElementContent(copyContainer);
+
+  setTimeout(() => {
+    copyContainer.remove();
+
+    // restore selection
+    if (savedRange) {
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(savedRange);
+    }
+  }, 50); // Use timeout to introduce a small delay as visual feedback for successful copy
+};

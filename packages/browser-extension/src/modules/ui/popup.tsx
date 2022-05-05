@@ -12,10 +12,9 @@ import {
   useClickToSelect,
   useHandleEscapeGlobal,
   useHandleIconClick,
-  useHandleIconCopy,
   useHandleLinkClick,
   useHandleTextBlur,
-  useHandleTextFocus
+  useHandleTextFocus,
 } from "./hooks/use-event-handlers";
 import { useSync } from "./hooks/use-sync";
 import { useVirtualList } from "./hooks/use-virtual-list";
@@ -123,7 +122,6 @@ export const PopupWindow: React.FC = () => {
   const handleClickToSelect = useClickToSelect();
   const handleLinkClick = useHandleLinkClick();
   const handleIconClick = useHandleIconClick();
-  const handleIconCopy = useHandleIconCopy();
 
   useHandleEscapeGlobal(inputRef);
 
@@ -156,7 +154,6 @@ export const PopupWindow: React.FC = () => {
               item={item}
               handleClickToSelect={handleClickToSelect}
               handleIconClick={handleIconClick}
-              handleIconCopy={handleIconCopy}
               handleLinkClick={handleLinkClick}
               handleTextBlur={handleTextBlur}
               handleTextFocus={handleTextFocus}
