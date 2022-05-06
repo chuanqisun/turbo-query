@@ -4,6 +4,7 @@
 
 - Improved: Display indexer progress
 - Improved Status bar content tweak
+- Improved: Setup form usability
 - Fixed: Truncate 20k+ query results
 - Fixed: Disabled item type rendered as whitespace
 - Fixed: Holding backspace cannot clear search query result

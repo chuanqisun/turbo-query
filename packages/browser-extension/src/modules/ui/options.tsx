@@ -185,12 +185,12 @@ export const SetupForm: React.FC = () => {
         <section className="form-section">
           <div className="form-field">
             <label htmlFor="email">Work email</label>
-            <input id="email" autoFocus name="email" type="email" placeholder="john@example.com" required />
+            <input id="email" autoFocus autoComplete="email" name="email" spellCheck="false" type="email" placeholder="john@example.com" required />
           </div>
 
           <div className="form-field">
             <label htmlFor="org">Organization</label>
-            <input id="org" name="org" type="text" placeholder="My organization" required />
+            <input id="org" name="org" type="text" spellCheck="false" placeholder="My organization" required />
             <div className="label-hint">
               *Can be found in the URL{" "}
               <samp>
@@ -205,9 +205,9 @@ export const SetupForm: React.FC = () => {
 
           <div className="form-field">
             <label htmlFor="area-path">Area path</label>
-            <input id="area-path" ref={areaPathInputRef} name="areaPath" type="text" placeholder="My\Area\Path" required />
+            <input id="area-path" ref={areaPathInputRef} name="areaPath" type="text" spellCheck="false" placeholder="My\Area\Path" required />
             <div className="label-hint">
-              *Same as the <em>Area</em> field in work items.
+              *Same as the <em>Area</em> field in work items, with no more than 20,000 items.
             </div>
           </div>
 
