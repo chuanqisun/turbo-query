@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v1.5.4
 
 - Improved: Display indexer progress
 - Improved Status bar content tweak
