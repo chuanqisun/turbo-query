@@ -50,14 +50,20 @@ export class IndexManager extends EventTarget {
     return this.#importedIndex;
   }
 
-  async buildIndex(): Promise<IndexType> {
-    await db.workItems.each((item) =>
+  async buildIndex({ onExport, onProgress }: BuildIndexCallbacks): Promise<IndexType> {
+    let count = 0;
+    const total = await db.workItems.count();
+    await db.workItems.each((item) => {
       this.#nativeIndex.add(item.id, {
         id: item.id,
         fuzzyTokens: getFuzzyTitle(item),
-      })
-    );
+      });
+      if (++count % 250 === 0) {
+        onProgress?.(count, total);
+      }
+    });
 
+    onExport?.();
     await this.#exportIndex();
 
     this.#activeIndex = this.#nativeIndex;
@@ -136,6 +142,11 @@ export interface IndexedItem {
 export interface IndexUpdateResult {
   index: IndexType;
   rev: number;
+}
+
+export interface BuildIndexCallbacks {
+  onProgress?: (count: number, total: number) => any;
+  onExport?: () => any;
 }
 
 export type IndexType = FlexSearch.Document<IndexedItem, false>;

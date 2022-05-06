@@ -39,7 +39,11 @@ export async function handleSyncContent(
     if (request.rebuildIndex) {
       performance.mark("index");
       server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: "Building index..." });
-      await indexManager.buildIndex();
+      await indexManager.buildIndex({
+        onProgress: (count, total) =>
+          server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: `Building index... ${toPercent(count, total)}` }),
+        onExport: () => server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: `Saving index...` }),
+      });
       console.log(`[sync] Built index ${performance.measure("import duration", "index").duration.toFixed(2)}ms`);
     } else if (isSummaryDirty(summary)) {
       performance.mark("index");
@@ -53,7 +57,6 @@ export async function handleSyncContent(
     return summary;
   } catch (e) {
     console.error(e);
-    server.emit("sync-progress", { type: "error", message: (e as any)?.message ?? "Unknown error" });
     return {
       addedIds: [],
       updatedIds: [],
@@ -64,7 +67,7 @@ export async function handleSyncContent(
 
 async function fullSync(server: WorkerServer, api: ApiProxy): Promise<SyncContentResponse> {
   server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: "Fetching ids..." });
-  const allIds = await api.getAllWorkItemIds();
+  const allIds = await api.getSinglePageWorkItemIds();
   const idPages = getPages(allIds);
   server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: `Fetching ids... found ${allIds.length} items, ${idPages.length} pages` });
 
@@ -109,8 +112,8 @@ async function incrementalSync(db: Db, server: WorkerServer, api: ApiProxy): Pro
   }
 
   server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: `Fetching ids...` });
-  const allIds = await api.getAllWorkItemIds();
-  const allDeletedIdsAsync = api.getAllDeletedWorkItemIds();
+  const allIds = await api.getSinglePageWorkItemIds();
+  const allDeletedIdsAsync = api.getSinglePageDeletedWorkItemIds();
   const idPages = getPages(allIds);
   server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: `Fetching item ids... found ${allIds.length} items, ${idPages.length} pages` });
 
@@ -158,7 +161,7 @@ async function incrementalSync(db: Db, server: WorkerServer, api: ApiProxy): Pro
 }
 
 async function peekIsChanged(db: Db, api: ApiProxy) {
-  const hasUpsertionAsync = await api.getAllWorkItemIds({ top: 1 }).then(async (ids) => {
+  const hasUpsertionAsync = await api.getSinglePageWorkItemIds({ top: 1 }).then(async (ids) => {
     if (!ids.length) return true; // Remote should not be empty. Treat as dirty to be safe
     const localItem = await db.workItems.get(ids[0]);
     if (!localItem) return true; // Local is missing. Treat as dirty.
@@ -169,7 +172,7 @@ async function peekIsChanged(db: Db, api: ApiProxy) {
     return remoteItems[0].rev !== localItem.rev;
   });
 
-  const hasDeletionAsync = await api.getAllDeletedWorkItemIds({ top: 1 }).then(async (ids) => {
+  const hasDeletionAsync = await api.getSinglePageDeletedWorkItemIds({ top: 1 }).then(async (ids) => {
     if (!ids.length) return false; // No deleted item. Treat as clean;
     const localItem = await db.workItems.get(ids[0]);
     if (localItem) return true; // Remote deleted but local exists. Definitely changed.

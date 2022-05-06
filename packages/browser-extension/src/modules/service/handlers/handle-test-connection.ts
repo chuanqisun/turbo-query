@@ -13,10 +13,10 @@ export interface TestConnectionResponse {
 export async function handleTestConnection(_ctx: HandlerContext, request: TestConnectionRequest): Promise<TestConnectionResponse> {
   const api = new ApiProxy(request.config);
   try {
-    const ids = await api.getAllWorkItemIds();
+    const ids = await api.getSinglePageWorkItemIds();
     return {
       status: "success",
-      message: `Connecting to Azure DevOps... Success! (${ids.length} items found)`,
+      message: `Connecting to Azure DevOps... Success! (${ids.length} items)`,
     };
   } catch (e) {
     return {

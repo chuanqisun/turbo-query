@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Improved: Display indexer progress
+- Fixed: Truncate 20k+ query results
 - Fixed: Disabled item type rendered as whitespace
 
 ## v1.5.3

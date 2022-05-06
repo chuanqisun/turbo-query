@@ -1,6 +1,8 @@
 import { getPatHeader } from "./auth";
 import { getRootQuery } from "./query";
 
+export const MAX_ITEM_PER_PAGE = 19999;
+
 export class ApiProxy {
   #config: Config;
 
@@ -8,11 +10,11 @@ export class ApiProxy {
     this.#config = config;
   }
 
-  async getAllDeletedWorkItemIds(params?: QueryParams): Promise<number[]> {
+  async getSinglePageDeletedWorkItemIds(params?: QueryParams): Promise<number[]> {
     const patHeader = getPatHeader(this.#config);
-    const body = JSON.stringify({ query: getRootQuery(this.#config.areaPath, true) });
+    const body = JSON.stringify({ query: getRootQuery({ rootAreaPath: this.#config.areaPath, isDeleted: true }) });
     const searchParams = new URLSearchParams(`api-version=6.0`);
-    if (params?.top) searchParams.set("$top", params.top.toString());
+    searchParams.set("$top", Math.min(params?.top ?? Infinity, MAX_ITEM_PER_PAGE).toString());
 
     return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/wiql/?${searchParams.toString()}`, {
       method: "post",
@@ -25,11 +27,13 @@ export class ApiProxy {
       });
   }
 
-  async getAllWorkItemIds(params?: QueryParams): Promise<number[]> {
+  async getSinglePageWorkItemIds(params?: QueryParams): Promise<number[]> {
     const patHeader = getPatHeader(this.#config);
-    const body = JSON.stringify({ query: getRootQuery(this.#config.areaPath) });
+    const body = JSON.stringify({
+      query: getRootQuery({ rootAreaPath: this.#config.areaPath }),
+    });
     const searchParams = new URLSearchParams(`api-version=6.0`);
-    if (params?.top) searchParams.set("$top", params.top.toString());
+    searchParams.set("$top", Math.min(params?.top ?? Infinity, MAX_ITEM_PER_PAGE).toString());
 
     return fetch(`https://dev.azure.com/${this.#config.org}/${this.#config.project}/_apis/wit/wiql/?${searchParams.toString()}`, {
       method: "post",
