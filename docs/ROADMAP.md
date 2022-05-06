@@ -6,7 +6,6 @@
 - Investigate Performance impact due to Edge efficient mode
 - Add links to GitHub on options page
 - Show release notes on options page
-- Need fix: holding backspace cannot clear search query result
 - Remove spell checker in options form
 
 # Maybe

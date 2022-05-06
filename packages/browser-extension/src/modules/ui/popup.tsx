@@ -92,7 +92,10 @@ export const PopupWindow: React.FC = () => {
     if (!debouncedQuery.trim().length) return;
 
     workerClient.post<SearchRequest, SearchResponse>("watch-search", { query: debouncedQuery }).then((result) => {
-      setSearchResult(result.items);
+      // accept results only when search box has content
+      if (inputRef.current?.value?.trim().length) {
+        setSearchResult(result.items);
+      }
     });
   }, [debouncedQuery]);
 

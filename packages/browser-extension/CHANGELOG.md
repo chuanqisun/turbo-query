@@ -6,6 +6,7 @@
 - Improved Status bar content tweak
 - Fixed: Truncate 20k+ query results
 - Fixed: Disabled item type rendered as whitespace
+- Fixed: Holding backspace cannot clear search query result
 
 ## v1.5.3
 
