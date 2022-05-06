@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fixed: Disabled item type rendered as whitespace
+
 ## v1.5.3
 
 - Improved: Consistent visual feedback after successful copy

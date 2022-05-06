@@ -44,12 +44,11 @@ export class MetadataManager extends EventTarget {
     // TODO this update could be skipped if all the icons and states are the same
     const networkCache = await this.#networkCacheAsync;
 
-    const activeTypes = itemTypes.filter((type) => !type.isDisabled);
     let progress = 0;
     let fetchCount = 0;
-    onProgress?.({ progress, total: activeTypes.length });
+    onProgress?.({ progress, total: itemTypes.length });
 
-    const dbItemsAsync = activeTypes.map(async (itemType) => {
+    const dbItemsAsync = itemTypes.map(async (itemType) => {
       let imageAsync = networkCache.get(itemType.icon.url);
       if (!imageAsync) {
         fetchCount++;
@@ -71,7 +70,7 @@ export class MetadataManager extends EventTarget {
       await db.workItemTypes.put(dbItem);
 
       progress++;
-      onProgress?.({ progress, total: activeTypes.length });
+      onProgress?.({ progress, total: itemTypes.length });
 
       return dbItem;
     });
@@ -84,7 +83,7 @@ export class MetadataManager extends EventTarget {
     this.dispatchEvent(new CustomEvent<MetadataChangedUpdate>("changed", { detail: { timestamp: Date.now() } }));
 
     return {
-      itemTypeCount: activeTypes.length,
+      itemTypeCount: itemTypes.length,
       fetchCount,
     };
   }
