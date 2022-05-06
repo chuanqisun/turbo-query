@@ -207,7 +207,7 @@ export const SetupForm: React.FC = () => {
             <label htmlFor="area-path">Area path</label>
             <input id="area-path" ref={areaPathInputRef} name="areaPath" type="text" spellCheck="false" placeholder="My\Area\Path" required />
             <div className="label-hint">
-              *Same as the <em>Area</em> field in work items, with no more than 20,000 items.
+              *Same as the <em>Area</em> field in work items. You can only query the 20,000 most recently changed items in the area.
             </div>
           </div>
 
