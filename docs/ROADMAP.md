@@ -6,10 +6,8 @@
 - Investigate Performance impact due to Edge efficient mode
 - Add links to GitHub on options page
 - Show release notes on options page
-- Status display `|` alignment for Windows system font
 - Need fix: holding backspace cannot clear search query result
 - Remove spell checker in options form
-- Typo: peek vs peak
 
 # Maybe
 

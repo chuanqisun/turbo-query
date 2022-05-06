@@ -101,7 +101,7 @@ async function fullSync(server: WorkerServer, api: ApiProxy): Promise<SyncConten
 }
 
 async function incrementalSync(db: Db, server: WorkerServer, api: ApiProxy): Promise<SyncContentResponse> {
-  server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: `Peaking changes...` });
+  server.emit<SyncContentUpdate>("sync-progress", { type: "progress", message: `Detecting changes...` });
   const isChanged = await peekIsChanged(db, api);
   if (!isChanged) {
     return {
