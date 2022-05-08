@@ -12,9 +12,11 @@ import {
   useHandleEscapeGlobal,
   useHandleIconClick,
   useHandleLinkClick,
+  useHandleQueryKeydown,
   useHandleTextBlur,
   useHandleTextFocus,
 } from "./hooks/use-event-handlers";
+import { useKeyboardNavigatioe } from "./hooks/use-keyboard-navigation";
 import { useSync } from "./hooks/use-sync";
 import { useVirtualList } from "./hooks/use-virtual-list";
 import { copyDataHtml } from "./utils/clipboard";
@@ -25,7 +27,7 @@ const workerClient = new WorkerClient(worker);
 
 export const PopupWindow: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [searchResult, setSearchResult] = useState<DisplayItem[]>();
+  const [displayItems, setDisplayItems] = useState<DisplayItem[]>();
   const [progressMessage, setProgressMessage] = useState<null | string>(null);
 
   const initialQuery = useRef(localStorage.getItem("last-query") ?? "");
@@ -63,7 +65,7 @@ export const PopupWindow: React.FC = () => {
       workerClient.subscribe<SearchChangedUpdate>("search-changed", (update) => {
         // accept update only when search box has content
         if (inputRef.current?.value?.trim().length) {
-          setSearchResult(update.items);
+          setDisplayItems(update.items);
         }
       }),
     []
@@ -83,7 +85,7 @@ export const PopupWindow: React.FC = () => {
   // display recent as search results when search box is empty
   useEffect(() => {
     if (!activeQuery.trim().length && recentItems) {
-      setSearchResult(recentItems);
+      setDisplayItems(recentItems);
     }
   }, [recentItems, activeQuery]);
 
@@ -94,7 +96,7 @@ export const PopupWindow: React.FC = () => {
     workerClient.post<SearchRequest, SearchResponse>("watch-search", { query: debouncedQuery }).then((result) => {
       // accept results only when search box has content
       if (inputRef.current?.value?.trim().length) {
-        setSearchResult(result.items);
+        setDisplayItems(result.items);
       }
     });
   }, [debouncedQuery]);
@@ -127,32 +129,19 @@ export const PopupWindow: React.FC = () => {
   const handleIconClick = useHandleIconClick();
 
   useHandleEscapeGlobal(inputRef);
+  const { activeIndex, handleArrowKeys } = useKeyboardNavigatioe({ inputRef, displayItems });
 
-  const [activeIndex, setActiveIndex] = useState(0);
-  const handleArrowKeys = useCallback<React.KeyboardEventHandler>(
-    (e) => {
-      const count = searchResult?.length;
-      if (!count) return; // including 0
-
-      switch (e.key) {
-        case "ArrowDown":
-          setActiveIndex((prev) => (prev + 1) % count);
-          break;
-        case "ArrowUp":
-          setActiveIndex((prev) => (prev + count - 1) % count);
-          break;
-      }
-    },
-    [searchResult]
-  );
+  const handleQueryKeyDown = useHandleQueryKeydown({ activeIndex, config, displayItems });
 
   const { VirtualListItem, setVirtualListRef, virtualListRef } = useVirtualList();
 
   return config ? (
-    <div className="stack-layout">
+    <div className="stack-layout" onKeyDown={handleArrowKeys}>
       <div className="query-bar">
         <div className="query-bar__input-group">
-          <button onClick={openConfig}>⚙️</button>
+          <button type="button" onClick={openConfig}>
+            ⚙️
+          </button>
           <input
             className="query-bar__input"
             ref={inputRef}
@@ -160,19 +149,20 @@ export const PopupWindow: React.FC = () => {
             autoFocus
             value={activeQuery}
             onChange={handleInputChange}
+            onKeyDown={handleQueryKeyDown}
             placeholder="Search by title or fields…"
           />
         </div>
       </div>
 
       <ul className="work-item-list" ref={setVirtualListRef}>
-        {searchResult === undefined && <li className="work-item work-item--message">Waiting for data...</li>}
-        {searchResult?.length === 0 && <li className="work-item work-item--message">No result found</li>}
-        {searchResult?.map((item, index) => {
+        {displayItems === undefined && <li className="work-item work-item--message">Waiting for data...</li>}
+        {displayItems?.length === 0 && <li className="work-item work-item--message">No result found</li>}
+        {displayItems?.map((item, index) => {
           const itemUrl = `https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`;
           return (
-            <VirtualListItem key={item.id} forceVisible={index < 15 || index === searchResult?.length - 1} placeholderClassName="work-item__placeholder">
-              <li className="work-item" key={item.id} data-active={index === activeIndex}>
+            <VirtualListItem key={item.id} forceVisible={index < 15 || index === displayItems?.length - 1} placeholderClassName="work-item__placeholder">
+              <li className="work-item" key={item.id} tabIndex={-1} data-item-active={index === activeIndex}>
                 <span className="work-item__state-interaction" title={`State: ${item.state}`}>
                   <span
                     className="work-item__state-bar"

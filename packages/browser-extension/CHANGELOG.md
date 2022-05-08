@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added: Keyboard navigation (arrow key + enter)
 - Improved: Color tweak
 
 ## v1.5.4

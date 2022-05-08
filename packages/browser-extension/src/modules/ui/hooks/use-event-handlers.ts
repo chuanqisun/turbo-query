@@ -1,4 +1,6 @@
 import { useCallback, useEffect } from "react";
+import { Config } from "../../service/ado/api-proxy";
+import { DisplayItem } from "../../service/utils/get-display-item";
 import { selectElementContent } from "../utils/dom";
 
 export function useHandleIconClick() {
@@ -38,6 +40,35 @@ export function useHandleIconCopy() {
   }, []);
 
   return handleIconCopy;
+}
+
+export interface UseHandleQueryKeydownProps {
+  activeIndex: number;
+  config?: Config;
+  displayItems?: DisplayItem[];
+}
+
+export function useHandleQueryKeydown({ activeIndex, displayItems, config }: UseHandleQueryKeydownProps) {
+  return useCallback<React.KeyboardEventHandler>(
+    (e) => {
+      if (!config) return;
+
+      const item = displayItems?.[activeIndex];
+      if (e.code === "Enter" && item) {
+        e.preventDefault();
+        const isCtrl = e.ctrlKey || e.metaKey;
+        const isShift = e.shiftKey;
+        const url = `https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`;
+
+        if (isCtrl) {
+          chrome.tabs.create({ url, active: isShift });
+        } else {
+          chrome.tabs.update({ url });
+        }
+      }
+    },
+    [activeIndex, config, displayItems]
+  );
 }
 
 export interface UseHandleLinkClickProps {}

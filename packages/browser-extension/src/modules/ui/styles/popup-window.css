@@ -68,7 +68,7 @@ body {
   font-size: 14px;
   line-height: 18px;
 }
-.work-item[data-active="true"] {
+.work-item[data-item-active="true"] {
   background-color: var(--active-item-background);
 }
 
