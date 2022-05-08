@@ -244,7 +244,7 @@ export const SetupForm: React.FC = () => {
       <section className="shortcuts-section">
         <h2>Shortcuts</h2>
         <p className="shortcuts-tip">
-          *On MacOS, use <kbd className="key-name">⌘</kbd> instead of <kbd className="key-name">Ctrl</kbd>
+          *MacOS users should use <kbd className="key-name">⌘</kbd> instead of <kbd className="key-name">Ctrl</kbd>
         </p>
         <table className="shortcuts-table">
           <tbody>
