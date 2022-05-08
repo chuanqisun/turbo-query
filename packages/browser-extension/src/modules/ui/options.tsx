@@ -243,6 +243,9 @@ export const SetupForm: React.FC = () => {
 
       <section className="shortcuts-section">
         <h2>Shortcuts</h2>
+        <p>
+          *On MacOS, use <kbd className="key-name">⌘</kbd> instead of <kbd className="key-name">Ctrl</kbd>
+        </p>
         <table className="shortcuts-table">
           <tbody>
             <tr>
@@ -261,40 +264,81 @@ export const SetupForm: React.FC = () => {
               </td>
             </tr>
             <tr>
-              <td>Copy item type + ID + title</td>
+              <td>Select next item</td>
               <td>
-                Click on item icon, then <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">C</kbd> or <kbd className="key-name">⌘</kbd> +{" "}
-                <kbd className="key-name">C</kbd>
+                <kbd className="key-name">⇩</kbd> or <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">J</kbd>
               </td>
             </tr>
             <tr>
-              <td>Copy item ID</td>
+              <td>Select previous item</td>
               <td>
-                Click on item ID, then <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">C</kbd> or <kbd className="key-name">⌘</kbd> +{" "}
-                <kbd className="key-name">C</kbd>
+                <kbd className="key-name">⇧</kbd> or <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">H</kbd>
               </td>
             </tr>
             <tr>
-              <td>Open item in the current tab</td>
-              <td>Click on item title</td>
-            </tr>
-            <tr>
-              <td>Open item in a new tab</td>
+              <td>Open selected item (current tab)</td>
               <td>
-                <kbd className="key-name">Ctrl</kbd> + click or <kbd className="key-name">⌘</kbd> + click on item title
+                <kbd className="key-name">Enter</kbd>
               </td>
             </tr>
             <tr>
-              <td>Open item in a new tab and navigate to it</td>
+              <td>Open selected item (new background tab)</td>
               <td>
-                <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">Shift</kbd> + click or <kbd className="key-name">⌘</kbd> +{" "}
-                <kbd className="key-name">Shift</kbd> + click on item title
+                <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">Enter</kbd>
               </td>
             </tr>
             <tr>
-              <td>Select item title</td>
+              <td>Open selected item (new active tab)</td>
               <td>
-                <kbd className="key-name">Alt</kbd> + click on the title
+                <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">Shift</kbd> + <kbd className="key-name">Enter</kbd>
+              </td>
+            </tr>
+            <tr>
+              <td>Open any item (current tab)</td>
+              <td>Click on the Title</td>
+            </tr>
+            <tr>
+              <td>Open any item (new background tab)</td>
+              <td>
+                <kbd className="key-name">Ctrl</kbd> + click on then Title
+              </td>
+            </tr>
+            <tr>
+              <td>Open any item (new active tab)</td>
+              <td>
+                <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">Shift</kbd> + click on the Title
+              </td>
+            </tr>
+            <tr>
+              <td>Select next field</td>
+              <td>
+                <kbd className="key-name">Tab</kbd>
+              </td>
+            </tr>
+            <tr>
+              <td>Select previous field</td>
+              <td>
+                <kbd className="key-name">Shift</kbd> + <kbd className="key-name">Tab</kbd>
+              </td>
+            </tr>
+            <tr>
+              <td>Select Title</td>
+              <td>
+                <kbd className="key-name">Alt</kbd> + click on the Title
+              </td>
+            </tr>
+            <tr>
+              <td>Select ID field</td>
+              <td>Click on item ID</td>
+            </tr>
+            <tr>
+              <td>Select type + ID + Title</td>
+              <td>Click on item icon</td>
+            </tr>
+            <tr>
+              <td>Copy selected title or field(s)</td>
+              <td>
+                <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">C</kbd>
               </td>
             </tr>
           </tbody>

@@ -22,13 +22,13 @@ export function useKeyboardNavigatioe({ displayItems, inputRef }: UseKeyboardNav
           setActiveIndex((prev) => (prev + count - 1) % count);
           break;
         case "KeyJ":
-          if (e.ctrlKey) {
+          if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
             setActiveIndex((prev) => (prev + 1) % count);
             break;
           }
         case "KeyK":
-          if (e.ctrlKey) {
+          if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
             setActiveIndex((prev) => (prev + count - 1) % count);
             break;

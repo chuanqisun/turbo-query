@@ -50,21 +50,14 @@ export interface UseHandleQueryKeydownProps {
 
 export function useHandleQueryKeydown({ activeIndex, displayItems, config }: UseHandleQueryKeydownProps) {
   return useCallback<React.KeyboardEventHandler>(
-    (e) => {
+    (e: React.KeyboardEvent) => {
       if (!config) return;
 
       const item = displayItems?.[activeIndex];
       if (e.code === "Enter" && item) {
         e.preventDefault();
-        const isCtrl = e.ctrlKey || e.metaKey;
-        const isShift = e.shiftKey;
         const url = `https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`;
-
-        if (isCtrl) {
-          chrome.tabs.create({ url, active: isShift });
-        } else {
-          chrome.tabs.update({ url });
-        }
+        navigateToUrl(url, e);
       }
     },
     [activeIndex, config, displayItems]
@@ -75,16 +68,8 @@ export interface UseHandleLinkClickProps {}
 export function useHandleLinkClick() {
   return useCallback<React.MouseEventHandler>(async (e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault(); // allows alt click to be no-op
-
-    const isCtrl = e.ctrlKey || e.metaKey;
-    const isShift = e.shiftKey;
     const url = (e.target as HTMLAnchorElement).href;
-
-    if (isCtrl) {
-      chrome.tabs.create({ url, active: isShift });
-    } else {
-      chrome.tabs.update({ url });
-    }
+    navigateToUrl(url, e);
   }, []);
 }
 
@@ -129,4 +114,15 @@ export function useHandleTextBlur() {
 export function useHandleSentinelFocus() {
   // trigger selection on sentinel focus
   return useCallback<React.FocusEventHandler>((e) => e.target.closest(".work-item")?.querySelector<HTMLElement>(".js-select-item-trigger")?.click(), []);
+}
+
+function navigateToUrl(url: string, e: React.MouseEvent | React.KeyboardEvent) {
+  const isCtrl = e.ctrlKey || e.metaKey;
+  const isShift = e.shiftKey;
+
+  if (isCtrl) {
+    chrome.tabs.create({ url, active: isShift });
+  } else {
+    chrome.tabs.update({ url });
+  }
 }
