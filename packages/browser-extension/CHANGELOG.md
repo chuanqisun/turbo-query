@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.1
+
+- Improved: Visual feedback when opening item
+
 ## v1.6.0
 
 - Added: Keyboard navigation

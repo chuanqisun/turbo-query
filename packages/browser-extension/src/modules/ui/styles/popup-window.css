@@ -1,7 +1,8 @@
 :root {
   --primary-highlight: rgb(75.45% 92.12% 91.99%);
   --secondary-highlight: rgb(91.45% 87.01% 98.39%);
-  --active-item-background: #ddd;
+  --item-background-color-active: #ddd;
+  --item-background-color-opening: white;
   --id-text-color: rgba(0, 0, 0, 0.75);
   --id-text-color-hover: rgba(0, 0, 0, 0.75);
   --id-background-color-hover: rgba(0, 0, 0, 0.125);
@@ -69,7 +70,10 @@ body {
   line-height: 18px;
 }
 .work-item[data-item-active="true"] {
-  background-color: var(--active-item-background);
+  background-color: var(--item-background-color-active);
+}
+.work-item[data-item-opening] {
+  background-color: var(--item-background-color-opening);
 }
 
 .work-item__icon-interaction {

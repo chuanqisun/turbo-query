@@ -18,7 +18,7 @@ import {
   useHandleTextBlur,
   useHandleTextFocus,
 } from "./hooks/use-event-handlers";
-import { useKeyboardNavigatioe } from "./hooks/use-keyboard-navigation";
+import { useKeyboardNavigation } from "./hooks/use-keyboard-navigation";
 import { useSync } from "./hooks/use-sync";
 import { useVirtualList } from "./hooks/use-virtual-list";
 import { copyDataHtml } from "./utils/clipboard";
@@ -132,7 +132,7 @@ export const PopupWindow: React.FC = () => {
   const handleSentinelFocus = useHandleSentinelFocus();
 
   useHandleEscapeGlobal(inputRef);
-  const { activeIndex, handleArrowKeys } = useKeyboardNavigatioe({ inputRef, displayItems, query: debouncedQuery });
+  const { activeIndex, handleArrowKeys } = useKeyboardNavigation({ inputRef, displayItems, query: debouncedQuery });
 
   const handleQueryKeyDown = useHandleQueryKeyDown({ activeIndex, config, displayItems });
 

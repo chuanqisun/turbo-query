@@ -6,7 +6,7 @@ export interface UseKeyboardNavigationProps {
   query: string;
   inputRef: React.RefObject<HTMLInputElement>;
 }
-export function useKeyboardNavigatioe({ displayItems, inputRef, query }: UseKeyboardNavigationProps) {
+export function useKeyboardNavigation({ displayItems, inputRef, query }: UseKeyboardNavigationProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const handleArrowKeys = useCallback<React.KeyboardEventHandler>(
     (e) => {

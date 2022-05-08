@@ -57,8 +57,13 @@ export function useHandleQueryKeyDown({ activeIndex, displayItems, config }: Use
       const item = displayItems?.[activeIndex];
       if (e.code === "Enter" && item) {
         e.preventDefault();
+        const targetItemElement = document.querySelector<HTMLElement>(`[data-item-active="true"]`);
+        targetItemElement?.setAttribute("data-item-opening", "");
         const url = getItemUrl(config!.org, config!.project, item.id);
         navigateToUrl(url, e);
+        setTimeout(() => {
+          targetItemElement?.removeAttribute("data-item-opening");
+        }, 25);
       }
     },
     [activeIndex, config, displayItems]
