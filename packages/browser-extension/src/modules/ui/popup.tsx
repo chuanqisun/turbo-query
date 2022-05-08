@@ -132,7 +132,7 @@ export const PopupWindow: React.FC = () => {
   const handleSentinelFocus = useHandleSentinelFocus();
 
   useHandleEscapeGlobal(inputRef);
-  const { activeIndex, handleArrowKeys } = useKeyboardNavigatioe({ inputRef, displayItems });
+  const { activeIndex, handleArrowKeys } = useKeyboardNavigatioe({ inputRef, displayItems, query: debouncedQuery });
 
   const handleQueryKeyDown = useHandleQueryKeyDown({ activeIndex, config, displayItems });
 

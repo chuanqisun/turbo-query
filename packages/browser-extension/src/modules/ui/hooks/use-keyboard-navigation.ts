@@ -3,9 +3,10 @@ import { DisplayItem } from "../../service/utils/get-display-item";
 
 export interface UseKeyboardNavigationProps {
   displayItems?: DisplayItem[];
+  query: string;
   inputRef: React.RefObject<HTMLInputElement>;
 }
-export function useKeyboardNavigatioe({ displayItems, inputRef }: UseKeyboardNavigationProps) {
+export function useKeyboardNavigatioe({ displayItems, inputRef, query }: UseKeyboardNavigationProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const handleArrowKeys = useCallback<React.KeyboardEventHandler>(
     (e) => {
@@ -37,6 +38,10 @@ export function useKeyboardNavigatioe({ displayItems, inputRef }: UseKeyboardNav
     },
     [displayItems]
   );
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [query]);
 
   useEffect(() => {
     document.querySelector<HTMLElement>(`[data-item-active="true"]`)?.focus();
