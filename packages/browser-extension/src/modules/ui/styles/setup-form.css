@@ -1,5 +1,16 @@
+:root {
+  --page-background-color: #eaeaea;
+  --input-border-color: #666;
+  --input-background-color: white;
+  --key-name-border-color: #999;
+  --key-name-text-color: #333;
+  --key-name-background-color: white;
+  --label-hint-color: #333;
+  --table-border-color: #999;
+}
+
 body {
-  background-color: #eaeaea;
+  background-color: var(--page-background-color);
 }
 
 .form-actions {
@@ -34,8 +45,8 @@ body {
   padding: 4px 8px;
   font-size: 16px;
   border-radius: 4px;
-  border: 1px solid #666;
-  background-color: white;
+  border: 1px solid var(--input-border-color);
+  background-color: var(--input-background-color);
 }
 .form-section {
   display: grid;
@@ -43,15 +54,16 @@ body {
 }
 
 .key-name {
-  border: 1px solid #999;
+  border: 1px solid var(--key-name-border-color);
+  color: var(--key-name-text-color);
   border-radius: 4px;
-  background-color: white;
+  background-color: var(--key-name-background-color);
   padding-inline: 4px;
 }
 
 .label-hint {
   font-size: 14px;
-  color: #333;
+  color: var(--label-hint-color);
 }
 .label-hint a {
   color: inherit;
@@ -68,8 +80,8 @@ body {
   padding: 4px 8px;
   font-size: 16px;
   border-radius: 4px;
-  border: 1px solid #666;
-  background-color: white;
+  border: 1px solid var(--input-border-color);
+  background-color: var(--input-background-color);
 }
 
 .setup-window {
@@ -99,10 +111,14 @@ body {
 
 .shortcuts-table,
 .shortcuts-table :where(th, td) {
-  border: 1px solid #999;
+  border: 1px solid var(--table-border-color);
 }
 .shortcuts-table :where(th, td) {
   padding: 8px;
+}
+.shortcuts-tip {
+  font-size: 16px;
+  color: var(--label-hint-color);
 }
 
 .url-tooltip {

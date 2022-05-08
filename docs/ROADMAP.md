@@ -9,6 +9,7 @@
 # Maybe
 
 - Handle large query (20k+)
+- Tab cycling with vim binding (Ctrl+H, L)
 - Explore "fastupdate" on flexsearch to avoid swapping index
 - Multiple areas paths
 - Support custom include/exclude of item types
