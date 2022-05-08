@@ -5,7 +5,6 @@ import { RecentChangedUpdate } from "../service/emitters/recent-manager";
 import { SearchChangedUpdate } from "../service/emitters/search-manager";
 import { SearchRequest, SearchResponse } from "../service/handlers/handle-watch-search";
 import { DisplayItem } from "../service/utils/get-display-item";
-import { WorkItem } from "./components/work-item";
 import { useConfigGuard } from "./hooks/use-config-guard";
 import { useDebounce } from "./hooks/use-debounce";
 import {
@@ -18,6 +17,7 @@ import {
 } from "./hooks/use-event-handlers";
 import { useSync } from "./hooks/use-sync";
 import { useVirtualList } from "./hooks/use-virtual-list";
+import { copyDataHtml } from "./utils/clipboard";
 
 const DEBOUNCE_TIMEOUT = 25; // TODO: debounce + search latency should be less than 100ms for "instant" perception
 const worker = new Worker("./modules/service/worker.js");
@@ -128,6 +128,24 @@ export const PopupWindow: React.FC = () => {
 
   useHandleEscapeGlobal(inputRef);
 
+  const [activeIndex, setActiveIndex] = useState(0);
+  const handleArrowKeys = useCallback<React.KeyboardEventHandler>(
+    (e) => {
+      const count = searchResult?.length;
+      if (!count) return; // including 0
+
+      switch (e.key) {
+        case "ArrowDown":
+          setActiveIndex((prev) => (prev + 1) % count);
+          break;
+        case "ArrowUp":
+          setActiveIndex((prev) => (prev + count - 1) % count);
+          break;
+      }
+    },
+    [searchResult]
+  );
+
   const { VirtualListItem, setVirtualListRef, virtualListRef } = useVirtualList();
 
   return config ? (
@@ -142,7 +160,7 @@ export const PopupWindow: React.FC = () => {
             autoFocus
             value={activeQuery}
             onChange={handleInputChange}
-            placeholder="Search by title or field values…"
+            placeholder="Search by title or fields…"
           />
         </div>
       </div>
@@ -150,19 +168,93 @@ export const PopupWindow: React.FC = () => {
       <ul className="work-item-list" ref={setVirtualListRef}>
         {searchResult === undefined && <li className="work-item work-item--message">Waiting for data...</li>}
         {searchResult?.length === 0 && <li className="work-item work-item--message">No result found</li>}
-        {searchResult?.map((item, index) => (
-          <VirtualListItem key={item.id} forceVisible={index < 15 || index === searchResult?.length - 1} placeholderClassName="work-item__placeholder">
-            <WorkItem
-              config={config}
-              item={item}
-              handleClickToSelect={handleClickToSelect}
-              handleIconClick={handleIconClick}
-              handleLinkClick={handleLinkClick}
-              handleTextBlur={handleTextBlur}
-              handleTextFocus={handleTextFocus}
-            />
-          </VirtualListItem>
-        ))}
+        {searchResult?.map((item, index) => {
+          const itemUrl = `https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`;
+          return (
+            <VirtualListItem key={item.id} forceVisible={index < 15 || index === searchResult?.length - 1} placeholderClassName="work-item__placeholder">
+              <li className="work-item" key={item.id} data-active={index === activeIndex}>
+                <span className="work-item__state-interaction" title={`State: ${item.state}`}>
+                  <span
+                    className="work-item__state-bar"
+                    data-state-category={item.stateCategory}
+                    style={{ "--state-color": item.stateColor } as React.CSSProperties}
+                  />
+                </span>
+                <span
+                  onCopy={copyDataHtml}
+                  className="work-item__icon-interaction js-select-item-start"
+                  onClick={handleIconClick}
+                  data-copy-html={`<a href="${itemUrl}">${item.workItemType} ${item.id}: ${item.title}</a>`}
+                  title={`Type: ${item.workItemType} (Click to select type + ID + title)`}
+                >
+                  {item.iconUrl ? (
+                    <img className="work-item__icon" src={item.iconUrl} alt={item.workItemType} width={16} height={16} />
+                  ) : (
+                    <div className="work-item__icon" />
+                  )}
+                </span>
+                <div className="work-item__label-list">
+                  <span
+                    className="work-item__id work-item__matchable"
+                    data-matched={item.isIdMatched}
+                    tabIndex={0}
+                    title={`ID: ${item.id} (Click to select)`}
+                    data-copy-html={`<a href="${itemUrl}">${item.id}</a>`}
+                    onFocus={handleTextFocus}
+                    onBlur={handleTextBlur}
+                    onCopy={copyDataHtml}
+                    onClick={handleClickToSelect}
+                  >
+                    {item.id}
+                  </span>{" "}
+                  <a
+                    className="work-item__link js-select-item-end"
+                    target="_blank"
+                    onClick={handleLinkClick}
+                    onFocus={handleTextFocus}
+                    onBlur={handleTextBlur}
+                    onCopy={copyDataHtml}
+                    data-copy-html={`<a href="${itemUrl}">${item.title}</a>`}
+                    title={`Title: ${item.title} (Click to open, Alt + click to select)`}
+                    href={itemUrl}
+                    dangerouslySetInnerHTML={{ __html: item.titleHtml }}
+                  />{" "}
+                  {item.tags.length > 0 &&
+                    item.tags.map((tag, i) => (
+                      <React.Fragment key={i}>
+                        <span className="work-item__tag work-item__matchable" title={`Tag: ${tag}`} data-matched={item.isTagMatched?.[i]}>
+                          <span className="work-item__tag-overflow-guard">{tag}</span>
+                        </span>{" "}
+                      </React.Fragment>
+                    ))}
+                  <span className="work-item__state work-item__matchable" title={`State: ${item.state}`} data-matched={item.isStateMatched}>
+                    {item.state}
+                  </span>
+                  &nbsp;{"· "}
+                  <span className="work-item__type work-item__matchable" title={`Type: ${item.workItemType}`} data-matched={item.isWorkItemTypeMatched}>
+                    {item.workItemType}
+                  </span>
+                  &nbsp;{"· "}
+                  <span
+                    className="work-item__assigned-to work-item__matchable"
+                    title={`Assigned to: ${item.assignedTo.displayName}`}
+                    data-matched={item.isAssignedToUserMatched}
+                  >
+                    {item.assignedTo.displayName}
+                  </span>
+                  &nbsp;{"· "}
+                  <span
+                    className="work-item__path work-item__matchable"
+                    title={`Iteration: ${item.iterationPath}`}
+                    data-matched={item.isShortIterationPathMatched}
+                  >
+                    {item.shortIterationPath}
+                  </span>
+                </div>
+              </li>
+            </VirtualListItem>
+          );
+        })}
       </ul>
 
       {errors.length ? (
