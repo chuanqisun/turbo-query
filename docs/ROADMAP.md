@@ -1,6 +1,5 @@
 # Planned
 
-- Improve keyboard navigation: separate column and row movement (tab to cycle single item, arrow to cycle vertical, vim keys as secondary)
 - Support dark theme and handle `color-scheme: light dark;`
 - Remove network watcher. Handle offline during request
 - Investigate Performance impact due to Edge efficient mode

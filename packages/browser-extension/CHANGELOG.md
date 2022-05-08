@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## v1.6.0
 
-- Added: Keyboard navigation (arrow key + enter)
+- Added: Keyboard navigation
 - Improved: Color tweak
 
 ## v1.5.4
