@@ -1,4 +1,5 @@
 import React from "react";
+import { VISUAL_FEEDBACK_DELAY } from "../hooks/use-event-handlers";
 import { selectElementContent } from "./dom";
 
 export const copyDataHtml: React.ClipboardEventHandler<HTMLElement> = (e) => {
@@ -25,5 +26,5 @@ export const copyDataHtml: React.ClipboardEventHandler<HTMLElement> = (e) => {
       selection?.removeAllRanges();
       selection?.addRange(savedRange);
     }
-  }, 50); // Use timeout to introduce a small delay as visual feedback for successful copy
+  }, VISUAL_FEEDBACK_DELAY); // Use timeout to introduce a small delay as visual feedback for successful copy
 };

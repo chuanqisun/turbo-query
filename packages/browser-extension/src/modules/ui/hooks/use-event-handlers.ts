@@ -4,6 +4,8 @@ import { getItemUrl } from "../../service/ado/url";
 import { DisplayItem } from "../../service/utils/get-display-item";
 import { selectElementContent } from "../utils/dom";
 
+export const VISUAL_FEEDBACK_DELAY = 50;
+
 export function useHandleIconClick() {
   const handleIconClick: React.MouseEventHandler<HTMLElement> = useCallback((e) => {
     const li = (e.target as HTMLElement).closest("li");
@@ -15,32 +17,6 @@ export function useHandleIconClick() {
   }, []);
 
   return handleIconClick;
-}
-
-export function useHandleIconCopy() {
-  const handleIconCopy: React.ClipboardEventHandler<HTMLElement> = useCallback((e) => {
-    const li = (e.target as HTMLElement).closest("li");
-    const copyElement = li?.querySelector<HTMLElement>(".js-copy-target");
-    if (copyElement) {
-      // reveal content during copying
-      copyElement.classList.add("u-visually-hidden--copying");
-      selectElementContent(copyElement);
-
-      // setTimeout to allow browser to finish copying. The selection will flash briefly, which is desired as visual feedback.
-      setTimeout(() => {
-        copyElement.classList.remove("u-visually-hidden--copying");
-        // restore selection after
-        const li = (e.target as HTMLElement).closest("li");
-        const start = li?.querySelector<HTMLElement>(".js-select-item-start");
-        const end = li?.querySelector<HTMLElement>(".js-select-item-end");
-        if (start && end) {
-          selectElementContent(start, end);
-        }
-      }, 0);
-    }
-  }, []);
-
-  return handleIconCopy;
 }
 
 export interface UseHandleQueryKeyDownProps {
@@ -63,7 +39,7 @@ export function useHandleQueryKeyDown({ activeIndex, displayItems, config }: Use
         navigateToUrl(url, e);
         setTimeout(() => {
           targetItemElement?.removeAttribute("data-item-opening");
-        }, 25);
+        }, VISUAL_FEEDBACK_DELAY);
       }
     },
     [activeIndex, config, displayItems]
