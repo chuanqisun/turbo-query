@@ -5,6 +5,7 @@
 - Investigate Performance impact due to Edge efficient mode
 - Add links to GitHub on options page
 - Show release notes on options page
+- Handle full phrase match with duoble quotes
 
 # Maybe
 
