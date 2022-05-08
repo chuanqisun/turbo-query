@@ -272,7 +272,7 @@ export const SetupForm: React.FC = () => {
             <tr>
               <td>Select previous item</td>
               <td>
-                <kbd className="key-name">⇧</kbd> or <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">H</kbd>
+                <kbd className="key-name">⇧</kbd> or <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">K</kbd>
               </td>
             </tr>
             <tr>
@@ -312,13 +312,14 @@ export const SetupForm: React.FC = () => {
             <tr>
               <td>Select next field</td>
               <td>
-                <kbd className="key-name">Tab</kbd>
+                <kbd className="key-name">Tab</kbd> or <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">L</kbd>
               </td>
             </tr>
             <tr>
               <td>Select previous field</td>
               <td>
-                <kbd className="key-name">Shift</kbd> + <kbd className="key-name">Tab</kbd>
+                <kbd className="key-name">Shift</kbd> + <kbd className="key-name">Tab</kbd> or <kbd className="key-name">Ctrl</kbd> +{" "}
+                <kbd className="key-name">H</kbd>
               </td>
             </tr>
             <tr>

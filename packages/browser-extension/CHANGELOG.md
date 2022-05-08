@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.6.2
+
+- Improved: VIM-like navigation with <kbd>H</kbd>/<kbd>J</kbd>/<kbd>K</kbd>/<kbd>L</kbd> keys
+- Fixed: Typo in shortcuts
+
 ## v1.6.1
 
 - Improved: Visual feedback when opening item

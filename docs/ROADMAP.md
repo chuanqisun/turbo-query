@@ -9,7 +9,6 @@
 # Maybe
 
 - Handle large query (20k+)
-- Tab cycling with vim binding (Ctrl+H, L)
 - Generate HTML using clipboard API to remove font sizing styles
 - Explore "fastupdate" on flexsearch to avoid swapping index
 - Multiple areas paths
