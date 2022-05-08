@@ -3,6 +3,7 @@
 ## v1.6.2
 
 - Improved: VIM-like navigation with <kbd>H</kbd>/<kbd>J</kbd>/<kbd>K</kbd>/<kbd>L</kbd> keys
+- Improved: ID is copied as plaintext so pasting it after `#` can trigger auto-completion in Azure DevOps
 - Fixed: Typo in shortcuts
 
 ## v1.6.1

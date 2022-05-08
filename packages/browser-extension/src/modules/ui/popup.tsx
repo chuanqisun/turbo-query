@@ -21,7 +21,7 @@ import {
 import { useKeyboardNavigation } from "./hooks/use-keyboard-navigation";
 import { useSync } from "./hooks/use-sync";
 import { useVirtualList } from "./hooks/use-virtual-list";
-import { copyDataHtml } from "./utils/clipboard";
+import { copyDataHtml, copyDataText } from "./utils/clipboard";
 
 const DEBOUNCE_TIMEOUT = 25; // TODO: debounce + search latency should be less than 100ms for "instant" perception
 const worker = new Worker("./modules/service/worker.js");
@@ -194,10 +194,10 @@ export const PopupWindow: React.FC = () => {
                     data-matched={item.isIdMatched}
                     tabIndex={isActive ? 0 : -1}
                     title={`ID: ${item.id} (Click to select)`}
-                    data-copy-html={`<a href="${itemUrl}">${item.id}</a>`}
+                    data-copy-text={item.id}
                     onFocus={handleTextFocus}
                     onBlur={handleTextBlur}
-                    onCopy={copyDataHtml}
+                    onCopy={copyDataText}
                     onClick={handleClickToSelect}
                   >
                     {item.id}

@@ -9,7 +9,6 @@
 # Maybe
 
 - Handle large query (20k+)
-- Generate HTML using clipboard API to remove font sizing styles
 - Explore "fastupdate" on flexsearch to avoid swapping index
 - Multiple areas paths
 - Support custom include/exclude of item types
