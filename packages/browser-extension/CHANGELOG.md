@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Improved: Color tweak
+
 ## v1.5.4
 
 - Improved: Display indexer progress

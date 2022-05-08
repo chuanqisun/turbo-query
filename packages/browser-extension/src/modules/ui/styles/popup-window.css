@@ -1,6 +1,22 @@
 :root {
   --primary-highlight: rgb(75.45% 92.12% 91.99%);
   --secondary-highlight: rgb(91.45% 87.01% 98.39%);
+  --active-item-background: #ddd;
+  --id-text-color: rgba(0, 0, 0, 0.75);
+  --id-text-color-hover: rgba(0, 0, 0, 0.75);
+  --id-background-color-hover: rgba(0, 0, 0, 0.125);
+  --field-text-color: rgba(0, 0, 0, 0.625);
+  --title-color: black;
+  --tag-text-color: rgba(0, 0, 0, 0.625);
+  --tag-border-color: #b2b2b2;
+  --tag-background-color: white;
+  --state-unknown-background-color: #b2b2b2;
+  --state-removed-border-color: #b2b2b2;
+  --status-bar-normal-background-color: #eaeaea;
+  --status-bar-error-background-color: #fff4ce;
+  --matched-item-border-color: black;
+  --matched-item-text-color: black;
+  --query-background-color: white;
 }
 
 #root {
@@ -12,7 +28,7 @@ body {
 }
 
 .query-bar {
-  background: white;
+  background: var(--query-background-color);
 }
 
 .query-bar__input-group {
@@ -52,6 +68,9 @@ body {
   font-size: 14px;
   line-height: 18px;
 }
+.work-item[data-active="true"] {
+  background-color: var(--active-item-background);
+}
 
 .work-item__icon-interaction {
   cursor: cell;
@@ -69,17 +88,18 @@ body {
   height: 18px; /* Match indicator height when wrapping */
   display: inline-flex;
   align-items: center;
-  color: #333;
+  color: var(--id-text-color);
   cursor: default;
 }
 .work-item__id:hover {
-  background-color: #ccc;
+  color: var(--id-text-color-hover);
+  background-color: var(--id-background-color-hover);
 }
 
 .work-item__link {
   text-decoration: none;
   font-weight: 500;
-  color: black;
+  color: var(--title-color);
 
   overflow-wrap: break-word; /* not supported in Safari */
   word-break: break-word; /* deprecated in Chrome, but needed in Safari */
@@ -106,11 +126,11 @@ body {
   width: 4px;
   height: 18px;
   border-radius: 2px;
-  background-color: var(--state-color, #b2b2b2);
+  background-color: var(--state-color, var(--state-unknown-background-color));
 }
 .work-item__state-bar:where([data-state-category="Removed"]) {
   background-color: transparent;
-  border: 1px solid #b2b2b2;
+  border: 1px solid var(--state-removed-border-color);
 }
 .work-item__state-interaction {
   display: inline-block;
@@ -123,8 +143,9 @@ body {
   height: 18px;
   margin-block: 1px;
   padding-inline: 2px;
-  color: rgba(0, 0, 0, 0.5);
-  border: 1px solid #b2b2b2;
+  color: var(--tag-text-color);
+  background-color: var(--tag-background-color);
+  border: 1px solid var(--tag-border-color);
   border-radius: 2px;
   display: inline-flex;
   align-items: center;
@@ -141,24 +162,24 @@ body {
 .work-item__state,
 .work-item__path,
 .work-item__assigned-to {
-  color: #666;
+  color: var(--field-text-color);
   white-space: nowrap;
 }
 
 .work-item__matchable[data-matched="true"] {
   background-color: var(--secondary-highlight);
-  color: black;
-  border-color: black;
+  color: var(--matched-item-text-color);
+  border-color: var(--matched-item-border-color);
 }
 
 .status-bar {
   padding: 4px;
-  background: #eaeaea;
+  background: var(--status-bar-normal-background-color);
   font-size: 12px;
 }
 
 .status-bar--error {
-  background-color: #fff4ce;
+  background-color: var(--status-bar-error-background-color);
 }
 
 .status-bar__action {
