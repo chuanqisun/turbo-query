@@ -249,13 +249,13 @@ export const SetupForm: React.FC = () => {
         <table className="shortcuts-table">
           <tbody>
             <tr>
-              <td>Launch</td>
+              <td>Open/close extension</td>
               <td>
                 Click on the <img className="launch-icon" src="./Logo.svg" height={19} /> button in the extension tray area
               </td>
             </tr>
             <tr>
-              <td>Launch with keyboard</td>
+              <td>Open/close extension with keyboard</td>
               <td>
                 <kbd className="key-name">Alt</kbd> + <kbd className="key-name">A</kbd>, or customize at{" "}
                 <a href="chrome://extensions/shortcuts" onClick={handleLinkClick}>
@@ -300,7 +300,7 @@ export const SetupForm: React.FC = () => {
             <tr>
               <td>Open any item (new background tab)</td>
               <td>
-                <kbd className="key-name">Ctrl</kbd> + click on then Title
+                <kbd className="key-name">Ctrl</kbd> + click on the Title
               </td>
             </tr>
             <tr>
@@ -328,15 +328,15 @@ export const SetupForm: React.FC = () => {
               </td>
             </tr>
             <tr>
-              <td>Select ID field</td>
-              <td>Click on item ID</td>
+              <td>Select ID</td>
+              <td>Click on the ID</td>
             </tr>
             <tr>
-              <td>Select type + ID + Title</td>
-              <td>Click on item icon</td>
+              <td>Select Type + ID + Title</td>
+              <td>Click on the icon</td>
             </tr>
             <tr>
-              <td>Copy selected title or field(s)</td>
+              <td>Copy selected Title or field(s)</td>
               <td>
                 <kbd className="key-name">Ctrl</kbd> + <kbd className="key-name">C</kbd>
               </td>
