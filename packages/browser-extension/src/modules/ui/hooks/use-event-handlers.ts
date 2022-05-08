@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Config } from "../../service/ado/api-proxy";
 import { DisplayItem } from "../../service/utils/get-display-item";
 import { selectElementContent } from "../utils/dom";
@@ -124,4 +124,9 @@ export function useHandleTextFocus() {
 
 export function useHandleTextBlur() {
   return useCallback<React.FocusEventHandler>((_e: React.FocusEvent<HTMLSpanElement>) => window.getSelection()?.removeAllRanges(), []);
+}
+
+export function useHandleSentinelFocus() {
+  // trigger selection on sentinel focus
+  return useCallback<React.FocusEventHandler>((e) => e.target.closest(".work-item")?.querySelector<HTMLElement>(".js-select-item-trigger")?.click(), []);
 }

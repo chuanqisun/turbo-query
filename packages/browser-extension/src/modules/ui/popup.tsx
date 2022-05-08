@@ -13,6 +13,7 @@ import {
   useHandleIconClick,
   useHandleLinkClick,
   useHandleQueryKeydown,
+  useHandleSentinelFocus,
   useHandleTextBlur,
   useHandleTextFocus,
 } from "./hooks/use-event-handlers";
@@ -127,6 +128,7 @@ export const PopupWindow: React.FC = () => {
   const handleClickToSelect = useClickToSelect();
   const handleLinkClick = useHandleLinkClick();
   const handleIconClick = useHandleIconClick();
+  const handleSentinelFocus = useHandleSentinelFocus();
 
   useHandleEscapeGlobal(inputRef);
   const { activeIndex, handleArrowKeys } = useKeyboardNavigatioe({ inputRef, displayItems });
@@ -160,9 +162,11 @@ export const PopupWindow: React.FC = () => {
         {displayItems?.length === 0 && <li className="work-item work-item--message">No result found</li>}
         {displayItems?.map((item, index) => {
           const itemUrl = `https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`;
+          const isActive = index === activeIndex;
+
           return (
             <VirtualListItem key={item.id} forceVisible={index < 15 || index === displayItems?.length - 1} placeholderClassName="work-item__placeholder">
-              <li className="work-item" key={item.id} tabIndex={-1} data-item-active={index === activeIndex}>
+              <li className="work-item" key={item.id} tabIndex={-1} data-item-active={isActive}>
                 <span className="work-item__state-interaction" title={`State: ${item.state}`}>
                   <span
                     className="work-item__state-bar"
@@ -172,7 +176,7 @@ export const PopupWindow: React.FC = () => {
                 </span>
                 <span
                   onCopy={copyDataHtml}
-                  className="work-item__icon-interaction js-select-item-start"
+                  className="work-item__icon-interaction js-select-item-trigger js-select-item-start"
                   onClick={handleIconClick}
                   data-copy-html={`<a href="${itemUrl}">${item.workItemType} ${item.id}: ${item.title}</a>`}
                   title={`Type: ${item.workItemType} (Click to select type + ID + title)`}
@@ -187,7 +191,7 @@ export const PopupWindow: React.FC = () => {
                   <span
                     className="work-item__id work-item__matchable"
                     data-matched={item.isIdMatched}
-                    tabIndex={0}
+                    tabIndex={isActive ? 0 : -1}
                     title={`ID: ${item.id} (Click to select)`}
                     data-copy-html={`<a href="${itemUrl}">${item.id}</a>`}
                     onFocus={handleTextFocus}
@@ -197,9 +201,11 @@ export const PopupWindow: React.FC = () => {
                   >
                     {item.id}
                   </span>{" "}
+                  <span tabIndex={isActive ? 0 : -1} onFocus={handleSentinelFocus}></span>
                   <a
                     className="work-item__link js-select-item-end"
                     target="_blank"
+                    tabIndex={isActive ? 0 : -1}
                     onClick={handleLinkClick}
                     onFocus={handleTextFocus}
                     onBlur={handleTextBlur}
