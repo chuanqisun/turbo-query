@@ -12,7 +12,7 @@ import {
   useHandleEscapeGlobal,
   useHandleIconClick,
   useHandleLinkClick,
-  useHandleQueryKeydown,
+  useHandleQueryKeyDown,
   useHandleSentinelFocus,
   useHandleTextBlur,
   useHandleTextFocus,
@@ -133,7 +133,7 @@ export const PopupWindow: React.FC = () => {
   useHandleEscapeGlobal(inputRef);
   const { activeIndex, handleArrowKeys } = useKeyboardNavigatioe({ inputRef, displayItems });
 
-  const handleQueryKeyDown = useHandleQueryKeydown({ activeIndex, config, displayItems });
+  const handleQueryKeyDown = useHandleQueryKeyDown({ activeIndex, config, displayItems });
 
   const { VirtualListItem, setVirtualListRef, virtualListRef } = useVirtualList();
 

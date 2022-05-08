@@ -42,13 +42,13 @@ export function useHandleIconCopy() {
   return handleIconCopy;
 }
 
-export interface UseHandleQueryKeydownProps {
+export interface UseHandleQueryKeyDownProps {
   activeIndex: number;
   config?: Config;
   displayItems?: DisplayItem[];
 }
 
-export function useHandleQueryKeydown({ activeIndex, displayItems, config }: UseHandleQueryKeydownProps) {
+export function useHandleQueryKeyDown({ activeIndex, displayItems, config }: UseHandleQueryKeyDownProps) {
   return useCallback<React.KeyboardEventHandler>(
     (e: React.KeyboardEvent) => {
       if (!config) return;
