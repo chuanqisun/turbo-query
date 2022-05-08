@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { WorkerClient } from "../ipc/client";
+import { getItemUrl } from "../service/ado/url";
 import { RecentChangedUpdate } from "../service/emitters/recent-manager";
 import { SearchChangedUpdate } from "../service/emitters/search-manager";
 import { SearchRequest, SearchResponse } from "../service/handlers/handle-watch-search";
@@ -161,7 +162,7 @@ export const PopupWindow: React.FC = () => {
         {displayItems === undefined && <li className="work-item work-item--message">Waiting for data...</li>}
         {displayItems?.length === 0 && <li className="work-item work-item--message">No result found</li>}
         {displayItems?.map((item, index) => {
-          const itemUrl = `https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`;
+          const itemUrl = getItemUrl(config!.org, config!.project, item.id);
           const isActive = index === activeIndex;
 
           return (

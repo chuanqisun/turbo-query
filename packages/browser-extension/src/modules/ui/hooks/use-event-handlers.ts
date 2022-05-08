@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from "react";
 import { Config } from "../../service/ado/api-proxy";
+import { getItemUrl } from "../../service/ado/url";
 import { DisplayItem } from "../../service/utils/get-display-item";
 import { selectElementContent } from "../utils/dom";
 
@@ -56,7 +57,7 @@ export function useHandleQueryKeyDown({ activeIndex, displayItems, config }: Use
       const item = displayItems?.[activeIndex];
       if (e.code === "Enter" && item) {
         e.preventDefault();
-        const url = `https://dev.azure.com/${config!.org}/${config!.project}/_workitems/edit/${item.id}`;
+        const url = getItemUrl(config!.org, config!.project, item.id);
         navigateToUrl(url, e);
       }
     },
