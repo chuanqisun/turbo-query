@@ -152,7 +152,7 @@ export const PopupWindow: React.FC = () => {
             value={activeQuery}
             onChange={handleInputChange}
             onKeyDown={handleQueryKeyDown}
-            placeholder="Search by title or fields…"
+            placeholder="Title, Tags, ID or other fields…"
           />
         </div>
       </div>
