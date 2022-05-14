@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added: Use duoble quoted phrase for strict match
+
 ## v1.6.2
 
 - Improved: VIM-like navigation with <kbd>H</kbd>/<kbd>J</kbd>/<kbd>K</kbd>/<kbd>L</kbd> keys

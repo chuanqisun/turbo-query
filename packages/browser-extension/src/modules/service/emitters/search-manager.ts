@@ -1,7 +1,9 @@
-import { db } from "../../db/db";
+import { db, DbWorkItem } from "../../db/db";
 import { DisplayItem, getSearchDisplayItem } from "../utils/get-display-item";
+import { getFuzzyTitle } from "../utils/get-fuzzy-title";
 import { isDefined } from "../utils/guard";
 import { sortByState } from "../utils/sort";
+import { normalizeUnicode } from "../utils/string";
 import { IndexManager } from "./index-manager";
 import { MetadataManager } from "./metadata-manager";
 
@@ -67,8 +69,9 @@ export class SearchManager extends EventTarget {
 
     const matches = await (await this.#indexManager.getIndex()).searchAsync(query, { index: "fuzzyTokens" });
     const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
-    const queryTokens = this.#tokenize(query);
-    const queryTokensExact = this.#tokenizeExact(query);
+    const queryTokens = this.#getFieldMatchTokens(query);
+    const strictMatchTokens = this.#getStrictMatchTokens(query);
+    const queryTokensExact = this.#getTitleMatchTokens(query);
     let pattern: RegExp | undefined;
     try {
       pattern = new RegExp(`(${queryTokensExact.join("|")})`, "gi");
@@ -84,43 +87,46 @@ export class SearchManager extends EventTarget {
       this.#metadataManager.getMap(),
     ]);
 
-    const dbItemsSorted = dbItems.sort(sortByState.bind(null, metadataMap));
+    const dbItemsSorted = dbItems.filter(this.#isStrictMatched.bind(null, strictMatchTokens)).sort(sortByState.bind(null, metadataMap));
     const displayItems = dbItemsSorted.map(getSearchDisplayItem.bind(null, titleHighlighter, tokenMatcher, metadataMap));
 
     return displayItems;
   }
 
+  #isStrictMatched(strictMatchTokens: string[], dbItem: DbWorkItem) {
+    const fuzzyTitleNormalized = normalizeUnicode(getFuzzyTitle(dbItem));
+    return strictMatchTokens.every((token) => fuzzyTitleNormalized.includes(token));
+  }
+
   #isTokenMatch(queryTokens: string[], maybeToken: string) {
-    return queryTokens.some((token) =>
-      maybeToken
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "") // remove accent step 2
-        .toLocaleLowerCase()
-        .includes(token)
-    );
+    return queryTokens.some((token) => normalizeUnicode(maybeToken).includes(token));
   }
 
   #highlightFullText(pattern: RegExp, title: string) {
     return title.replace(pattern, (match) => `<mark>${match}</mark>`);
   }
 
-  #tokenize(input: string): string[] {
-    // Ref and credit: https://stackoverflow.com/questions/990904/remove-accents-diacritics-in-a-string-in-javascript
-    return input
-      .normalize("NFD") // remove accent step 1
-      .replace(/\p{Diacritic}/gu, "") // remove accent step 2
+  #getFieldMatchTokens(input: string): string[] {
+    return normalizeUnicode(input)
       .replace(/\s+/g, " ")
+      .replace(/"/g, "")
       .split(" ")
-      .map((token) => token.toLocaleLowerCase().trim())
+      .map((token) => token.trim())
       .filter((token) => token.length);
   }
 
-  #tokenizeExact(input: string): string[] {
+  #getTitleMatchTokens(input: string): string[] {
     return input
       .replace(/\s+/g, " ")
+      .replace(/"/g, "")
       .replace(/[#-.]|[[-^]|[?|{}]/g, "\\$&") // regex escapes, ref: https://stackoverflow.com/questions/6300183/sanitize-string-of-regex-characters-before-regexp-build
       .split(" ")
       .filter((token) => token.length);
+  }
+
+  /** Get all the phrases between quotes */
+  #getStrictMatchTokens(input: string): string[] {
+    return [...input.matchAll(/"(.+?)"/g)].map((matchResult) => normalizeUnicode(matchResult[1]));
   }
 }
 
