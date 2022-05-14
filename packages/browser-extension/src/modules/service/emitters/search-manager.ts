@@ -69,17 +69,17 @@ export class SearchManager extends EventTarget {
 
     const matches = await (await this.#indexManager.getIndex()).searchAsync(query, { index: "fuzzyTokens" });
     const titleMatchIds = matches.map((match) => match.result).flat() ?? [];
-    const queryTokens = this.#getFieldMatchTokens(query);
+    const fieldMatchTokens = this.#getFieldMatchTokens(query);
     const strictMatchTokens = this.#getStrictMatchTokens(query);
-    const queryTokensExact = this.#getTitleMatchTokens(query);
+    const titleMatchTokens = this.#getTitleMatchTokens(query);
     let pattern: RegExp | undefined;
     try {
-      pattern = new RegExp(`(${queryTokensExact.join("|")})`, "gi");
+      pattern = new RegExp(`(${titleMatchTokens.join("|")})`, "gi");
     } catch (e) {
       console.log(`[search-manager], RegExp error, skip title highlighting`, e);
     }
 
-    const tokenMatcher = this.#isTokenMatch.bind(null, queryTokens);
+    const tokenMatcher = this.#isTokenMatch.bind(null, fieldMatchTokens);
     const titleHighlighter = pattern ? this.#highlightFullText.bind(null, pattern) : (title: string) => title;
 
     const [dbItems, metadataMap] = await Promise.all([
@@ -87,7 +87,7 @@ export class SearchManager extends EventTarget {
       this.#metadataManager.getMap(),
     ]);
 
-    const dbItemsSorted = dbItems.filter(this.#isStrictMatched.bind(null, strictMatchTokens)).sort(sortByState.bind(null, metadataMap));
+    const dbItemsSorted = dbItems.filter(this.#isStrictMatched.bind(this, strictMatchTokens)).sort(sortByState.bind(null, metadataMap));
     const displayItems = dbItemsSorted.map(getSearchDisplayItem.bind(null, titleHighlighter, tokenMatcher, metadataMap));
 
     return displayItems;
@@ -95,19 +95,25 @@ export class SearchManager extends EventTarget {
 
   #isStrictMatched(strictMatchTokens: string[], dbItem: DbWorkItem) {
     const fuzzyTitleNormalized = normalizeUnicode(getFuzzyTitle(dbItem));
-    return strictMatchTokens.every((token) => fuzzyTitleNormalized.includes(token));
+    const fuzzyTitleCaseInsensitive = fuzzyTitleNormalized.toLocaleLowerCase();
+    return strictMatchTokens.every((token) => (this.#hasUpperCase(token) ? fuzzyTitleNormalized.includes(token) : fuzzyTitleCaseInsensitive.includes(token)));
   }
 
   #isTokenMatch(queryTokens: string[], maybeToken: string) {
-    return queryTokens.some((token) => normalizeUnicode(maybeToken).includes(token));
+    return queryTokens.some((token) => normalizeUnicode(maybeToken).toLocaleLowerCase().includes(token));
   }
 
   #highlightFullText(pattern: RegExp, title: string) {
     return title.replace(pattern, (match) => `<mark>${match}</mark>`);
   }
 
+  #hasUpperCase(input: string): boolean {
+    return input.toLocaleLowerCase() !== input;
+  }
+
   #getFieldMatchTokens(input: string): string[] {
     return normalizeUnicode(input)
+      .toLocaleLowerCase()
       .replace(/\s+/g, " ")
       .replace(/"/g, "")
       .split(" ")

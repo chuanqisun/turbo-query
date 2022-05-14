@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Added: Use duoble quoted phrase for strict match
+- Added: Strict match with smart case detection
 
 ## v1.6.2
 

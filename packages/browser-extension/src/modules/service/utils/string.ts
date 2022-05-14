@@ -3,6 +3,5 @@
 export function normalizeUnicode(raw: string): string {
   return raw
     .normalize("NFD") // remove accent step 1
-    .replace(/\p{Diacritic}/gu, "") // remove accent step 2
-    .toLocaleLowerCase();
+    .replace(/\p{Diacritic}/gu, ""); // remove accent step 2
 }
