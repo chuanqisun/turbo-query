@@ -2,7 +2,7 @@
 
 ## v1.7.0
 
-- Added: Use duoble quoted phrase for strict match
+- Added: Use double quoted phrase for strict match
 - Added: Strict match with smart case detection
 - Added: Query syntax reference
 
