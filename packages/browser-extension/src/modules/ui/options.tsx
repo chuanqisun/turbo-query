@@ -247,6 +247,12 @@ export const SetupForm: React.FC = () => {
           *MacOS users should use <kbd className="key-name">⌘</kbd> instead of <kbd className="key-name">Ctrl</kbd>
         </p>
         <table className="shortcuts-table">
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Shortcut</th>
+            </tr>
+          </thead>
           <tbody>
             <tr>
               <td>Open/close extension</td>
@@ -344,6 +350,50 @@ export const SetupForm: React.FC = () => {
             </tr>
           </tbody>
         </table>
+      </section>
+
+      <section className="syntax-section">
+        <h2>Query syntax</h2>
+        <p className="shortcuts-tip">*To require a phrase, surround it with double quotes ("")</p>
+        <p className="shortcuts-tip">**To require a case-sensitive phrase, use at least one uppercase letter</p>
+        <table className="shortcuts-table">
+          <thead>
+            <tr>
+              <th>Example</th>
+              <th>Explanation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="u-no-wrap">Hello world</td>
+              <td>Fuzzy search for "hello" and "world"</td>
+            </tr>
+            <tr>
+              <td className="u-no-wrap">Hello "world"</td>
+              <td>Fuzzy search for "hello" and require the phrase "world" (case-insensitive)</td>
+            </tr>
+            <tr>
+              <td className="u-no-wrap">Hello "World"</td>
+              <td>Fuzzy match for "hello" and required the phrase "World" (case-sensitive)</td>
+            </tr>
+            <tr>
+              <td className="u-no-wrap">"hello" "WORLD"</td>
+              <td>Require both "hello" (case-insensitive) and "WORLD" (case-sensitive)</td>
+            </tr>
+            <tr>
+              <td className="u-no-wrap">"hello world"</td>
+              <td>Require the phrase "hello world" (case-insensitive)</td>
+            </tr>
+            <tr>
+              <td className="u-no-wrap">"Hello world"</td>
+              <td>Require the phrase "Hello world" (case-sensitive)</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+      <section className="info-section">
+        <a href="https://github.com/chuanqisun/turbo-query">Open source</a> | <a href="https://github.com/chuanqisun/turbo-query/releases">Release notes</a> |{" "}
+        <a href="https://github.com/chuanqisun/turbo-query/issues/new">File an issue</a>
       </section>
     </div>
   );

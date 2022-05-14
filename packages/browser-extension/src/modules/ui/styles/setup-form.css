@@ -53,6 +53,11 @@ body {
   gap: 12px;
 }
 
+.info-section {
+  margin-top: 32px;
+  text-align: center;
+}
+
 .key-name {
   border: 1px solid var(--key-name-border-color);
   color: var(--key-name-text-color);
@@ -89,6 +94,8 @@ body {
   display: grid;
   gap: 16px;
   align-content: start;
+  padding-top: 32px;
+  padding-bottom: 64px;
 
   max-width: 800px;
   margin: auto;
@@ -111,6 +118,7 @@ body {
 
 .shortcuts-table,
 .shortcuts-table :where(th, td) {
+  text-align: left;
   border: 1px solid var(--table-border-color);
 }
 .shortcuts-table :where(th, td) {
@@ -119,10 +127,23 @@ body {
 .shortcuts-tip {
   font-size: 16px;
   color: var(--label-hint-color);
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+.shortcuts-tip + .shortcuts-tip {
+  margin-top: 8px;
+}
+
+.syntax-section {
+  margin-top: 32px;
 }
 
 .url-tooltip {
   cursor: help;
   text-decoration: underline;
   text-decoration-style: dotted;
+}
+
+.u-no-wrap {
+  white-space: nowrap;
 }
