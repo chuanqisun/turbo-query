@@ -1,5 +1,5 @@
 {
-  "name": "HITS Modern Container",
+  "name": "Turbo Query Dev Container",
   "build": {
     "dockerfile": "Dockerfile"
   },
