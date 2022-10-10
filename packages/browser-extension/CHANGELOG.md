@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.7.2
+
+- Fixed: More HTML character escape issue
+- Chore: React 18 and other dependency upgrades
+
 ## v1.7.1
 
 - Fixed: Issue #8 HTML characters were not escaped

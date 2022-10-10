@@ -4,10 +4,10 @@ export function useVirtualList() {
   const revealCallbacks = useRef(new WeakMap<Element, () => any>());
   const [observer, setObserver] = useState<IntersectionObserver>();
 
-  const virtualListRef = useRef<HTMLElement>();
-  const [containerNode, setContainerNode] = useState<HTMLElement>();
+  const virtualListRef = useRef<HTMLElement | null>(null);
+  const [containerNode, setContainerNode] = useState<HTMLElement | null>();
 
-  const setVirtualListRef = useCallback((node) => {
+  const setVirtualListRef = useCallback((node: HTMLElement| null) => {
     setContainerNode(node);
     virtualListRef.current = node;
   }, []);
@@ -71,4 +71,5 @@ export function useVirtualList() {
 export interface VirtualListItemProps {
   forceVisible?: boolean;
   placeholderClassName?: string;
+  children: JSX.Element[] | JSX.Element;
 }

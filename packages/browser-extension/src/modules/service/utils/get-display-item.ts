@@ -54,6 +54,6 @@ export function getRecentDisplayItem(metadataMap: MetadataMap, item: DbWorkItem)
     stateColor: `#${stateConfig?.color ?? FALLBACK_INDICATOR_HEX}`,
     stateCategory: stateConfig?.category ?? "Unknown",
     shortIterationPath: getShortIteration(item.iterationPath),
-    titleHtml: item.title,
+    titleHtml: escapeHtmlString(item.title),
   };
 }

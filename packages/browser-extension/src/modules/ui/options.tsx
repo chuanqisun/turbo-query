@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { WorkerClient } from "../ipc/client";
 import { getCompleteConfig, normalizeAreaPath } from "../service/ado/config";
 import { SyncContentRequest, SyncContentResponse, SyncContentUpdate } from "../service/handlers/handle-sync-content";
@@ -399,9 +399,8 @@ export const SetupForm: React.FC = () => {
   );
 };
 
-ReactDOM.render(
+createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <SetupForm />
-  </React.StrictMode>,
-  document.getElementById("root")
+  </React.StrictMode>
 );

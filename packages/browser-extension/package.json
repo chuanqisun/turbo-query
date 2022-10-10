@@ -7,19 +7,19 @@
     "build": "node scripts/build.js && node scripts/pack.js"
   },
   "dependencies": {
-    "dexie": "^3.2.1",
-    "flexsearch": "^0.7.21",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "dexie": "^3.2.2",
+    "flexsearch": "0.7.21",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.180",
+    "@types/chrome": "^0.0.197",
     "@types/flexsearch": "^0.7.3",
-    "@types/node": "^17.0.23",
-    "@types/react": "^17.0.33",
-    "@types/react-dom": "^17.0.10",
-    "prettier": "^2.6.1",
-    "esbuild": "^0.14.36",
+    "@types/node": "^18.8.3",
+    "@types/react": "^18.0.21",
+    "@types/react-dom": "^18.0.6",
+    "prettier": "^2.7.1",
+    "esbuild": "^0.15.10",
     "fs-extra": "^10.1.0"
   }
 }
