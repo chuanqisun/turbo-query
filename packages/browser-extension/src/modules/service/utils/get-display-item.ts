@@ -1,4 +1,5 @@
 import { DbWorkItem } from "../../db/db";
+import { escapeHtmlString } from "../../ui/utils/string";
 import { MetadataMap } from "../emitters/metadata-manager";
 import { getShortIteration } from "./iteration";
 
@@ -39,7 +40,7 @@ export function getSearchDisplayItem(
     stateColor: `#${stateConfig?.color ?? FALLBACK_INDICATOR_HEX}`,
     stateCategory: stateConfig?.category ?? "Unknown",
     shortIterationPath: shortIterationPath,
-    titleHtml: titleHtml(item.title),
+    titleHtml: titleHtml(escapeHtmlString(item.title)),
   };
 }
 

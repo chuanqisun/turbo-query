@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.7.1
+
+- Fixed: Issue #8 HTML characters were not escaped
+
 ## v1.7.0
 
 - Added: Use double quoted phrase for strict match
