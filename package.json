@@ -21,5 +21,8 @@
   "homepage": "https://github.com/chuanqisun/azure-devops-performance-edition#readme",
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "flexsearch": "^0.8.205"
+  }
 }
